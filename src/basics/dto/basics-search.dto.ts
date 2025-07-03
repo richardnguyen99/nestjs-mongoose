@@ -1,0 +1,115 @@
+import { z } from "zod";
+
+const transformSortOrder = (val: string | undefined) => {
+  if (val === "asc") return 1;
+
+  if (val === "desc") return -1;
+
+  return undefined;
+};
+
+const transformFilterType = (val: string | undefined) => {
+  if (typeof val === "undefined") {
+    return undefined;
+  }
+
+  return val.split(",").map((type) => type.trim());
+};
+
+const transformBooleanFilter = (val: string | undefined) => {
+  if (typeof val === "undefined") {
+    return undefined;
+  }
+
+  return val === "true";
+};
+
+export const basicsSearchSchema = z
+  .object({
+    q: z.string().min(1, "Search query must be at least 1 character long"),
+    limit: z
+      .string()
+      .default("10")
+      .transform((val) => {
+        const parsed = parseInt(val, 10);
+        return isNaN(parsed) || parsed < 1 ? 10 : parsed;
+      }),
+
+    page: z
+      .string()
+      .default("1")
+      .transform((val) => {
+        const parsed = parseInt(val, 10);
+        return isNaN(parsed) || parsed < 1 ? 1 : parsed;
+      }),
+
+    sort: z
+      .object({
+        startYear: z
+          .enum(["asc", "desc"])
+          .optional()
+          .transform(transformSortOrder),
+
+        primaryTitle: z
+          .enum(["asc", "desc"])
+          .optional()
+          .transform(transformSortOrder),
+
+        endYear: z
+          .enum(["asc", "desc"])
+          .optional()
+          .transform(transformSortOrder),
+      })
+      .optional()
+      .default({}),
+
+    filter: z
+      .object({
+        titleType: z.string().optional().transform(transformFilterType),
+
+        genres: z.string().optional().transform(transformFilterType),
+
+        isAdult: z
+          .enum(["true", "false"])
+          .optional()
+          .transform(transformBooleanFilter),
+
+        since: z
+          .string()
+          .optional()
+          .transform((val) => {
+            if (typeof val === "undefined") {
+              return undefined;
+            }
+
+            const parsed = parseInt(val, 10);
+            return isNaN(parsed) ? undefined : parsed;
+          }),
+
+        until: z
+          .string()
+          .optional()
+          .transform((val) => {
+            if (typeof val === "undefined") {
+              return undefined;
+            }
+
+            const parsed = parseInt(val, 10);
+            return isNaN(parsed) ? undefined : parsed;
+          }),
+
+        duration: z.enum(["short", "medium", "long"]).optional(),
+      })
+      .optional()
+      .default({}),
+  })
+  .required()
+  .refine((data) => {
+    if (data.filter?.until && data.filter?.since) {
+      return data.filter.until >= data.filter.since;
+    }
+
+    return true;
+  }, "`until` must be greater than or equal to `since` if both are provided");
+
+export type BasicsSearchDto = z.infer<typeof basicsSearchSchema>;

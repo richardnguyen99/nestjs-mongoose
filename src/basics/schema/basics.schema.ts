@@ -17,7 +17,12 @@ export class BasicsModel {
   /**
    * alphanumeric unique identifier of the title
    */
-  @Prop({ required: true, type: mongoose.Schema.Types.String, index: true })
+  @Prop({
+    required: true,
+    type: mongoose.Schema.Types.String,
+    index: true,
+    unique: true,
+  })
   tconst: string;
 
   /**
@@ -33,7 +38,18 @@ export class BasicsModel {
    *
    * primaryTitle can be empty for some titles
    */
-  @Prop({ required: true, type: mongoose.Schema.Types.String, index: true })
+  @Prop({
+    required: true,
+    type: mongoose.Schema.Types.String,
+
+    // Required for fast and efficient text search on primaryTitle
+    index: {
+      name: "text",
+      weights: {
+        primaryTitle: 1,
+      },
+    },
+  })
   primaryTitle: string;
 
   /**
@@ -75,11 +91,17 @@ export class BasicsModel {
    *
    * For example: "Action,Adventure,Sci-Fi"
    */
-  @Prop({ required: true, type: mongoose.Schema.Types.String })
+  @Prop({
+    required: true,
+    type: mongoose.Schema.Types.String,
+  })
   genres: string;
 
   /**
    * An array of genres derived from the genres string.
+   *
+   * This is a virtual field that is computed during the serialization process,
+   * not an actual field in the database.
    */
   @Virtual({
     options: {

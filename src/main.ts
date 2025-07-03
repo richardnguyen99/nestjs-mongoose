@@ -1,10 +1,13 @@
 import { NestFactory } from "@nestjs/core";
+import { VersioningType } from "@nestjs/common";
+import { NestExpressApplication } from "@nestjs/platform-express";
 
 import { AppModule } from "./app.module";
-import { VersioningType } from "@nestjs/common";
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
+  app.set("query parser", "extended");
 
   app.enableCors({
     origin: "*", // Allow all origins, adjust as needed for production
