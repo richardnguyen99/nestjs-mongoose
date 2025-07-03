@@ -3,9 +3,12 @@ import { VersioningType } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 
 import { AppModule } from "./app.module";
+import { HttpExceptionFilter } from "./filters/http-exception.filter";
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
+  app.useGlobalFilters(new HttpExceptionFilter());
 
   app.set("query parser", "extended");
 

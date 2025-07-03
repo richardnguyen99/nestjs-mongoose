@@ -20,6 +20,9 @@ export class BasicsService {
     genreArrays: 1,
   };
 
+  private readonly MEDIUM_RUNTIME_MINUTES = 40;
+  private readonly LONG_RUNTIME_MINUTES = 90;
+
   constructor(
     @InjectModel(BasicsModel.name) private basicsModel: Model<BasicsModel>,
   ) {}
@@ -65,13 +68,21 @@ export class BasicsService {
       if (options.filter.duration) {
         switch (options.filter.duration) {
           case "short":
-            query = query.where("runtimeMinutes").lte(40);
+            query = query
+              .where("runtimeMinutes")
+              .lte(this.MEDIUM_RUNTIME_MINUTES);
+
             break;
           case "medium":
-            query = query.where("runtimeMinutes").gt(40).lte(90);
+            query = query
+              .where("runtimeMinutes")
+              .gt(this.MEDIUM_RUNTIME_MINUTES)
+              .lte(this.LONG_RUNTIME_MINUTES);
+
             break;
           case "long":
-            query = query.where("runtimeMinutes").gt(90);
+            query = query.where("runtimeMinutes").gt(this.LONG_RUNTIME_MINUTES);
+
             break;
         }
       }

@@ -23,7 +23,6 @@ export class BasicsController {
   @UsePipes(new ZodValidationPipe(basicsSearchSchema))
   async searchByTitle(@Query() query: BasicsSearchDto) {
     const { q, limit, page, sort, filter } = query;
-    console.log("Search query:", query);
 
     const result = await this.basicsService.searchByTitle(q, {
       limit,
