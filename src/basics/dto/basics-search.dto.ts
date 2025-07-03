@@ -84,7 +84,15 @@ export const basicsSearchSchema = z
 
             const parsed = parseInt(val, 10);
             return isNaN(parsed) ? undefined : parsed;
-          }),
+          })
+          .pipe(
+            z
+              .number({
+                message: "Filter 'since' must be a valid year",
+              })
+              .gte(1890, "Year must be greater than or equal to 1890")
+              .optional(),
+          ),
 
         until: z
           .string()
@@ -96,7 +104,15 @@ export const basicsSearchSchema = z
 
             const parsed = parseInt(val, 10);
             return isNaN(parsed) ? undefined : parsed;
-          }),
+          })
+          .pipe(
+            z
+              .number({
+                message: "Filter 'until' must be a valid year",
+              })
+              .gte(1890, "Year must be greater than or equal to 1890")
+              .optional(),
+          ),
 
         duration: z.enum(["short", "medium", "long"]).optional(),
       })
@@ -104,12 +120,18 @@ export const basicsSearchSchema = z
       .default({}),
   })
   .required()
-  .refine((data) => {
-    if (data.filter?.until && data.filter?.since) {
-      return data.filter.until >= data.filter.since;
-    }
+  .refine(
+    (data) => {
+      if (data.filter?.until && data.filter?.since) {
+        return data.filter.until >= data.filter.since;
+      }
 
-    return true;
-  }, "`until` must be greater than or equal to `since` if both are provided");
+      return true;
+    },
+    {
+      path: ["filter", "until"],
+      message: "Filter 'until' must be greater than or equal to 'since'",
+    },
+  );
 
 export type BasicsSearchDto = z.infer<typeof basicsSearchSchema>;
