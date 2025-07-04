@@ -2,6 +2,15 @@ import { ArgumentsHost, Catch, ExceptionFilter } from "@nestjs/common";
 import { Response, Request } from "express";
 import { ZodError } from "zod";
 
+/**
+ * Exception filter for handling Zod validation errors in NestJS.
+ *
+ * This filter catches exceptions of type `ZodError` and formats the validation
+ * issues into a structured JSON response with HTTP status 400 (Bad Request).
+ *
+ * @catch ZodError
+ * @implements ExceptionFilter
+ */
 @Catch(ZodError)
 export class ZodExceptionFilter implements ExceptionFilter {
   catch(exception: ZodError, host: ArgumentsHost) {

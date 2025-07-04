@@ -6,6 +6,16 @@ import {
 } from "@nestjs/common";
 import { Response, Request } from "express";
 
+/**
+ * Exception filter for handling HTTP exceptions in NestJS.
+ *
+ * This filter catches exceptions of type `HttpException` and formats the
+ * validation issues into a structured JSON response with a corresponding HTTP
+ * status code from the exception.
+ *
+ * @catch HttpException
+ * @implements ExceptionFilter
+ */
 @Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter {
   catch(exception: HttpException, host: ArgumentsHost) {
