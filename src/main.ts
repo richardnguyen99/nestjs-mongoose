@@ -5,12 +5,15 @@ import { NestExpressApplication } from "@nestjs/platform-express";
 import { AppModule } from "./app.module";
 import { HttpExceptionFilter } from "./filters/http-exception.filter";
 import { ZodExceptionFilter } from "./filters/zod-exception.filter";
+import { ResponseInterceptor } from "./interceptors/response.interceptor";
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   app.useGlobalFilters(new HttpExceptionFilter());
   app.useGlobalFilters(new ZodExceptionFilter());
+
+  app.useGlobalInterceptors(new ResponseInterceptor());
 
   app.set("query parser", "extended");
 

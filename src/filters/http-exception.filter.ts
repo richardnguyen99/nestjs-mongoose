@@ -6,6 +6,8 @@ import {
 } from "@nestjs/common";
 import { Response, Request } from "express";
 
+import { ErrorResponse } from "src/interfaces/response.interface";
+
 /**
  * Exception filter for handling HTTP exceptions in NestJS.
  *
@@ -34,6 +36,6 @@ export class HttpExceptionFilter implements ExceptionFilter {
       timestamp: new Date().toISOString(),
       statusCode: status,
       message: exception.message,
-    });
+    } satisfies ErrorResponse);
   }
 }

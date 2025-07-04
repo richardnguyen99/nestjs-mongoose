@@ -2,6 +2,8 @@ import { ArgumentsHost, Catch, ExceptionFilter } from "@nestjs/common";
 import { Response, Request } from "express";
 import { ZodError } from "zod";
 
+import { ErrorResponse } from "src/interfaces/response.interface";
+
 /**
  * Exception filter for handling Zod validation errors in NestJS.
  *
@@ -33,6 +35,6 @@ export class ZodExceptionFilter implements ExceptionFilter {
       timestamp: new Date().toISOString(),
       statusCode: status,
       message: exceptionMessage,
-    });
+    } satisfies ErrorResponse);
   }
 }
