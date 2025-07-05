@@ -1,9 +1,10 @@
-import { Module } from "@nestjs/common";
+import { Module, MiddlewareConsumer } from "@nestjs/common";
 import { MongooseModule } from "@nestjs/mongoose";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 
 import { AppController } from "./app.controller";
-import { BasicsModule } from './basics/basics.module';
+import { BasicsModule } from "./basics/basics.module";
+import { RequestIdMiddleware } from "./middlewares/request-id.middleware";
 
 @Module({
   imports: [
@@ -29,4 +30,8 @@ import { BasicsModule } from './basics/basics.module';
   controllers: [AppController],
   providers: [],
 })
-export class AppModule {}
+export class AppModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(RequestIdMiddleware).forRoutes("*");
+  }
+}

@@ -17,7 +17,6 @@ export class BasicsService {
     endYear: 1,
     runtimeMinutes: 1,
     genres: 1,
-    genreArrays: 1,
   };
 
   private readonly MEDIUM_RUNTIME_MINUTES = 40;
@@ -25,7 +24,12 @@ export class BasicsService {
 
   constructor(
     @InjectModel(BasicsModel.name) private basicsModel: Model<BasicsModel>,
-  ) {}
+  ) {
+    // Ensure indexes are created
+    this.basicsModel.ensureIndexes().catch((error) => {
+      console.error("Error ensuring indexes:", error);
+    });
+  }
 
   async findById(id: string): Promise<BasicsModel | null> {
     return this.basicsModel.findById(id).exec();
@@ -54,7 +58,9 @@ export class BasicsService {
       }
 
       if (options.filter.genres) {
-        query = query.where("genres").in(options.filter.genres);
+        query = query.where("genreArrays").elemMatch({
+          $in: options.filter.genres.map((genre) => genre.trim()),
+        });
       }
 
       if (options.filter.since) {
@@ -103,11 +109,6 @@ export class BasicsService {
     const limit = options?.limit ?? 10;
     const skip = (page - 1) * limit;
 
-    return query
-      .skip(skip)
-      .limit(limit)
-      .sort(sort)
-      .select("-score -genreArrays")
-      .exec();
+    return query.skip(skip).limit(limit).sort(sort).select("-score").exec();
   }
 }

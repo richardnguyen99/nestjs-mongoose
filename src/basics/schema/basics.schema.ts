@@ -13,7 +13,7 @@ import * as mongoose from "mongoose";
     virtuals: true,
   },
 })
-export class BasicsModel {
+export class BasicsModel extends mongoose.Document {
   /**
    * alphanumeric unique identifier of the title
    */
@@ -41,14 +41,6 @@ export class BasicsModel {
   @Prop({
     required: true,
     type: mongoose.Schema.Types.String,
-
-    // Required for fast and efficient text search on primaryTitle
-    index: {
-      name: "text",
-      weights: {
-        primaryTitle: 1,
-      },
-    },
   })
   primaryTitle: string;
 
@@ -93,36 +85,25 @@ export class BasicsModel {
    */
   @Prop({
     required: true,
-    type: mongoose.Schema.Types.String,
+    type: mongoose.Schema.Types.Array,
+    of: mongoose.Schema.Types.String,
+    default: [],
   })
-  genres: string;
-
-  /**
-   * An array of genres derived from the genres string.
-   *
-   * This is a virtual field that is computed during the serialization process,
-   * not an actual field in the database.
-   */
-  @Virtual({
-    options: {
-      toJSON: {
-        virtuals: true,
-      },
-      toObject: {
-        virtuals: true,
-      },
-    },
-
-    get: function (this: BasicsModel) {
-      if (this.genres.length === 0) {
-        return [];
-      }
-
-      return this.genres.split(",");
-    },
-  })
-  genreArrays: string[];
+  genres: string[];
 }
 
 export const BasicsSchema = SchemaFactory.createForClass(BasicsModel);
 export type BasicsDocument = mongoose.HydratedDocument<BasicsModel>;
+
+BasicsSchema.index(
+  {
+    primaryTitle: "text",
+    originalTitle: "text",
+  },
+  {
+    weights: {
+      primaryTitle: 10,
+      originalTitle: 5,
+    },
+  },
+);

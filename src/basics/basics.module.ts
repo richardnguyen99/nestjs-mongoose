@@ -12,7 +12,9 @@ import { BasicsModel, BasicsSchema } from "./schema/basics.schema";
     MongooseModule.forFeatureAsync([
       {
         name: BasicsModel.name,
-        useFactory: () => {
+        useFactory: async () => {
+          console.log(BasicsSchema.indexes());
+
           return BasicsSchema;
         },
       },

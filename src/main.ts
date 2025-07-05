@@ -1,19 +1,24 @@
 import { NestFactory } from "@nestjs/core";
 import { VersioningType } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
+import mongoose from "mongoose";
 
 import { AppModule } from "./app.module";
 import { HttpExceptionFilter } from "./filters/http-exception.filter";
 import { ZodExceptionFilter } from "./filters/zod-exception.filter";
 import { ResponseInterceptor } from "./interceptors/response.interceptor";
+import { RequestIdInterceptor } from "./interceptors/request-id.interceptor";
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
+  mongoose.set("debug", process.env.NODE_ENV === "development");
 
   app.useGlobalFilters(new HttpExceptionFilter());
   app.useGlobalFilters(new ZodExceptionFilter());
 
   app.useGlobalInterceptors(new ResponseInterceptor());
+  app.useGlobalInterceptors(new RequestIdInterceptor());
 
   app.set("query parser", "extended");
 
