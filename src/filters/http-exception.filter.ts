@@ -3,6 +3,7 @@ import {
   Catch,
   ExceptionFilter,
   HttpException,
+  Logger,
 } from "@nestjs/common";
 import { Response, Request } from "express";
 
@@ -20,11 +21,23 @@ import { ErrorResponse } from "src/interfaces/response.interface";
  */
 @Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter {
+  private readonly logger = new Logger("HttpExceptionFilter");
+
   catch(exception: HttpException, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
     const status = exception.getStatus();
+    const requestId = request.headers["X-Request-Id"] ?? "unknown-request-id";
+
+    this.logger.error(`Http Exception Filter: ${exception?.message}`, {
+      exception,
+      body: request.body,
+      headers: request.headers,
+      url: request.url,
+      method: request.method,
+      requestId,
+    });
 
     response.status(status).json({
       requestCtx: {

@@ -37,6 +37,8 @@ export const loggerConfig = (): LoggerOptions => {
   const transports: Transport[] = [];
   transports.push(new Transports.Console());
 
+  // Different transports can goes here such as File, Axiom, etc.
+
   return {
     levels: logLevels,
     level: process.env.LOG_LEVEL ?? "info",

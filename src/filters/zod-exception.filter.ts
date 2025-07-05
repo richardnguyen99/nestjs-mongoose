@@ -1,4 +1,4 @@
-import { ArgumentsHost, Catch, ExceptionFilter } from "@nestjs/common";
+import { ArgumentsHost, Catch, ExceptionFilter, Logger } from "@nestjs/common";
 import { Response, Request } from "express";
 import { ZodError } from "zod";
 
@@ -15,6 +15,8 @@ import { ErrorResponse } from "src/interfaces/response.interface";
  */
 @Catch(ZodError)
 export class ZodExceptionFilter implements ExceptionFilter {
+  private readonly logger = new Logger("ZodExceptionFilter");
+
   catch(exception: ZodError, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
@@ -24,6 +26,17 @@ export class ZodExceptionFilter implements ExceptionFilter {
     const exceptionMessage = exception.issues.reduce((acc, issue) => {
       return `${issue.path.join(".")}: ${issue.message}\n${acc}`;
     }, "");
+
+    const requestId = request.headers["X-Request-Id"] ?? "unknown-request-id";
+
+    this.logger.error(`Zod Exception Filter: ${exception.message}`, {
+      exception,
+      body: request.body,
+      headers: request.headers,
+      url: request.url,
+      method: request.method,
+      requestId,
+    });
 
     response.status(status).json({
       requestCtx: {
