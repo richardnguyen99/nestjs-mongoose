@@ -5,6 +5,7 @@ import { ConfigModule, ConfigService } from "@nestjs/config";
 import { AppController } from "./app.controller";
 import { BasicsModule } from "./basics/basics.module";
 import { RequestIdMiddleware } from "./middlewares/request-id.middleware";
+import { HttpLoggerMiddleware } from "./middlewares/http-logger.middleware";
 
 @Module({
   imports: [
@@ -32,6 +33,10 @@ import { RequestIdMiddleware } from "./middlewares/request-id.middleware";
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(RequestIdMiddleware).forRoutes("*");
+    consumer
+      .apply(RequestIdMiddleware)
+      .forRoutes("*")
+      .apply(HttpLoggerMiddleware)
+      .forRoutes("*");
   }
 }

@@ -27,7 +27,9 @@ export class BasicsService {
   ) {
     // Ensure indexes are created
     this.basicsModel.ensureIndexes().catch((error) => {
-      console.error("Error ensuring indexes:", error);
+      console.error("Error creating indexes for BasicsModel:", error);
+
+      process.exit(1);
     });
   }
 

@@ -16,6 +16,14 @@
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
-    "noFallthroughCasesInSwitch": false
+    "noFallthroughCasesInSwitch": false,
+    "paths": {
+      "y/logger": [
+        "libs/libs/logger/src"
+      ],
+      "y/logger/*": [
+        "libs/libs/logger/src/*"
+      ]
+    }
   }
 }

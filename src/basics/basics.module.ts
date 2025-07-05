@@ -13,8 +13,6 @@ import { BasicsModel, BasicsSchema } from "./schema/basics.schema";
       {
         name: BasicsModel.name,
         useFactory: async () => {
-          console.log(BasicsSchema.indexes());
-
           return BasicsSchema;
         },
       },

@@ -1,18 +1,32 @@
 import { NestFactory } from "@nestjs/core";
-import { VersioningType } from "@nestjs/common";
+import { Logger, VersioningType } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import mongoose from "mongoose";
+import { WinstonModule } from "nest-winston";
 
 import { AppModule } from "./app.module";
 import { HttpExceptionFilter } from "./filters/http-exception.filter";
 import { ZodExceptionFilter } from "./filters/zod-exception.filter";
 import { ResponseInterceptor } from "./interceptors/response.interceptor";
 import { RequestIdInterceptor } from "./interceptors/request-id.interceptor";
+import { loggerConfig } from "./libs/logger";
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    logger: WinstonModule.createLogger(loggerConfig()),
+  });
 
-  mongoose.set("debug", process.env.NODE_ENV === "development");
+  mongoose.set("debug", (collectionName, method, query, doc) => {
+    if (process.env.NODE_ENV === "production") {
+      return;
+    }
+
+    const mongooseLogger = new Logger("Mongoose");
+
+    mongooseLogger.log(`${collectionName}.${method}(${JSON.stringify(query)})`);
+  });
+
+  const logger = new Logger("App");
 
   app.useGlobalFilters(new HttpExceptionFilter());
   app.useGlobalFilters(new ZodExceptionFilter());
@@ -36,5 +50,8 @@ async function bootstrap() {
   });
 
   await app.listen(3000);
+
+  logger.log(`Application started on port: 3000`);
 }
+
 bootstrap();
