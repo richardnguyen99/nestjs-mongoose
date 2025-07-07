@@ -2,6 +2,18 @@ import { ArgumentsHost, Catch, ExceptionFilter, Logger } from "@nestjs/common";
 import { Request, Response } from "express";
 import * as mongoose from "mongoose";
 
+/**
+ * Exception filter for handling Mongoose exceptions in NestJS.
+ *
+ * This filter catches exceptions of type `MongooseException` and formats the
+ * validation issues into a structured JSON response with a corresponding HTTP
+ * status code from the exception.
+ *
+ * @see https://mongoosejs.com/docs/api/error.html
+ *
+ * @catch mongoose.MongooseError
+ * @implements ExceptionFilter
+ */
 @Catch(mongoose.MongooseError)
 export class MongooseExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger("MongooseExceptionFilter");

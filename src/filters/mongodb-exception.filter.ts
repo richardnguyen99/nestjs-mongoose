@@ -4,6 +4,19 @@ import * as mongoose from "mongoose";
 
 import { ErrorResponse } from "src/interfaces/response.interface";
 
+/**
+ * Exception filter for handling MongoDB exceptions in NestJS.
+ *
+ * This filter catches exceptions of type `MongoServerError` and formats the
+ * validation issues into a structured JSON response with a corresponding HTTP
+ * status code from the exception.
+ *
+ * MongoDB errors are different from Mongoose Errors. They are relevant to
+ * schema definitions and validations, not driver-level errors.
+ *
+ * @catch mongoose.mongo.MongoServerError
+ * @implements ExceptionFilter
+ */
 @Catch(mongoose.mongo.MongoServerError)
 export class MongodbExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger("MongodbExceptionFilter");
