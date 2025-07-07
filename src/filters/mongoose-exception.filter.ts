@@ -1,4 +1,10 @@
-import { ArgumentsHost, Catch, ExceptionFilter, Logger } from "@nestjs/common";
+import {
+  ArgumentsHost,
+  Catch,
+  ExceptionFilter,
+  HttpStatus,
+  Logger,
+} from "@nestjs/common";
 import { Request, Response } from "express";
 import * as mongoose from "mongoose";
 
@@ -23,14 +29,15 @@ export class MongooseExceptionFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
 
-    let status = 500; // Default to 500 Internal Server Error
+    let status = HttpStatus.INTERNAL_SERVER_ERROR;
     let message = "Internal Server Error";
+    const requestId = request.headers["X-Request-Id"] ?? "unknown-request-id";
 
     if (exception instanceof mongoose.Error.CastError) {
-      status = 400; // Bad Request
+      status = HttpStatus.BAD_REQUEST;
       message = `Invalid value for field: <${exception.path}>. Value: <${exception.value}>`;
     } else if (exception instanceof mongoose.Error.ValidationError) {
-      status = 422; // Unprocessable Entity
+      status = HttpStatus.BAD_REQUEST;
       message = `Validation failed: ${Object.values(exception.errors)
         .map((err) => err.message)
         .join(", ")}`;

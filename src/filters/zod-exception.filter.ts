@@ -1,4 +1,10 @@
-import { ArgumentsHost, Catch, ExceptionFilter, Logger } from "@nestjs/common";
+import {
+  ArgumentsHost,
+  Catch,
+  ExceptionFilter,
+  HttpStatus,
+  Logger,
+} from "@nestjs/common";
 import { Response, Request } from "express";
 import { ZodError } from "zod";
 
@@ -21,7 +27,7 @@ export class ZodExceptionFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
-    const status = 400; // Bad Request
+    const status = HttpStatus.BAD_REQUEST;
 
     const exceptionMessage = exception.issues.reduce((acc, issue) => {
       return `${issue.path.join(".")}: ${issue.message}\n${acc}`;

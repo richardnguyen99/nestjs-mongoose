@@ -1,7 +1,10 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   NotFoundException,
   Param,
   Post,
@@ -24,12 +27,14 @@ export class BasicsController {
   constructor(private readonly basicsService: BasicsService) {}
 
   @Post()
+  @HttpCode(HttpStatus.CREATED)
   @UsePipes(new ZodValidationPipe(basicCreateSchema))
   async createBasic(@Body() body: BasicCreateDto) {
     return this.basicsService.createBasic(body);
   }
 
   @Get("search")
+  @HttpCode(HttpStatus.OK)
   @UsePipes(new ZodValidationPipe(basicsSearchSchema))
   async searchByTitle(@Query() query: BasicsSearchDto) {
     const { q, limit, page, sort, filter } = query;
@@ -45,8 +50,21 @@ export class BasicsController {
   }
 
   @Get(":tconst")
+  @HttpCode(HttpStatus.OK)
   async getByTconst(@Param("tconst") tconst: string) {
     const result = await this.basicsService.findByTconst(tconst);
+
+    if (!result) {
+      throw new NotFoundException(`Title with tconst=${tconst} not found`);
+    }
+
+    return result;
+  }
+
+  @Delete(":tconst")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteByTconst(@Param("tconst") tconst: string) {
+    const result = await this.basicsService.deleteByTconst(tconst);
 
     if (!result) {
       throw new NotFoundException(`Title with tconst=${tconst} not found`);

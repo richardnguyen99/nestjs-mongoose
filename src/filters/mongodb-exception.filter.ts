@@ -1,4 +1,10 @@
-import { ArgumentsHost, Catch, ExceptionFilter, Logger } from "@nestjs/common";
+import {
+  ArgumentsHost,
+  Catch,
+  ExceptionFilter,
+  HttpStatus,
+  Logger,
+} from "@nestjs/common";
 import { Request, Response } from "express";
 import * as mongoose from "mongoose";
 
@@ -25,19 +31,21 @@ export class MongodbExceptionFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
+    const requestId = request.headers["X-Request-Id"] ?? "unknown-request-id";
 
-    let status = 500; // Default to 500 Internal Server Error
+    let status = HttpStatus.INTERNAL_SERVER_ERROR;
     let message = "Internal Server Error";
 
+    // MongoDB-specific duplicate key error
     if (exception.code === 11000) {
       const errorMessage = Object.keys(exception.errorResponse.keyValue || {})
         .map((key) => `${key}=${exception.errorResponse.keyValue[key]}`)
         .join(",");
 
-      status = 409; // Conflict
+      status = HttpStatus.CONFLICT;
       message = `Duplicate key error: ${errorMessage}`;
     } else if (exception.name === "MongoNetworkError") {
-      status = 503; // Service Unavailable
+      status = HttpStatus.SERVICE_UNAVAILABLE;
       message = "Database connection error";
     }
 
@@ -47,6 +55,7 @@ export class MongodbExceptionFilter implements ExceptionFilter {
       headers: request.headers,
       url: request.url,
       method: request.method,
+      requestId,
     });
 
     response.status(status).json({

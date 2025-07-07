@@ -75,6 +75,10 @@ export class BasicsService {
     return this.basicsModel.findOne({ tconst }).exec();
   }
 
+  async deleteByTconst(tconst: string): Promise<BasicsModel | null> {
+    return this.basicsModel.findOneAndDelete({ tconst }).exec();
+  }
+
   async searchByTitle(
     title: string,
     options?: Omit<BasicsSearchDto, "q">,

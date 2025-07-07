@@ -1,6 +1,7 @@
 import {
   CallHandler,
   ExecutionContext,
+  HttpStatus,
   Injectable,
   NestInterceptor,
 } from "@nestjs/common";
@@ -21,6 +22,10 @@ export class ResponseInterceptor implements NestInterceptor {
 
     return next.handle().pipe(
       map((data) => {
+        if (response.statusCode === HttpStatus.NO_CONTENT) {
+          return null;
+        }
+
         return {
           statusCode: response.statusCode,
           message: this.getSuccessMessage(request.method),
