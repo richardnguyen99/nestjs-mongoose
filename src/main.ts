@@ -10,6 +10,8 @@ import { ZodExceptionFilter } from "./filters/zod-exception.filter";
 import { ResponseInterceptor } from "./interceptors/response.interceptor";
 import { RequestIdInterceptor } from "./interceptors/request-id.interceptor";
 import { loggerConfig } from "./libs/logger";
+import { MongooseExceptionFilter } from "./filters/mongoose-exception.filter";
+import { MongodbExceptionFilter } from "./filters/mongodb-exception.filter";
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -30,6 +32,8 @@ async function bootstrap() {
 
   app.useGlobalFilters(new HttpExceptionFilter());
   app.useGlobalFilters(new ZodExceptionFilter());
+  app.useGlobalFilters(new MongooseExceptionFilter());
+  app.useGlobalFilters(new MongodbExceptionFilter());
 
   app.useGlobalInterceptors(new ResponseInterceptor());
   app.useGlobalInterceptors(new RequestIdInterceptor());

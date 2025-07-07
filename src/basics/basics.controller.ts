@@ -1,8 +1,10 @@
 import {
+  Body,
   Controller,
   Get,
   NotFoundException,
   Param,
+  Post,
   Query,
   UsePipes,
   Version,
@@ -11,6 +13,8 @@ import {
 import { BasicsService } from "./basics.service";
 import { ZodValidationPipe } from "src/validations/zod-validation.pipe";
 import { BasicsSearchDto, basicsSearchSchema } from "./dto/basics-search.dto";
+import { BasicCreateDto, basicCreateSchema } from "./dto/basic.create.dto";
+import mongoose from "mongoose";
 
 @Controller({
   version: "1",
@@ -18,6 +22,12 @@ import { BasicsSearchDto, basicsSearchSchema } from "./dto/basics-search.dto";
 })
 export class BasicsController {
   constructor(private readonly basicsService: BasicsService) {}
+
+  @Post()
+  @UsePipes(new ZodValidationPipe(basicCreateSchema))
+  async createBasic(@Body() body: BasicCreateDto) {
+    return this.basicsService.createBasic(body);
+  }
 
   @Get("search")
   @UsePipes(new ZodValidationPipe(basicsSearchSchema))

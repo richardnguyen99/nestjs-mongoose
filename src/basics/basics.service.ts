@@ -1,12 +1,15 @@
 import { Model, Query } from "mongoose";
-import { Injectable } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 
 import { BasicsDocument, BasicsModel } from "./schema/basics.schema";
 import { BasicsSearchDto } from "./dto/basics-search.dto";
+import { BasicCreateDto } from "./dto/basic.create.dto";
 
 @Injectable()
 export class BasicsService {
+  private readonly logger = new Logger(BasicsService.name);
+
   private readonly selectedFields = {
     tconst: 1,
     titleType: 1,
@@ -31,6 +34,37 @@ export class BasicsService {
 
       process.exit(1);
     });
+  }
+
+  async createBasic(dto: BasicCreateDto): Promise<BasicsModel> {
+    const {
+      tconst,
+      titleType,
+      primaryTitle,
+      originalTitle,
+      isAdult,
+      startYear,
+      endYear,
+      runtimeMinutes,
+      genres,
+    } = dto;
+
+    this.logger.log(dto);
+
+    const basic = new this.basicsModel({
+      tconst,
+      titleType,
+      primaryTitle,
+      originalTitle,
+      isAdult: isAdult ? 1 : 0,
+      startYear: startYear,
+      endYear: endYear,
+      runtimeMinutes: runtimeMinutes,
+      genres: genres.map((genre) => genre.trim()),
+    });
+    basic.isNew = true;
+
+    return basic.save();
   }
 
   async findById(id: string): Promise<BasicsModel | null> {

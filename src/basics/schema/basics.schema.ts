@@ -107,3 +107,13 @@ BasicsSchema.index(
     },
   },
 );
+
+BasicsSchema.path("genres").validate(function (value) {
+  if (!Array.isArray(value)) {
+    return false;
+  }
+  return (
+    value.every((genre) => typeof genre === "string" && genre.trim() !== "") &&
+    value.length <= 3
+  );
+}, "Genres must be an array of up to 3 non-empty strings");
