@@ -3,11 +3,13 @@ import {
   Controller,
   Delete,
   Get,
+  Header,
   HttpCode,
   HttpStatus,
   NotFoundException,
   Param,
   Post,
+  Put,
   Query,
   UsePipes,
   Version,
@@ -16,8 +18,8 @@ import {
 import { BasicsService } from "./basics.service";
 import { ZodValidationPipe } from "src/validations/zod-validation.pipe";
 import { BasicsSearchDto, basicsSearchSchema } from "./dto/basics-search.dto";
-import { BasicCreateDto, basicCreateSchema } from "./dto/basic.create.dto";
-import mongoose from "mongoose";
+import { BasicCreateDto, basicCreateSchema } from "./dto/basic-create.dto";
+import { BasicUpdateDto, basicUpdateSchema } from "./dto/basic-update.dto";
 
 @Controller({
   version: "1",
@@ -28,6 +30,7 @@ export class BasicsController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
+  @Header("Cache-Control", "no-store")
   @UsePipes(new ZodValidationPipe(basicCreateSchema))
   async createBasic(@Body() body: BasicCreateDto) {
     return this.basicsService.createBasic(body);
@@ -71,5 +74,22 @@ export class BasicsController {
     }
 
     return result;
+  }
+
+  @Put(":tconst")
+  @Header("Cache-Control", "no-store")
+  @HttpCode(HttpStatus.OK)
+  @UsePipes(new ZodValidationPipe(basicUpdateSchema))
+  async updateBasicByTconst(
+    @Param("tconst") tconst: string,
+    @Body() body: BasicUpdateDto,
+  ) {
+    const updatedBasic = await this.basicsService.updateByTconst(tconst, body);
+
+    if (!updatedBasic) {
+      throw new NotFoundException(`Title with tconst=${tconst} not found`);
+    }
+
+    return updatedBasic;
   }
 }

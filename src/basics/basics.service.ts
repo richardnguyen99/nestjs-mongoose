@@ -4,7 +4,8 @@ import { InjectModel } from "@nestjs/mongoose";
 
 import { BasicsDocument, BasicsModel } from "./schema/basics.schema";
 import { BasicsSearchDto } from "./dto/basics-search.dto";
-import { BasicCreateDto } from "./dto/basic.create.dto";
+import { BasicCreateDto } from "./dto/basic-create.dto";
+import { BasicUpdateDto } from "./dto/basic-update.dto";
 
 @Injectable()
 export class BasicsService {
@@ -73,6 +74,15 @@ export class BasicsService {
 
   async findByTconst(tconst: string): Promise<BasicsModel | null> {
     return this.basicsModel.findOne({ tconst }).exec();
+  }
+
+  async updateByTconst(
+    tconst: string,
+    dto: BasicUpdateDto,
+  ): Promise<BasicsModel | null> {
+    return this.basicsModel
+      .findOneAndUpdate({ tconst }, { $set: dto }, { new: true })
+      .exec();
   }
 
   async deleteByTconst(tconst: string): Promise<BasicsModel | null> {

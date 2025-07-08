@@ -46,8 +46,8 @@ export const basicCreateSchema = z
 
     genres: z
       .array(z.string())
-      // .min(0)
-      // .max(3, "Genres can only store up to 3 items")
+      .min(0)
+      .max(3, "Genres can only store up to 3 items")
       .default([]),
   })
   .required();
