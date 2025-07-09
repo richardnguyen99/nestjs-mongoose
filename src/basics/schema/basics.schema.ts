@@ -1,5 +1,46 @@
+import { NotFoundException } from "@nestjs/common";
 import { Prop, Schema, SchemaFactory, Virtual } from "@nestjs/mongoose";
 import * as mongoose from "mongoose";
+
+const validateStartAndEndYears = (
+  err: mongoose.Error.ValidationError,
+  startYear: number,
+  endYear: number | null,
+) => {
+  if (endYear !== null && endYear < startYear) {
+    err.addError(
+      "startYear-endYear",
+      new mongoose.Error.ValidatorError({
+        path: "startYear-endYear",
+        message: `endYear cannot be before startYear. Received startYear=${startYear} and endYear=${endYear}`,
+      }),
+    );
+  }
+
+  return true;
+};
+
+const validateTitleTypeAndEndYear = (
+  err: mongoose.Error.ValidationError,
+  titleType: string,
+  endYear: number | null,
+) => {
+  if (
+    titleType !== "tvSeries" &&
+    titleType !== "tvMiniSeries" &&
+    endYear !== null
+  ) {
+    err.addError(
+      "titleType-endYear",
+      new mongoose.Error.ValidatorError({
+        path: "titleType-endYear",
+        message: `Specific endYear must be specified for TV Series or Mini Series. Received endYear=${endYear} and titleType=${titleType}`,
+      }),
+    );
+  }
+
+  return true;
+};
 
 @Schema({
   versionKey: false, // Disable the __v field
@@ -68,7 +109,10 @@ export class BasicsModel extends mongoose.Document {
   /**
    * TV Series end year. null for all other title types
    */
-  @Prop({ type: mongoose.Schema.Types.Number })
+  @Prop({
+    type: mongoose.Schema.Types.Number,
+    default: null,
+  })
   endYear: number | null;
 
   /**
@@ -117,3 +161,28 @@ BasicsSchema.path("genres").validate(function (value) {
     value.length <= 3
   );
 }, "Genres must be an array of up to 3 non-empty strings");
+
+BasicsSchema.pre("findOneAndUpdate", async function (next) {
+  const update = this.getUpdate() || {};
+  const doc = await this.model.findOne<BasicsModel>(this.getQuery()).lean();
+
+  if (!doc) {
+    return next(new NotFoundException("Document not found"));
+  }
+
+  let updated = { ...doc };
+  const err = new mongoose.Error.ValidationError();
+
+  if (update["$set"]) {
+    updated = { ...updated, ...update["$set"] };
+  }
+
+  validateStartAndEndYears(err, updated.startYear, updated.endYear);
+  validateTitleTypeAndEndYear(err, updated.titleType, updated.endYear);
+
+  if (err.errors && Object.keys(err.errors).length > 0) {
+    return next(err);
+  }
+
+  next();
+});

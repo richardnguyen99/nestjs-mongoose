@@ -81,7 +81,11 @@ export class BasicsService {
     dto: BasicUpdateDto,
   ): Promise<BasicsModel | null> {
     return this.basicsModel
-      .findOneAndUpdate({ tconst }, { $set: dto }, { new: true })
+      .findOneAndUpdate(
+        { tconst },
+        { $set: dto },
+        { new: true, runValidators: true },
+      )
       .exec();
   }
 

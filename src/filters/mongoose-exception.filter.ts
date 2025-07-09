@@ -38,9 +38,9 @@ export class MongooseExceptionFilter implements ExceptionFilter {
       message = `Invalid value for field: <${exception.path}>. Value: <${exception.value}>`;
     } else if (exception instanceof mongoose.Error.ValidationError) {
       status = HttpStatus.BAD_REQUEST;
-      message = `Validation failed: ${Object.values(exception.errors)
-        .map((err) => err.message)
-        .join(", ")}`;
+      message = Object.values(exception.errors)
+        .map((err) => `(Validation Error) ${err.path}: ${err.message}`)
+        .join("\n");
     }
 
     this.logger.error(`Mongoose Exception Filter: ${exception.message}`, {
@@ -49,6 +49,7 @@ export class MongooseExceptionFilter implements ExceptionFilter {
       headers: request.headers,
       url: request.url,
       method: request.method,
+      requestId,
     });
 
     response.status(status).json({
