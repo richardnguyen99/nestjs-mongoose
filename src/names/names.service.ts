@@ -48,4 +48,8 @@ export class NamesService {
   async findByNconst(nconst: string): Promise<NamesModel | null> {
     return this.namesModel.findOne({ nconst }).exec();
   }
+
+  async deleteByNconst(nconst: string): Promise<NamesModel | null> {
+    return this.namesModel.findOneAndDelete({ nconst }).exec();
+  }
 }

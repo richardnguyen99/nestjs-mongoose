@@ -79,8 +79,13 @@ export class NamesController {
   @Delete(":nconst")
   @HttpCode(HttpStatus.NO_CONTENT)
   @Header("Cache-Control", "no-store")
-  @Header("Content-Type", "application/json")
   async deleteByNconst(@Param("nconst") nconst: string) {
-    return {};
+    const deletedName = await this.namesService.deleteByNconst(nconst);
+
+    if (!deletedName) {
+      throw new NotFoundException(`Name with nconst=${nconst} not found`);
+    }
+
+    return deletedName;
   }
 }
