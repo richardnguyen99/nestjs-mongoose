@@ -3,6 +3,7 @@ import { Model } from "mongoose";
 import { InjectModel } from "@nestjs/mongoose";
 
 import { NamesModel } from "./schema/names.schema";
+import { NameCreateDto } from "./dto/name-create.dto";
 
 @Injectable()
 export class NamesService {
@@ -17,6 +18,31 @@ export class NamesService {
 
       process.exit(1);
     });
+  }
+
+  async create(dto: NameCreateDto): Promise<NamesModel> {
+    const {
+      nconst,
+      primaryName,
+      birthYear,
+      deathYear,
+      primaryProfession,
+      knownForTitles,
+    } = dto;
+
+    this.logger.log(dto);
+
+    const createdName = new this.namesModel({
+      nconst,
+      primaryName,
+      birthYear,
+      deathYear: deathYear ?? null,
+      primaryProfession: primaryProfession.map((p) => p.trim()),
+      knownForTitles: knownForTitles.map((t) => t.trim()),
+    });
+    createdName.isNew = true;
+
+    return createdName.save();
   }
 
   async findByNconst(nconst: string): Promise<NamesModel | null> {

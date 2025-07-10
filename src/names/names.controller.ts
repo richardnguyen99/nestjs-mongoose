@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   Delete,
   Get,
@@ -9,9 +10,12 @@ import {
   Param,
   Post,
   Put,
+  UsePipes,
 } from "@nestjs/common";
 
 import { NamesService } from "./names.service";
+import { ZodValidationPipe } from "src/validations/zod-validation.pipe";
+import { nameCreateSchema, NameCreateDto } from "src/names/dto/name-create.dto";
 
 @Controller({
   version: "1",
@@ -31,9 +35,15 @@ export class NamesController {
   @Post("/")
   @HttpCode(HttpStatus.CREATED)
   @Header("Cache-Control", "no-store")
-  @Header("Content-Type", "application/json")
-  async createName() {
-    return {};
+  @UsePipes(new ZodValidationPipe(nameCreateSchema))
+  async createName(@Body() dto: NameCreateDto) {
+    const createName = await this.namesService.create(dto);
+
+    if (!createName) {
+      throw new NotFoundException("Failed to create name");
+    }
+
+    return createName;
   }
 
   @Get("search")

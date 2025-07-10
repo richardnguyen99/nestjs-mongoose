@@ -81,12 +81,10 @@ NamesSchema.path("primaryProfession").validate(function (value) {
 });
 
 NamesSchema.path("knownForTitles").validate(function (value) {
+  console.log("Validating knownForTitles:", value);
   if (!Array.isArray(value)) {
     return false;
   }
 
-  return (
-    value.every((item) => typeof item === "string" && item.trim() !== "") &&
-    value.length <= 3
-  );
+  return value.every((item) => typeof item === "string" && item.trim() !== "");
 });

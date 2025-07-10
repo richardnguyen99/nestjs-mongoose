@@ -12,7 +12,6 @@ import {
   Put,
   Query,
   UsePipes,
-  Version,
 } from "@nestjs/common";
 
 import { BasicsService } from "./basics.service";
