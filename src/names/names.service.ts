@@ -4,6 +4,7 @@ import { InjectModel } from "@nestjs/mongoose";
 
 import { NamesModel } from "./schema/names.schema";
 import { NameCreateDto } from "./dto/name-create.dto";
+import { NameUpdateDto, nameUpdateSchema } from "./dto/name-update.dto";
 
 @Injectable()
 export class NamesService {
@@ -45,11 +46,29 @@ export class NamesService {
     return createdName.save();
   }
 
+  async update(nconst: string, dto: NameUpdateDto): Promise<NamesModel | null> {
+    return this.namesModel
+      .findOneAndUpdate(
+        { nconst },
+        { $set: dto },
+        {
+          new: true,
+          runValidators: true,
+        },
+      )
+      .lean()
+      .exec();
+  }
+
+  async findById(id: string): Promise<NamesModel | null> {
+    return this.namesModel.findById(id).lean().exec();
+  }
+
   async findByNconst(nconst: string): Promise<NamesModel | null> {
     return this.namesModel.findOne({ nconst }).exec();
   }
 
   async deleteByNconst(nconst: string): Promise<NamesModel | null> {
-    return this.namesModel.findOneAndDelete({ nconst }).exec();
+    return this.namesModel.findOneAndDelete({ nconst }).lean().exec();
   }
 }

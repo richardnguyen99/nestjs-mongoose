@@ -86,11 +86,12 @@ export class BasicsService {
         { $set: dto },
         { new: true, runValidators: true },
       )
+      .lean()
       .exec();
   }
 
   async deleteByTconst(tconst: string): Promise<BasicsModel | null> {
-    return this.basicsModel.findOneAndDelete({ tconst }).exec();
+    return this.basicsModel.findOneAndDelete({ tconst }).lean().exec();
   }
 
   async searchByTitle(

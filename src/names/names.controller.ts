@@ -16,6 +16,7 @@ import {
 import { NamesService } from "./names.service";
 import { ZodValidationPipe } from "src/validations/zod-validation.pipe";
 import { nameCreateSchema, NameCreateDto } from "src/names/dto/name-create.dto";
+import { NameUpdateDto, nameUpdateSchema } from "./dto/name-update.dto";
 
 @Controller({
   version: "1",
@@ -72,8 +73,18 @@ export class NamesController {
   @HttpCode(HttpStatus.OK)
   @Header("Cache-Control", "no-store")
   @Header("Content-Type", "application/json")
-  async updateByNconst(@Param("nconst") nconst: string) {
-    return {};
+  @UsePipes(new ZodValidationPipe(nameUpdateSchema))
+  async updateByNconst(
+    @Param("nconst") nconst: string,
+    @Body() dto: NameUpdateDto,
+  ) {
+    const updatedName = await this.namesService.update(nconst, dto);
+
+    if (!updatedName) {
+      throw new NotFoundException(`Name with nconst=${nconst} not found`);
+    }
+
+    return updatedName;
   }
 
   @Delete(":nconst")
