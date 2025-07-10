@@ -18,4 +18,8 @@ export class NamesService {
       process.exit(1);
     });
   }
+
+  async findByNconst(nconst: string): Promise<NamesModel | null> {
+    return this.namesModel.findOne({ nconst }).exec();
+  }
 }

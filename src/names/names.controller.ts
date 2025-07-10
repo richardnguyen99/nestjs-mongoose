@@ -5,6 +5,7 @@ import {
   Header,
   HttpCode,
   HttpStatus,
+  NotFoundException,
   Param,
   Post,
   Put,
@@ -48,7 +49,13 @@ export class NamesController {
   @Header("Cache-Control", "no-store")
   @Header("Content-Type", "application/json")
   async getByNconst(@Param("nconst") nconst: string) {
-    return {};
+    const name = await this.namesService.findByNconst(nconst);
+
+    if (!name) {
+      throw new NotFoundException(`Name with nconst=${nconst} not found`);
+    }
+
+    return name;
   }
 
   @Put(":nconst")
