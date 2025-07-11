@@ -1,10 +1,11 @@
-import { Injectable, Logger } from "@nestjs/common";
+import { BadRequestException, Injectable, Logger } from "@nestjs/common";
 import { Model } from "mongoose";
 import { InjectModel } from "@nestjs/mongoose";
 
 import { NamesModel } from "./schema/names.schema";
 import { NameCreateDto } from "./dto/name-create.dto";
 import { NameUpdateDto, nameUpdateSchema } from "./dto/name-update.dto";
+import { NameSearchDto } from "./dto/name-search.dto";
 
 @Injectable()
 export class NamesService {
@@ -58,6 +59,68 @@ export class NamesService {
       )
       .lean()
       .exec();
+  }
+
+  async search(
+    searchName: NameSearchDto["q"],
+    options: Omit<NameSearchDto, "q">,
+  ): Promise<NamesModel[]> {
+    let query = this.namesModel.find(
+      { $text: { $search: searchName } },
+      { score: { $meta: "textScore" } },
+    );
+
+    console.log(options);
+
+    if (options.filter) {
+      if (options.filter.profession) {
+        const professions = Array.isArray(options.filter.profession)
+          ? options.filter.profession
+          : [options.filter.profession];
+
+        query = query.where("primaryProfession").in(professions);
+      }
+
+      if (options.filter.appearInTitles) {
+        const titles = Array.isArray(options.filter.appearInTitles)
+          ? options.filter.appearInTitles
+          : [options.filter.appearInTitles];
+
+        query = query.where("knownForTitles").in(titles);
+      }
+
+      if (typeof options.filter.alive !== "undefined") {
+        query = query.where("birthYear").ne(null);
+
+        if (options.filter.alive) {
+          query = query.where("deathYear").equals(null);
+        } else {
+          query = query.where("deathYear").ne(null);
+        }
+      }
+
+      if (options.filter.from) {
+        query = query.where("birthYear").gte(options.filter.from);
+      }
+    }
+
+    if (options.sort) {
+      if (options.sort.birthYear) {
+        query = query.sort({ birthYear: options.sort.birthYear });
+      }
+
+      if (options.sort.mostAppearance) {
+        query = query.sort({ mostAppearance: options.sort.mostAppearance });
+      }
+    } else {
+      query = query.sort({ score: { $meta: "textScore" } });
+    }
+
+    const page = options.page;
+    const limit = options.limit;
+    const skip = (page - 1) * limit;
+
+    return query.skip(skip).limit(limit).lean().exec();
   }
 
   async findById(id: string): Promise<NamesModel | null> {

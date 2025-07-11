@@ -70,6 +70,44 @@ export const baseNameQuerySchema = z.object({
         .enum(["true", "false", "0", "1"])
         .transform(booleanishTypeTransformer)
         .optional(),
+
+      from: z
+        .string()
+        .optional()
+        .transform((val) => {
+          if (typeof val === "undefined") {
+            return undefined;
+          }
+
+          const parsed = parseInt(val, 10);
+          return isNaN(parsed) ? undefined : parsed;
+        })
+        .pipe(
+          z
+            .number({
+              message: "Filter 'From' must be a valid year",
+            })
+            .optional(),
+        ),
+
+      until: z
+        .string()
+        .optional()
+        .transform((val) => {
+          if (typeof val === "undefined") {
+            return undefined;
+          }
+
+          const parsed = parseInt(val, 10);
+          return isNaN(parsed) ? undefined : parsed;
+        })
+        .pipe(
+          z
+            .number({
+              message: "Filter 'until' must be a valid year",
+            })
+            .optional(),
+        ),
     })
     .optional(),
 });

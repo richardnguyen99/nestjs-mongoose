@@ -54,10 +54,13 @@ export class NamesController {
   @Header("Cache-Control", "no-store")
   @Header("Content-Type", "application/json")
   @UsePipes(new ZodValidationPipe(nameSearchSchema))
-  async searchByName(@Query() options: NameSearchDto) {
-    console.log(options);
+  async searchByName(@Query() dto: NameSearchDto) {
+    console.log(dto);
 
-    return [];
+    const { q, ...options } = dto;
+    const results = await this.namesService.search(q, options);
+
+    return results;
   }
 
   @Get(":nconst")
