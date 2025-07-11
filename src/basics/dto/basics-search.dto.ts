@@ -1,28 +1,10 @@
 import { z } from "zod";
 
-const transformSortOrder = (val: string | undefined) => {
-  if (val === "asc") return 1;
-
-  if (val === "desc") return -1;
-
-  return undefined;
-};
-
-const transformFilterType = (val: string | undefined) => {
-  if (typeof val === "undefined") {
-    return undefined;
-  }
-
-  return val.split(",").map((type) => type.trim());
-};
-
-const transformBooleanFilter = (val: string | undefined) => {
-  if (typeof val === "undefined") {
-    return undefined;
-  }
-
-  return val === "true";
-};
+import {
+  booleanTypeTransformer,
+  filterTypeTransformer,
+  sortOrderTransformer,
+} from "src/libs/zod/transformers";
 
 export const basicsSearchSchema = z
   .object({
@@ -48,31 +30,31 @@ export const basicsSearchSchema = z
         startYear: z
           .enum(["asc", "desc"])
           .optional()
-          .transform(transformSortOrder),
+          .transform(sortOrderTransformer),
 
         primaryTitle: z
           .enum(["asc", "desc"])
           .optional()
-          .transform(transformSortOrder),
+          .transform(sortOrderTransformer),
 
         endYear: z
           .enum(["asc", "desc"])
           .optional()
-          .transform(transformSortOrder),
+          .transform(sortOrderTransformer),
       })
       .optional()
       .default({}),
 
     filter: z
       .object({
-        titleType: z.string().optional().transform(transformFilterType),
+        titleType: z.string().optional().transform(filterTypeTransformer),
 
-        genres: z.string().optional().transform(transformFilterType),
+        genres: z.string().optional().transform(filterTypeTransformer),
 
         isAdult: z
           .enum(["true", "false"])
           .optional()
-          .transform(transformBooleanFilter),
+          .transform(booleanTypeTransformer),
 
         since: z
           .string()

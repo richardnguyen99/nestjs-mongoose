@@ -10,6 +10,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   UsePipes,
 } from "@nestjs/common";
 
@@ -17,6 +18,7 @@ import { NamesService } from "./names.service";
 import { ZodValidationPipe } from "src/validations/zod-validation.pipe";
 import { nameCreateSchema, NameCreateDto } from "src/names/dto/name-create.dto";
 import { NameUpdateDto, nameUpdateSchema } from "./dto/name-update.dto";
+import { NameSearchDto, nameSearchSchema } from "./dto/name-search.dto";
 
 @Controller({
   version: "1",
@@ -51,7 +53,10 @@ export class NamesController {
   @HttpCode(HttpStatus.OK)
   @Header("Cache-Control", "no-store")
   @Header("Content-Type", "application/json")
-  async searchByName() {
+  @UsePipes(new ZodValidationPipe(nameSearchSchema))
+  async searchByName(@Query() options: NameSearchDto) {
+    console.log(options);
+
     return [];
   }
 
