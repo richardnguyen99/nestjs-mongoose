@@ -1,36 +1,44 @@
 import { z } from "zod";
 
-import { nonEmptyStringRefiner } from "src/libs/zod/refiners";
+import {
+  baseTenIntRefiner,
+  nonEmptyStringRefiner,
+} from "src/libs/zod/refiners";
 import {
   booleanishTypeTransformer,
   safeIntWithDefaultTransformer,
   sortOrderTransformer,
+  strictIntTransformer,
 } from "src/libs/zod/transformers";
 
 export const baseNameQuerySchema = z.object({
   /**
-   * Pagination limit, number of records to return per page
+   * Pagination limit, number of records to return per page. Throw an error if:
+   * - The limit is not a valid integer
+   * - The limit is less than 1
    *
    * @example "limit=10" == { limit: 10 }
    * @default 10
    */
   limit: z
     .string()
-    .transform(safeIntWithDefaultTransformer(10))
-    .pipe(z.number().int().min(1, "Limit must be at least 1"))
+    .transform(strictIntTransformer)
+    .pipe(z.number().int().min(1, "`limit` must be at least 1"))
     .optional()
     .default("10"),
 
   /**
-   * Page number to return, starting from 1
+   * Page number to return, starting from 1. Throws an error if:
+   * - The page is not a valid integer
+   * - The page is less than 1
    *
    * @example "page=1" == { page: 1 }
    * @default 1
    */
   page: z
     .string()
-    .transform(safeIntWithDefaultTransformer(1))
-    .pipe(z.number().int().min(1, "Page must be at least 1"))
+    .transform(strictIntTransformer)
+    .pipe(z.number().int().min(1, "`page` must be at least 1"))
     .optional()
     .default("1"),
 
@@ -69,7 +77,10 @@ export const baseNameQuerySchema = z.object({
   filter: z
     .object({
       /**
-       * Profession filter, can be a single profession or an array of up to 3 professions
+       * Profession filter, can be a single profession or an array of up to 3
+       * professions. Throw an error if:
+       * - The profession is an empty string
+       * - The profession array contains more than 3 items
        *
        * @example "filter[profession]=actor" -> { profession: "actor" }
        * @example "filter[profession]=actor&filter[profession]=director" -> { profession: ["actor", "director"] }
@@ -90,7 +101,9 @@ export const baseNameQuerySchema = z.object({
         .optional(),
 
       /**
-       * Titles the person is known for, can be a single title or an array of titles
+       * Titles the person is known for, can be a single title or an array of
+       * titles. Throw an error if:
+       * - The title is an empty string
        *
        * @example "filter[appearInTitles]=tt0371746" -> { appearInTitles: "tt0371746" }
        * @example "filter[appearInTitles]=tt0371746&filter[appearInTitles]=tt1300854" -> { appearInTitles: ["tt0371746", "tt1300854"] }
@@ -122,28 +135,17 @@ export const baseNameQuerySchema = z.object({
         .optional(),
 
       /**
-       * Filter by birth year range
+       * Filter by birth year range. Throw an error if the value is not a valid
+       * year
        *
        * @example "filter[from]=1980" -> { from: 1980 }
-       * @example "filter[from]=something" -> { from: undefined }
        */
       from: z
         .string()
         .optional()
-        .transform((val) => {
-          if (typeof val === "undefined") {
-            return undefined;
-          }
-
-          const parsed = parseInt(val, 10);
-          return isNaN(parsed) ? undefined : parsed;
-        })
+        .transform(strictIntTransformer)
         .pipe(
-          z
-            .number({
-              message: "Filter 'From' must be a valid year",
-            })
-            .optional(),
+          z.number().gte(0, "Filter `from` must be a valid year").optional(),
         ),
     })
     .optional(),
