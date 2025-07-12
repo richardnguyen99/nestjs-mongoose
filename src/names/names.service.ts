@@ -70,8 +70,6 @@ export class NamesService {
       { score: { $meta: "textScore" } },
     );
 
-    console.log(options);
-
     if (options.filter) {
       if (options.filter.profession) {
         const professions = Array.isArray(options.filter.profession)
