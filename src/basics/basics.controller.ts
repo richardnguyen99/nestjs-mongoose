@@ -16,7 +16,7 @@ import {
 
 import { BasicsService } from "./basics.service";
 import { ZodValidationPipe } from "src/validations/zod-validation.pipe";
-import { BasicsSearchDto, basicsSearchSchema } from "./dto/basics-search.dto";
+import { BasicSearchDto, basicSearchSchema } from "./dto/basic-search.dto";
 import { BasicCreateDto, basicCreateSchema } from "./dto/basic-create.dto";
 import { BasicUpdateDto, basicUpdateSchema } from "./dto/basic-update.dto";
 
@@ -37,10 +37,9 @@ export class BasicsController {
 
   @Get("search")
   @HttpCode(HttpStatus.OK)
-  @UsePipes(new ZodValidationPipe(basicsSearchSchema))
-  async searchByTitle(@Query() query: BasicsSearchDto) {
+  @UsePipes(new ZodValidationPipe(basicSearchSchema))
+  async searchByTitle(@Query() query: BasicSearchDto) {
     const { q, limit, page, sort, filter } = query;
-
     const result = await this.basicsService.searchByTitle(q, {
       limit,
       page,

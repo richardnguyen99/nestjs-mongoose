@@ -8,7 +8,7 @@ export const sortOrderTransformer = (val: string | undefined) => {
   return undefined;
 };
 
-export const filterTypeTransformer = (val: string | undefined) => {
+export const stringToArrayTransformer = (val: string | undefined) => {
   if (typeof val === "undefined") {
     return undefined;
   }

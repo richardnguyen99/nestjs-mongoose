@@ -55,8 +55,6 @@ export class NamesController {
   @Header("Content-Type", "application/json")
   @UsePipes(new ZodValidationPipe(nameSearchSchema))
   async searchByName(@Query() dto: NameSearchDto) {
-    console.log("Search DTO:", dto);
-
     const { q, ...options } = dto;
     const results = await this.namesService.search(q, options);
 

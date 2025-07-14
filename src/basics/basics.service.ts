@@ -3,7 +3,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 
 import { BasicsDocument, BasicsModel } from "./schema/basics.schema";
-import { BasicsSearchDto } from "./dto/basics-search.dto";
+import { BasicSearchDto } from "./dto/basic-search.dto";
 import { BasicCreateDto } from "./dto/basic-create.dto";
 import { BasicUpdateDto } from "./dto/basic-update.dto";
 
@@ -23,8 +23,8 @@ export class BasicsService {
     genres: 1,
   };
 
-  private readonly MEDIUM_RUNTIME_MINUTES = 40;
-  private readonly LONG_RUNTIME_MINUTES = 90;
+  private readonly MEDIUM_RUNTIME_MINUTES_MARK = 30;
+  private readonly LONG_RUNTIME_MINUTES_MARK = 70;
 
   constructor(
     @InjectModel(BasicsModel.name) private basicsModel: Model<BasicsModel>,
@@ -96,7 +96,7 @@ export class BasicsService {
 
   async searchByTitle(
     title: string,
-    options?: Omit<BasicsSearchDto, "q">,
+    options?: Omit<BasicSearchDto, "q">,
   ): Promise<BasicsDocument[]> {
     let query = this.basicsModel.find(
       { $text: { $search: title } },
@@ -109,21 +109,27 @@ export class BasicsService {
       }
 
       if (options.filter.titleType) {
-        query = query.where("titleType").in(options.filter.titleType);
+        const titleTypes = Array.isArray(options.filter.titleType)
+          ? options.filter.titleType
+          : [options.filter.titleType];
+
+        query = query.where("titleType").in(titleTypes);
       }
 
-      if (options.filter.genres) {
-        query = query.where("genreArrays").elemMatch({
-          $in: options.filter.genres.map((genre) => genre.trim()),
-        });
+      if (options.filter.genre) {
+        const genres = Array.isArray(options.filter.genre)
+          ? options.filter.genre
+          : [options.filter.genre];
+
+        query = query.where("genres").in(genres);
       }
 
       if (options.filter.since) {
-        query = query.where("startYear").gte(options.filter.since);
+        query = query.where("startYear").ne(null).gte(options.filter.since);
       }
 
       if (options.filter.until) {
-        query = query.where("startYear").lte(options.filter.until);
+        query = query.where("endYear").ne(null).lte(options.filter.until);
       }
 
       if (options.filter.duration) {
@@ -131,18 +137,20 @@ export class BasicsService {
           case "short":
             query = query
               .where("runtimeMinutes")
-              .lte(this.MEDIUM_RUNTIME_MINUTES);
+              .lte(this.MEDIUM_RUNTIME_MINUTES_MARK);
 
             break;
           case "medium":
             query = query
               .where("runtimeMinutes")
-              .gt(this.MEDIUM_RUNTIME_MINUTES)
-              .lte(this.LONG_RUNTIME_MINUTES);
+              .gt(this.MEDIUM_RUNTIME_MINUTES_MARK)
+              .lte(this.LONG_RUNTIME_MINUTES_MARK);
 
             break;
           case "long":
-            query = query.where("runtimeMinutes").gt(this.LONG_RUNTIME_MINUTES);
+            query = query
+              .where("runtimeMinutes")
+              .gt(this.LONG_RUNTIME_MINUTES_MARK);
 
             break;
         }

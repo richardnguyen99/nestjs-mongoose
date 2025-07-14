@@ -103,8 +103,8 @@ export class BasicsModel extends mongoose.Document {
    * represents the release year of a title. In the case of TV Series, it is
    * the series start year
    */
-  @Prop({ required: true, type: mongoose.Schema.Types.Number })
-  startYear: number;
+  @Prop({ type: mongoose.Schema.Types.Number })
+  startYear: number | null;
 
   /**
    * TV Series end year. null for all other title types
@@ -116,7 +116,9 @@ export class BasicsModel extends mongoose.Document {
   endYear: number | null;
 
   /**
-   * primary runtime of the title, in minutes
+   * Primary runtime of the title, in minutes. Field can be `null` if
+   * - the title is a TV Series or Mini Series
+   * - the runtime is unknown
    */
   @Prop({ type: mongoose.Schema.Types.Number })
   runtimeMinutes: number | null;
@@ -125,7 +127,7 @@ export class BasicsModel extends mongoose.Document {
    * A comma-concatenated string that includes up to three genres associated
    * with the title
    *
-   * For example: "Action,Adventure,Sci-Fi"
+   * @example ["Action", "Adventure", "Sci-Fi"]
    */
   @Prop({
     required: true,
@@ -134,6 +136,18 @@ export class BasicsModel extends mongoose.Document {
     default: [],
   })
   genres: string[];
+
+  /**
+   * Virtual property that generates a URL to official IMDB for the title
+   *
+   * @example "tt0111161" -> "https://www.imdb.com/title/tt0111161/"
+   */
+  @Virtual({
+    get: function (this: BasicsModel) {
+      return `https://www.imdb.com/title/${this.tconst}/`;
+    },
+  })
+  imdbUrl: string;
 }
 
 export const BasicsSchema = SchemaFactory.createForClass(BasicsModel);

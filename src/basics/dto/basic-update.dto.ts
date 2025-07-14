@@ -1,4 +1,5 @@
 import { z } from "zod";
+
 import { basicCreateSchema } from "./basic-create.dto";
 
 export const basicUpdateSchema = basicCreateSchema.partial();
