@@ -16,6 +16,12 @@ db.basics.find({
 });
 
 use("tmdb");
+// Find all documents where the genres array is more than one element
+db.basics.find({
+  genres: { $exists: true, $type: "array", $size: { $gt: 1 } },
+});
+
+use("tmdb");
 // Lowercase all genres in the genres array
 db.basics.updateMany({}, [
   {
