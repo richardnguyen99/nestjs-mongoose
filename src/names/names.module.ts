@@ -18,5 +18,6 @@ import { NamesModel, NamesSchema } from "./schema/names.schema";
   ],
   controllers: [NamesController],
   providers: [NamesService],
+  exports: [NamesService],
 })
 export class NamesModule {}

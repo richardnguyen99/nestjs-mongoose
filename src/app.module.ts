@@ -7,7 +7,7 @@ import { BasicsModule } from "./basics/basics.module";
 import { RequestIdMiddleware } from "./middlewares/request-id.middleware";
 import { HttpLoggerMiddleware } from "./middlewares/http-logger.middleware";
 import { NamesModule } from "./names/names.module";
-import { PrincipalsModule } from './principals/principals.module';
+import { PrincipalsModule } from "./principals/principals.module";
 
 @Module({
   imports: [

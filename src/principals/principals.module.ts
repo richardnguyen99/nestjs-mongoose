@@ -15,5 +15,6 @@ import { PrincipalsModel, PrincipalsSchema } from "./schema/principals.schema";
     ]),
   ],
   providers: [PrincipalsService],
+  exports: [PrincipalsService],
 })
 export class PrincipalsModule {}

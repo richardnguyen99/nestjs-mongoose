@@ -6,6 +6,10 @@ import { BasicsDocument, BasicsModel } from "./schema/basics.schema";
 import { BasicSearchDto } from "./dto/basic-search.dto";
 import { BasicCreateDto } from "./dto/basic-create.dto";
 import { BasicUpdateDto } from "./dto/basic-update.dto";
+import { PrincipalsService } from "src/principals/principals.service";
+import { PrincipalsDocument } from "src/principals/schema/principals.schema";
+import { NamesService } from "src/names/names.service";
+import { NamesDocument } from "src/names/schema/names.schema";
 
 @Injectable()
 export class BasicsService {
@@ -28,6 +32,8 @@ export class BasicsService {
 
   constructor(
     @InjectModel(BasicsModel.name) private basicsModel: Model<BasicsModel>,
+    private readonly namesService: NamesService,
+    private readonly principalsService: PrincipalsService,
   ) {
     // Ensure indexes are created
     this.basicsModel.ensureIndexes().catch((error) => {
@@ -173,5 +179,9 @@ export class BasicsService {
     const skip = (page - 1) * limit;
 
     return query.skip(skip).limit(limit).sort(sort).select("-score").exec();
+  }
+
+  async getCastByTconst(tconst: string) {
+    return this.principalsService.findCastByTconst(tconst);
   }
 }

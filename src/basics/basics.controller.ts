@@ -90,4 +90,21 @@ export class BasicsController {
 
     return updatedBasic;
   }
+
+  @Get(":tconst/cast")
+  @Header("Cache-Control", "no-store")
+  @HttpCode(HttpStatus.OK)
+  async getCastByTconst(@Param("tconst") tconst: string) {
+    const cast = await this.basicsService.getCastByTconst(tconst);
+
+    if (!cast || cast.length === 0) {
+      throw new NotFoundException(`No cast found for tconst=${tconst}`);
+    }
+
+    return {
+      tconst,
+      titleUrl: `https://www.imdb.com/title/${tconst}`,
+      cast,
+    };
+  }
 }
