@@ -125,4 +125,22 @@ export class BasicsController {
   ) {
     return this.basicsService.addCastToTitle(tconst, body);
   }
+
+  @Get(":tconst/cast/:nconst")
+  @Header("Cache-Control", "no-store")
+  @HttpCode(HttpStatus.OK)
+  async getCastByTconstAndNconst(
+    @Param("tconst") tconst: string,
+    @Param("nconst") nconst: string,
+  ) {
+    const cast = await this.basicsService.findByTconstAndNconst(tconst, nconst);
+
+    if (!cast) {
+      throw new NotFoundException(
+        `No cast found for tconst=${tconst} and nconst=${nconst}`,
+      );
+    }
+
+    return cast;
+  }
 }

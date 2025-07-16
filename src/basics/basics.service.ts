@@ -83,6 +83,15 @@ export class BasicsService {
     return this.basicsModel.findOne({ tconst }).exec();
   }
 
+  async findByTconstAndNconst(tconst: string, nconst: string) {
+    const [cast] = await this.principalsService.findByTconstAndNconst(
+      tconst,
+      nconst,
+    );
+
+    return cast;
+  }
+
   async updateByTconst(
     tconst: string,
     dto: BasicUpdateDto,

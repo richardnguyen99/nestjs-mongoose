@@ -12,6 +12,8 @@ import { PrincipalCreateDto } from "./dto/principal-create.dto";
 export class PrincipalsService {
   private readonly logger = new Logger("PrincipalsService");
 
+  private readonly PER_PAGE = 5;
+
   constructor(
     @InjectModel(PrincipalsModel.name)
     private readonly principalsModel: Model<PrincipalsModel>,
@@ -39,7 +41,43 @@ export class PrincipalsService {
     tconst: string,
     nconst: string,
   ): Promise<PrincipalsDocument[]> {
-    return this.principalsModel.find({ tconst, nconst }).exec();
+    return this.principalsModel
+      .aggregate()
+      .match({
+        tconst,
+        nconst,
+        category: { $in: ["actor", "actress"] },
+      })
+      .lookup({
+        from: "names",
+        localField: "nconst",
+        foreignField: "nconst",
+        as: "nameDetails",
+      })
+      .unwind("nameDetails")
+      .group({
+        _id: { tconst: "$tconst", nconst: "$nconst" },
+        characters: { $push: "$characters" },
+        category: { $first: "$category" },
+        ordering: { $min: "$ordering" },
+        primaryName: { $first: "$nameDetails.primaryName" },
+      })
+      .project({
+        _id: 0,
+        tconst: "$_id.tconst",
+        nconst: "$_id.nconst",
+        category: 1,
+        ordering: 1,
+        primaryName: 1,
+        characters: {
+          $reduce: {
+            input: "$characters",
+            initialValue: [],
+            in: { $concatArrays: ["$$value", "$$this"] }, // Flatten the array of arrays
+          },
+        },
+      })
+      .exec();
   }
 
   async findCastByTconst(tconst: string) {
@@ -82,7 +120,7 @@ export class PrincipalsService {
         },
       })
       .facet({
-        results: [{ $sort: { ordering: 1 } }, { $limit: 5 }],
+        results: [{ $sort: { ordering: 1 } }, { $limit: this.PER_PAGE }],
         totalCount: [{ $count: "count" }],
       })
       .replaceRoot({
@@ -97,6 +135,24 @@ export class PrincipalsService {
                 else: 0,
               },
             },
+
+            totalPages: {
+              $cond: {
+                if: { $gt: [{ $size: "$totalCount" }, 0] },
+                then: {
+                  $ceil: {
+                    $divide: [
+                      { $arrayElemAt: ["$totalCount.count", 0] },
+                      this.PER_PAGE,
+                    ],
+                  },
+                },
+                else: 0,
+              },
+            },
+
+            currentPage: 1,
+            perPage: this.PER_PAGE,
           },
         ],
       })
@@ -119,5 +175,17 @@ export class PrincipalsService {
     newPrincipal.isNew = true;
 
     return newPrincipal.save();
+  }
+
+  async deleteByTconst(tconst: string): Promise<void> {
+    await this.principalsModel.deleteMany({ tconst }).exec();
+  }
+
+  async deleteByNconst(nconst: string): Promise<void> {
+    await this.principalsModel.deleteMany({ nconst }).exec();
+  }
+
+  async deleteByTconstAndNconst(tconst: string, nconst: string): Promise<void> {
+    await this.principalsModel.deleteMany({ tconst, nconst }).exec();
   }
 }
