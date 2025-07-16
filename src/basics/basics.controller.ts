@@ -6,6 +6,7 @@ import {
   Header,
   HttpCode,
   HttpStatus,
+  Logger,
   NotFoundException,
   Param,
   Post,
@@ -19,12 +20,18 @@ import { ZodValidationPipe } from "src/validations/zod-validation.pipe";
 import { BasicSearchDto, basicSearchSchema } from "./dto/basic-search.dto";
 import { BasicCreateDto, basicCreateSchema } from "./dto/basic-create.dto";
 import { BasicUpdateDto, basicUpdateSchema } from "./dto/basic-update.dto";
+import {
+  PrincipalCreateDto,
+  principalCreateSchema,
+} from "src/principals/dto/principal-create.dto";
 
 @Controller({
   version: "1",
   path: "basics",
 })
 export class BasicsController {
+  private readonly logger = new Logger(BasicsController.name);
+
   constructor(private readonly basicsService: BasicsService) {}
 
   @Post()
@@ -97,14 +104,25 @@ export class BasicsController {
   async getCastByTconst(@Param("tconst") tconst: string) {
     const cast = await this.basicsService.getCastByTconst(tconst);
 
-    if (!cast || cast.length === 0) {
+    if (cast.results.length === 0) {
       throw new NotFoundException(`No cast found for tconst=${tconst}`);
     }
 
     return {
       tconst,
       titleUrl: `https://www.imdb.com/title/${tconst}`,
-      cast,
+      ...cast,
     };
+  }
+
+  @Post(":tconst/cast")
+  @Header("Cache-Control", "no-store")
+  @HttpCode(HttpStatus.CREATED)
+  @UsePipes(new ZodValidationPipe(principalCreateSchema))
+  async addCastToTitle(
+    @Param("tconst") tconst: string,
+    @Body() body: PrincipalCreateDto,
+  ) {
+    return this.basicsService.addCastToTitle(tconst, body);
   }
 }

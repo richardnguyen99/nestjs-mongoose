@@ -1,5 +1,5 @@
 import { Model, Query } from "mongoose";
-import { Injectable, Logger } from "@nestjs/common";
+import { Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 
 import { BasicsDocument, BasicsModel } from "./schema/basics.schema";
@@ -10,6 +10,7 @@ import { PrincipalsService } from "src/principals/principals.service";
 import { PrincipalsDocument } from "src/principals/schema/principals.schema";
 import { NamesService } from "src/names/names.service";
 import { NamesDocument } from "src/names/schema/names.schema";
+import { PrincipalCreateDto } from "src/principals/dto/principal-create.dto";
 
 @Injectable()
 export class BasicsService {
@@ -182,6 +183,20 @@ export class BasicsService {
   }
 
   async getCastByTconst(tconst: string) {
-    return this.principalsService.findCastByTconst(tconst);
+    const [result] = await this.principalsService.findCastByTconst(tconst);
+
+    return result;
+  }
+
+  async addCastToTitle(
+    tconst: string,
+    principalDto: Omit<PrincipalCreateDto, "tconst">,
+  ) {
+    const newPrincipal = await this.principalsService.create({
+      ...principalDto,
+      tconst,
+    });
+
+    return newPrincipal;
   }
 }

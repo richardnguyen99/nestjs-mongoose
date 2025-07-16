@@ -5,7 +5,7 @@ import mongoose from "mongoose";
   collection: "principals",
   versionKey: false,
   timestamps: false,
-  _id: false,
+  id: false,
   toJSON: {
     virtuals: true,
   },
@@ -96,7 +96,6 @@ export type PrincipalsDocument = mongoose.HydratedDocument<PrincipalsModel>;
 PrincipalsSchema.index(
   {
     tconst: 1,
-    nconst: 1,
     ordering: 1,
   },
   {

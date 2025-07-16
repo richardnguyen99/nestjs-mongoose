@@ -6,6 +6,7 @@ import {
   PrincipalsDocument,
   PrincipalsModel,
 } from "./schema/principals.schema";
+import { PrincipalCreateDto } from "./dto/principal-create.dto";
 
 @Injectable()
 export class PrincipalsService {
@@ -13,9 +14,9 @@ export class PrincipalsService {
 
   constructor(
     @InjectModel(PrincipalsModel.name)
-    private readonly principals: Model<PrincipalsModel>,
+    private readonly principalsModel: Model<PrincipalsModel>,
   ) {
-    this.principals.syncIndexes().catch((error) => {
+    this.principalsModel.syncIndexes().catch((error) => {
       this.logger.error("Error syncing indexes", error);
 
       process.exit(1);
@@ -23,27 +24,30 @@ export class PrincipalsService {
   }
 
   async findAll(): Promise<PrincipalsModel[]> {
-    return this.principals.find().exec();
+    return this.principalsModel.find().exec();
   }
 
   async findByTconst(tconst: string): Promise<PrincipalsDocument[]> {
-    return this.principals.find({ tconst }).exec();
+    return this.principalsModel.find({ tconst }).exec();
   }
 
   async findByNconst(nconst: string): Promise<PrincipalsDocument[]> {
-    return this.principals.find({ nconst }).exec();
+    return this.principalsModel.find({ nconst }).exec();
   }
 
   async findByTconstAndNconst(
     tconst: string,
     nconst: string,
   ): Promise<PrincipalsDocument[]> {
-    return this.principals.find({ tconst, nconst }).exec();
+    return this.principalsModel.find({ tconst, nconst }).exec();
   }
 
-  async findCastByTconst(tconst: string): Promise<PrincipalsDocument[]> {
-    return this.principals
-      .aggregate()
+  async findCastByTconst(tconst: string) {
+    return this.principalsModel
+      .aggregate<{
+        results: PrincipalsDocument[];
+        totalCount: number;
+      }>()
       .match({
         tconst,
         category: { $in: ["actor", "actress"] },
@@ -77,8 +81,43 @@ export class PrincipalsService {
           },
         },
       })
-      .sort({ ordering: 1 })
-      .limit(50)
+      .facet({
+        results: [{ $sort: { ordering: 1 } }, { $limit: 5 }],
+        totalCount: [{ $count: "count" }],
+      })
+      .replaceRoot({
+        $mergeObjects: [
+          { results: [], totalCount: 0 }, // Default values
+          "$$ROOT", // Include the facet output
+          {
+            totalCount: {
+              $cond: {
+                if: { $gt: [{ $size: "$totalCount" }, 0] },
+                then: { $arrayElemAt: ["$totalCount.count", 0] },
+                else: 0,
+              },
+            },
+          },
+        ],
+      })
       .exec();
+  }
+
+  async create(dto: PrincipalCreateDto): Promise<PrincipalsModel> {
+    this.logger.log(JSON.stringify(dto, null, 2));
+
+    const newPrincipal = new this.principalsModel({
+      tconst: dto.tconst,
+      nconst: dto.nconst,
+      ordering: dto.ordering,
+      category: dto.category,
+      job: dto.job ?? null,
+      characters: Array.isArray(dto.characters)
+        ? dto.characters
+        : [dto.characters],
+    });
+    newPrincipal.isNew = true;
+
+    return newPrincipal.save();
   }
 }
