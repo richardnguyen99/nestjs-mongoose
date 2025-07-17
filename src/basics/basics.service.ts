@@ -208,4 +208,8 @@ export class BasicsService {
 
     return newPrincipal;
   }
+
+  async removeCastFromTitle(tconst: string, nconst: string) {
+    return this.principalsService.deleteByTconstAndNconst(tconst, nconst);
+  }
 }

@@ -185,7 +185,7 @@ export class PrincipalsService {
     await this.principalsModel.deleteMany({ nconst }).exec();
   }
 
-  async deleteByTconstAndNconst(tconst: string, nconst: string): Promise<void> {
-    await this.principalsModel.deleteMany({ tconst, nconst }).exec();
+  async deleteByTconstAndNconst(tconst: string, nconst: string) {
+    return await this.principalsModel.deleteMany({ tconst, nconst }).exec();
   }
 }

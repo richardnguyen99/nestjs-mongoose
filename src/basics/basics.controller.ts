@@ -143,4 +143,22 @@ export class BasicsController {
 
     return cast;
   }
+
+  @Delete(":tconst/cast/:nconst")
+  @Header("Cache-Control", "no-store")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteCastByTconstAndNconst(
+    @Param("tconst") tconst: string,
+    @Param("nconst") nconst: string,
+  ): Promise<void> {
+    const result = await this.basicsService.removeCastFromTitle(tconst, nconst);
+
+    if (!result || result.deletedCount === 0) {
+      throw new NotFoundException(
+        `No cast found for tconst=${tconst} and nconst=${nconst}`,
+      );
+    }
+
+    return;
+  }
 }
