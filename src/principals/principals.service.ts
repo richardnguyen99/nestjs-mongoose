@@ -7,6 +7,7 @@ import {
   PrincipalsModel,
 } from "./schema/principals.schema";
 import { PrincipalCreateDto } from "./dto/principal-create.dto";
+import { PrincipalUpdateDto } from "./dto/principal-update.dto";
 
 @Injectable()
 export class PrincipalsService {
@@ -185,6 +186,19 @@ export class PrincipalsService {
     newPrincipal.isNew = true;
 
     return newPrincipal.save();
+  }
+
+  async update(
+    tconst: string,
+    nconst: string,
+    ordering: number,
+    dto: PrincipalUpdateDto,
+  ): Promise<PrincipalsModel | null> {
+    const updatedPrincipal = await this.principalsModel
+      .findOneAndUpdate({ tconst, nconst, ordering }, dto, { new: true })
+      .exec();
+
+    return updatedPrincipal;
   }
 
   async deleteByTconst(tconst: string): Promise<void> {

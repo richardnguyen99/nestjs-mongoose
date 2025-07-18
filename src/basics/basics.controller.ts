@@ -24,6 +24,10 @@ import {
   PrincipalCreateDto,
   principalCreateSchema,
 } from "src/principals/dto/principal-create.dto";
+import {
+  PrincipalUpdateDto,
+  principalUpdateSchema,
+} from "src/principals/dto/principal-update.dto";
 
 @Controller({
   version: "1",
@@ -142,6 +146,33 @@ export class BasicsController {
     }
 
     return cast;
+  }
+
+  @Put(":tconst/cast/:nconst")
+  @Header("Cache-Control", "no-store")
+  @Header("Content-Type", "application/json")
+  @UsePipes(new ZodValidationPipe(principalUpdateSchema))
+  async updateCastByTconstAndNconst(
+    @Param("tconst") tconst: string,
+    @Param("nconst") nconst: string,
+    @Body() body: PrincipalUpdateDto,
+  ) {
+    const ordering = body.ordering;
+
+    const updatedCast = await this.basicsService.updateCastInTitle(
+      tconst,
+      nconst,
+      ordering,
+      body,
+    );
+
+    if (!updatedCast) {
+      throw new NotFoundException(
+        `No cast found for tconst=${tconst}, nconst=${nconst} and ordering=${ordering}`,
+      );
+    }
+
+    return updatedCast;
   }
 
   @Delete(":tconst/cast/:nconst")

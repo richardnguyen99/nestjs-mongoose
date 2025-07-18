@@ -11,6 +11,7 @@ import { PrincipalsDocument } from "src/principals/schema/principals.schema";
 import { NamesService } from "src/names/names.service";
 import { NamesDocument } from "src/names/schema/names.schema";
 import { PrincipalCreateDto } from "src/principals/dto/principal-create.dto";
+import { PrincipalUpdateDto } from "src/principals/dto/principal-update.dto";
 
 @Injectable()
 export class BasicsService {
@@ -207,6 +208,20 @@ export class BasicsService {
     });
 
     return newPrincipal;
+  }
+
+  async updateCastInTitle(
+    tconst: string,
+    nconst: string,
+    ordering: number,
+    principalDto: PrincipalUpdateDto,
+  ) {
+    return this.principalsService.update(
+      tconst,
+      nconst,
+      ordering,
+      principalDto,
+    );
   }
 
   async removeCastFromTitle(tconst: string, nconst: string) {
