@@ -12,6 +12,10 @@ import { NamesService } from "src/names/names.service";
 import { NamesDocument } from "src/names/schema/names.schema";
 import { PrincipalCreateDto } from "src/principals/dto/principal-create.dto";
 import { PrincipalUpdateDto } from "src/principals/dto/principal-update.dto";
+import {
+  PrincipalQueryDto,
+  PrincipalSingleQueryDto,
+} from "src/principals/dto/principal-query.dto";
 
 @Injectable()
 export class BasicsService {
@@ -84,10 +88,15 @@ export class BasicsService {
     return this.basicsModel.findOne({ tconst }).exec();
   }
 
-  async findByTconstAndNconst(tconst: string, nconst: string) {
+  async findByTconstAndNconst(
+    tconst: string,
+    nconst: string,
+    options?: PrincipalSingleQueryDto,
+  ) {
     const [cast] = await this.principalsService.findByTconstAndNconst(
       tconst,
       nconst,
+      options,
     );
 
     return cast;

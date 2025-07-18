@@ -8,6 +8,10 @@ import {
 } from "./schema/principals.schema";
 import { PrincipalCreateDto } from "./dto/principal-create.dto";
 import { PrincipalUpdateDto } from "./dto/principal-update.dto";
+import {
+  PrincipalQueryDto,
+  PrincipalSingleQueryDto,
+} from "./dto/principal-query.dto";
 
 @Injectable()
 export class PrincipalsService {
@@ -41,6 +45,7 @@ export class PrincipalsService {
   async findByTconstAndNconst(
     tconst: string,
     nconst: string,
+    options?: PrincipalSingleQueryDto,
   ): Promise<PrincipalsDocument[]> {
     // IMDB stores multiple roles for a person in a title in separate documents.
     // This will query the all documents for the given tconst and nconst, and
@@ -48,26 +53,18 @@ export class PrincipalsService {
     // The ordering will be the minimum ordering value for the given tconst and
     // nconst.
 
-    return this.principalsModel
+    const aggregation = this.principalsModel
       .aggregate()
       .match({
         tconst,
         nconst,
         category: { $in: ["actor", "actress"] },
       })
-      .lookup({
-        from: "names",
-        localField: "nconst",
-        foreignField: "nconst",
-        as: "nameDetails",
-      })
-      .unwind("nameDetails")
       .group({
         _id: { tconst: "$tconst", nconst: "$nconst" },
         characters: { $push: "$characters" },
         category: { $first: "$category" },
-        ordering: { $min: "$ordering" },
-        primaryName: { $first: "$nameDetails.primaryName" },
+        ordering: { $push: "$ordering" },
       })
       .project({
         _id: 0,
@@ -75,7 +72,6 @@ export class PrincipalsService {
         nconst: "$_id.nconst",
         category: 1,
         ordering: 1,
-        primaryName: 1,
         characters: {
           $reduce: {
             input: "$characters",
@@ -83,8 +79,49 @@ export class PrincipalsService {
             in: { $concatArrays: ["$$value", "$$this"] }, // Flatten the array of arrays
           },
         },
-      })
-      .exec();
+      });
+
+    if (options) {
+      if (options.include && options.include.name) {
+        aggregation
+          .lookup({
+            from: "names",
+            localField: "nconst",
+            foreignField: "nconst",
+            as: "nameDetails",
+            pipeline: [
+              {
+                $project: {
+                  _id: 0,
+                  nconst: 0,
+                },
+              },
+            ],
+          })
+          .unwind("nameDetails");
+      }
+
+      if (options.include && options.include.title) {
+        aggregation
+          .lookup({
+            from: "basics",
+            localField: "tconst",
+            foreignField: "tconst",
+            as: "titleDetails",
+            pipeline: [
+              {
+                $project: {
+                  _id: 0,
+                  tconst: 0,
+                },
+              },
+            ],
+          })
+          .unwind("titleDetails");
+      }
+    }
+
+    return aggregation.exec();
   }
 
   async findCastByTconst(tconst: string) {
@@ -113,7 +150,7 @@ export class PrincipalsService {
         _id: { tconst: "$tconst", nconst: "$nconst" },
         characters: { $push: "$characters" },
         category: { $first: "$category" },
-        ordering: { $min: "$ordering" },
+        ordering: { $push: "$ordering" },
         primaryName: { $first: "$nameDetails.primaryName" },
       })
       .project({

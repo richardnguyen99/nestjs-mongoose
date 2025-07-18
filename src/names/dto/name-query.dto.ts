@@ -37,10 +37,10 @@ export const baseNameQuerySchema = z.object({
    */
   page: z
     .string()
-    .transform(strictIntTransformer)
-    .pipe(z.number().int().min(1, "`page` must be at least 1"))
     .optional()
-    .default("1"),
+    .default("1")
+    .transform(strictIntTransformer)
+    .pipe(z.number().int().min(1, "`page` must be at least 1")),
 
   /**
    * Sort options for query results

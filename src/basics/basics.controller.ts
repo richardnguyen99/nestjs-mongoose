@@ -28,6 +28,12 @@ import {
   PrincipalUpdateDto,
   principalUpdateSchema,
 } from "src/principals/dto/principal-update.dto";
+import {
+  PrincipalQueryDto,
+  principalQuerySchema,
+  PrincipalSingleQueryDto,
+  principalSingleQuerySchema,
+} from "src/principals/dto/principal-query.dto";
 
 @Controller({
   version: "1",
@@ -133,11 +139,19 @@ export class BasicsController {
   @Get(":tconst/cast/:nconst")
   @Header("Cache-Control", "no-store")
   @HttpCode(HttpStatus.OK)
+  @UsePipes(new ZodValidationPipe(principalSingleQuerySchema))
   async getCastByTconstAndNconst(
     @Param("tconst") tconst: string,
     @Param("nconst") nconst: string,
+    @Query() options?: PrincipalSingleQueryDto,
   ) {
-    const cast = await this.basicsService.findByTconstAndNconst(tconst, nconst);
+    console.log(options);
+
+    const cast = await this.basicsService.findByTconstAndNconst(
+      tconst,
+      nconst,
+      options,
+    );
 
     if (!cast) {
       throw new NotFoundException(
