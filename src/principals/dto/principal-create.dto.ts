@@ -17,19 +17,6 @@ export const basePrincipalCreateSchema = z.object({
   nconst: z.string().min(1, "nconst is required"),
 
   /**
-   * Ordering representation for the principal in the title. This is a number to
-   *  uniquely identify rows for a given titleId.
-   *
-   * Throws an error if the value is not a positive integer.
-   *
-   * @example { ordering: 1 }
-   */
-  ordering: z
-    .number()
-    .int("ordering must be an integer")
-    .min(1, "ordering must be at least 1"),
-
-  /**
    * The category of the principal, e.g. "actor", "actress", "
    *
    * @example { category: "actor" }

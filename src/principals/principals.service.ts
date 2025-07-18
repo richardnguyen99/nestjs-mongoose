@@ -41,6 +41,12 @@ export class PrincipalsService {
     tconst: string,
     nconst: string,
   ): Promise<PrincipalsDocument[]> {
+    // IMDB stores multiple roles for a person in a title in separate documents.
+    // This will query the all documents for the given tconst and nconst, and
+    // group the characters into a single array while maintains the other fields.
+    // The ordering will be the minimum ordering value for the given tconst and
+    // nconst.
+
     return this.principalsModel
       .aggregate()
       .match({
@@ -81,6 +87,11 @@ export class PrincipalsService {
   }
 
   async findCastByTconst(tconst: string) {
+    // IMDB stores multiple roles for a person in a title in separate documents.
+    // This will query the all documents for the given tconst and nconst, and
+    // group the characters into a single array while maintains the other fields.
+    // The ordering will be the minimum ordering value for the given tconst and
+    // nconst.
     return this.principalsModel
       .aggregate<{
         results: PrincipalsDocument[];
@@ -165,7 +176,6 @@ export class PrincipalsService {
     const newPrincipal = new this.principalsModel({
       tconst: dto.tconst,
       nconst: dto.nconst,
-      ordering: dto.ordering,
       category: dto.category,
       job: dto.job ?? null,
       characters: Array.isArray(dto.characters)

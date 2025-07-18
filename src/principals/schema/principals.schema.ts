@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
-import mongoose from "mongoose";
+import mongoose, { Model } from "mongoose";
 
 @Schema({
   collection: "principals",
@@ -45,7 +45,6 @@ export class PrincipalsModel extends mongoose.Document {
    */
   @Prop({
     type: mongoose.Schema.Types.Int32,
-    required: true,
   })
   ordering: number;
 
@@ -102,3 +101,39 @@ PrincipalsSchema.index(
     unique: true,
   },
 );
+
+PrincipalsSchema.pre("save", async function (next) {
+  const model = this.model<Model<PrincipalsModel>>(PrincipalsModel.name);
+
+  if (this.isNew) {
+    const lastOrdering = await model
+      .aggregate<{ ordering: number }>()
+      .match({ tconst: this.tconst })
+      .sort({ ordering: -1 })
+      .limit(1)
+      .exec();
+
+    const existingCast = await model.findOne({
+      tconst: this.tconst,
+      nconst: this.nconst,
+      characters: { $in: this.characters },
+    });
+
+    if (existingCast) {
+      const error = new mongoose.Error.ValidationError();
+      error.addError(
+        "characters",
+        new mongoose.Error.ValidatorError({
+          path: "characters",
+          message: "This character already exists for this title and person.",
+        }),
+      );
+
+      return next(error);
+    }
+
+    this.ordering = lastOrdering.length > 0 ? lastOrdering[0].ordering + 1 : 1;
+  }
+
+  next();
+});
