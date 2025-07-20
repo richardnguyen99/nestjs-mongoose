@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -110,12 +111,23 @@ export class BasicsController {
 
   @Get(":tconst/cast")
   @Header("Cache-Control", "no-store")
+  @Header("Content-Type", "application/json")
+  @UsePipes(new ZodValidationPipe(principalQuerySchema))
   @HttpCode(HttpStatus.OK)
-  async getCastByTconst(@Param("tconst") tconst: string) {
-    const cast = await this.basicsService.getCastByTconst(tconst);
+  async getCastByTconst(
+    @Param("tconst") tconst: string,
+    @Query() options?: PrincipalQueryDto,
+  ) {
+    const cast = await this.basicsService.getCastByTconst(tconst, options);
 
-    if (cast.results.length === 0) {
+    if (cast.totalCount === 0) {
       throw new NotFoundException(`No cast found for tconst=${tconst}`);
+    }
+
+    if (cast.currentPage > cast.totalPages) {
+      throw new BadRequestException(
+        `Page exceeds. totalPages=${cast.totalPages}, currentPage=${cast.currentPage}`,
+      );
     }
 
     return {
@@ -145,8 +157,6 @@ export class BasicsController {
     @Param("nconst") nconst: string,
     @Query() options?: PrincipalSingleQueryDto,
   ) {
-    console.log(options);
-
     const cast = await this.basicsService.findByTconstAndNconst(
       tconst,
       nconst,

@@ -17,7 +17,7 @@ import {
 export class PrincipalsService {
   private readonly logger = new Logger("PrincipalsService");
 
-  private readonly PER_PAGE = 5;
+  private readonly DEFAULT_PER_PAGE = 5;
 
   constructor(
     @InjectModel(PrincipalsModel.name)
@@ -124,16 +124,19 @@ export class PrincipalsService {
     return aggregation.exec();
   }
 
-  async findCastByTconst(tconst: string) {
+  async findCastByTconst(tconst: string, options?: PrincipalQueryDto) {
     // IMDB stores multiple roles for a person in a title in separate documents.
     // This will query the all documents for the given tconst and nconst, and
     // group the characters into a single array while maintains the other fields.
     // The ordering will be the minimum ordering value for the given tconst and
     // nconst.
-    return this.principalsModel
+    const aggregation = this.principalsModel
       .aggregate<{
         results: PrincipalsDocument[];
         totalCount: number;
+        currentPage: number;
+        perPage: number;
+        totalPages: number;
       }>()
       .match({
         tconst,
@@ -167,9 +170,31 @@ export class PrincipalsService {
             in: { $concatArrays: ["$$value", "$$this"] }, // Flatten the array of arrays
           },
         },
-      })
+      });
+
+    const currentPage = options?.page ?? 1;
+    const limit = options?.limit ?? this.DEFAULT_PER_PAGE;
+    const skip = (currentPage - 1) * limit;
+
+    this.logger.log(`
+      Aggregation pipeline for tconst=${tconst} with options: ${JSON.stringify(
+        {
+          tconst,
+          currentPage,
+          limit,
+          skip,
+        },
+        null,
+        2,
+      )}`);
+
+    return aggregation
       .facet({
-        results: [{ $sort: { ordering: 1 } }, { $limit: this.PER_PAGE }],
+        results: [
+          { $skip: skip },
+          { $sort: { ordering: 1 } },
+          { $limit: limit },
+        ],
         totalCount: [{ $count: "count" }],
       })
       .replaceRoot({
@@ -192,7 +217,7 @@ export class PrincipalsService {
                   $ceil: {
                     $divide: [
                       { $arrayElemAt: ["$totalCount.count", 0] },
-                      this.PER_PAGE,
+                      limit,
                     ],
                   },
                 },
@@ -200,12 +225,11 @@ export class PrincipalsService {
               },
             },
 
-            currentPage: 1,
-            perPage: this.PER_PAGE,
+            currentPage: currentPage,
+            perPage: limit,
           },
         ],
-      })
-      .exec();
+      });
   }
 
   async create(dto: PrincipalCreateDto): Promise<PrincipalsModel> {
@@ -232,7 +256,10 @@ export class PrincipalsService {
     dto: PrincipalUpdateDto,
   ): Promise<PrincipalsModel | null> {
     const updatedPrincipal = await this.principalsModel
-      .findOneAndUpdate({ tconst, nconst, ordering }, dto, { new: true })
+      .findOneAndUpdate({ tconst, nconst, ordering }, dto, {
+        new: true,
+        upsert: true,
+      })
       .exec();
 
     return updatedPrincipal;

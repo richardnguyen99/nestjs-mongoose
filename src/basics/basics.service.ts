@@ -201,8 +201,11 @@ export class BasicsService {
     return query.skip(skip).limit(limit).sort(sort).select("-score").exec();
   }
 
-  async getCastByTconst(tconst: string) {
-    const [result] = await this.principalsService.findCastByTconst(tconst);
+  async getCastByTconst(tconst: string, options?: PrincipalQueryDto) {
+    const [result] = await this.principalsService.findCastByTconst(
+      tconst,
+      options,
+    );
 
     return result;
   }
