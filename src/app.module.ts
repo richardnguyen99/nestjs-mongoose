@@ -8,6 +8,7 @@ import { RequestIdMiddleware } from "./middlewares/request-id.middleware";
 import { HttpLoggerMiddleware } from "./middlewares/http-logger.middleware";
 import { NamesModule } from "./names/names.module";
 import { PrincipalsModule } from "./principals/principals.module";
+import { CrewsModule } from './crews/crews.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { PrincipalsModule } from "./principals/principals.module";
     BasicsModule,
     NamesModule,
     PrincipalsModule,
+    CrewsModule,
   ],
   controllers: [AppController],
   providers: [],
