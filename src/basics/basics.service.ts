@@ -1,5 +1,5 @@
-import { Model, Query } from "mongoose";
-import { Injectable, Logger, NotFoundException } from "@nestjs/common";
+import { Model } from "mongoose";
+import { Injectable, Logger } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 
 import { BasicsDocument, BasicsModel } from "./schema/basics.schema";
@@ -9,14 +9,12 @@ import { BasicUpdateDto } from "./dto/basic-update.dto";
 import { PrincipalsService } from "src/principals/principals.service";
 import { PrincipalsDocument } from "src/principals/schema/principals.schema";
 import { NamesService } from "src/names/names.service";
-import { NamesDocument } from "src/names/schema/names.schema";
 import { PrincipalCreateDto } from "src/principals/dto/principal-create.dto";
 import { PrincipalUpdateDto } from "src/principals/dto/principal-update.dto";
 import {
   PrincipalQueryDto,
   PrincipalSingleQueryDto,
 } from "src/principals/dto/principal-query.dto";
-import { CrewsService } from "src/crews/crews.service";
 
 @Injectable()
 export class BasicsService {
@@ -221,6 +219,18 @@ export class BasicsService {
     });
 
     return newPrincipal;
+  }
+
+  async addCrewToTitle(
+    tconst: string,
+    crewDto: Omit<PrincipalCreateDto, "tconst">,
+  ) {
+    const newCrew = await this.principalsService.create({
+      ...crewDto,
+      tconst,
+    });
+
+    return newCrew;
   }
 
   async updateCastInTitle(

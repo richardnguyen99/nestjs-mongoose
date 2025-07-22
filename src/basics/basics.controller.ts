@@ -244,10 +244,14 @@ export class BasicsController {
   @Post(":tconst/crews")
   @Header("Cache-Control", "no-store")
   @HttpCode(HttpStatus.CREATED)
-  async addCrewsToTitle(@Param("tconst") tconst: string) {
-    this.logger.log(`Adding crews to title with tconst=${tconst}`);
-    // Implementation for adding crews to a title would go here
-    return { message: "Crews added successfully" };
+  @UsePipes(new ZodValidationPipe(principalCreateSchema))
+  async addCrewsToTitle(
+    @Param("tconst") tconst: string,
+    @Body() body: PrincipalCreateDto,
+  ) {
+    this.logger.log(body);
+
+    return this.basicsService.addCrewToTitle(tconst, body);
   }
 
   @Put(":tconst/crews")
