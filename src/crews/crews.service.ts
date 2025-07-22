@@ -3,6 +3,7 @@ import { InjectModel } from "@nestjs/mongoose";
 import { Aggregate, Model } from "mongoose";
 
 import { CrewsDocument, CrewsModel } from "./schema/crews.schema";
+import { CrewQueryDto } from "./dto/crew-query.dto";
 
 @Injectable()
 export class CrewsService {
@@ -22,12 +23,15 @@ export class CrewsService {
     return this.crewsModel.find().exec();
   }
 
-  async findByTconst(tconst: string): Promise<CrewsDocument[]> {
-    let aggregation = this.crewsModel.aggregate().match({
+  async findByTconst(
+    tconst: string,
+    query: CrewQueryDto,
+  ): Promise<CrewsDocument[]> {
+    let aggregation = this.crewsModel.aggregate<CrewsDocument>().match({
       tconst,
     });
 
-    aggregation = this._prepareCrewAggregation(aggregation);
+    aggregation = this._prepareCrewAggregation(aggregation, query);
 
     return aggregation.exec();
   }
@@ -38,93 +42,100 @@ export class CrewsService {
 
   private _prepareCrewAggregation<T>(
     aggregation: Aggregate<T[]>,
+    query: CrewQueryDto,
   ): Aggregate<T[]> {
-    return aggregation
-      .lookup({
-        from: "names",
-        localField: "directors",
-        foreignField: "nconst",
-        as: "directorsInfo",
-        let: { tConst: "$tconst" },
-        pipeline: [
-          {
-            $lookup: {
-              from: "principals",
-              localField: "nconst",
-              foreignField: "nconst",
-              as: "roleDetails",
-              pipeline: [
-                {
-                  $match: {
-                    $expr: {
-                      $eq: ["$tconst", "$$tConst"],
+    let _aggregation = aggregation;
+
+    if (!query.lean) {
+      _aggregation = aggregation
+        .lookup({
+          from: "names",
+          localField: "directors",
+          foreignField: "nconst",
+          as: "directorsInfo",
+          let: { tConst: "$tconst" },
+          pipeline: [
+            {
+              $lookup: {
+                from: "principals",
+                localField: "nconst",
+                foreignField: "nconst",
+                as: "roleDetails",
+                pipeline: [
+                  {
+                    $match: {
+                      $expr: {
+                        $eq: ["$tconst", "$$tConst"],
+                      },
                     },
                   },
-                },
-                {
-                  $project: {
-                    _id: 0,
-                    tconst: 0,
-                    nconst: 0,
-                  },
-                },
-              ],
-            },
-          },
-          {
-            $unwind: "$roleDetails",
-          },
-          {
-            $project: {
-              _id: 0,
-              primaryProfession: 0,
-              knownForTitles: 0,
-            },
-          },
-        ],
-      })
-      .lookup({
-        from: "names",
-        localField: "writers",
-        foreignField: "nconst",
-        as: "writersInfo",
-        let: { tConst: "$tconst" },
-        pipeline: [
-          {
-            $lookup: {
-              from: "principals",
-              localField: "nconst",
-              foreignField: "nconst",
-              as: "roleDetails",
-              pipeline: [
-                {
-                  $match: {
-                    $expr: {
-                      $eq: ["$tconst", "$$tConst"],
+                  {
+                    $project: {
+                      _id: 0,
+                      tconst: 0,
+                      nconst: 0,
                     },
                   },
-                },
-                {
-                  $project: {
-                    _id: 0,
-                    tconst: 0,
-                    nconst: 0,
+                ],
+              },
+            },
+            {
+              $unwind: "$roleDetails",
+            },
+            {
+              $project: {
+                _id: 0,
+                primaryProfession: 0,
+                knownForTitles: 0,
+              },
+            },
+          ],
+        })
+        .lookup({
+          from: "names",
+          localField: "writers",
+          foreignField: "nconst",
+          as: "writersInfo",
+          let: { tConst: "$tconst" },
+          pipeline: [
+            {
+              $lookup: {
+                from: "principals",
+                localField: "nconst",
+                foreignField: "nconst",
+                as: "roleDetails",
+                pipeline: [
+                  {
+                    $match: {
+                      $expr: {
+                        $eq: ["$tconst", "$$tConst"],
+                      },
+                    },
                   },
-                },
-              ],
+                  {
+                    $project: {
+                      _id: 0,
+                      tconst: 0,
+                      nconst: 0,
+                    },
+                  },
+                ],
+              },
             },
-          },
-          {
-            $unwind: "$roleDetails",
-          },
-          {
-            $project: {
-              _id: 0,
-              primaryProfession: 0,
-              knownForTitles: 0,
+            {
+              $unwind: "$roleDetails",
             },
-          },
-        ],
-      });
+            {
+              $project: {
+                _id: 0,
+                primaryProfession: 0,
+                knownForTitles: 0,
+              },
+            },
+          ],
+        });
+    }
+
+    return _aggregation;
   }
 }

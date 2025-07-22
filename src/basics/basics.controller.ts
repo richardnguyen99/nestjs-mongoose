@@ -36,6 +36,7 @@ import {
   principalSingleQuerySchema,
 } from "src/principals/dto/principal-query.dto";
 import { CrewsService } from "src/crews/crews.service";
+import { CrewQueryDto, crewQuerySchema } from "src/crews/dto/crew-query.dto";
 
 @Controller({
   version: "1",
@@ -224,8 +225,14 @@ export class BasicsController {
   @Get(":tconst/crews")
   @Header("Cache-Control", "no-store")
   @HttpCode(HttpStatus.OK)
-  async getCrewsByTconst(@Param("tconst") tconst: string) {
-    const crews = await this.crewsService.findByTconst(tconst);
+  @UsePipes(new ZodValidationPipe(crewQuerySchema))
+  async getCrewsByTconst(
+    @Param("tconst") tconst: string,
+    @Query() query: CrewQueryDto,
+  ) {
+    this.logger.log(query);
+
+    const crews = await this.crewsService.findByTconst(tconst, query);
 
     if (crews.length === 0) {
       throw new NotFoundException(`No crews found for tconst=${tconst}`);
