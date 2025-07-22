@@ -35,6 +35,7 @@ import {
   PrincipalSingleQueryDto,
   principalSingleQuerySchema,
 } from "src/principals/dto/principal-query.dto";
+import { CrewsService } from "src/crews/crews.service";
 
 @Controller({
   version: "1",
@@ -43,7 +44,10 @@ import {
 export class BasicsController {
   private readonly logger = new Logger(BasicsController.name);
 
-  constructor(private readonly basicsService: BasicsService) {}
+  constructor(
+    private readonly basicsService: BasicsService,
+    private readonly crewsService: CrewsService,
+  ) {}
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -214,6 +218,88 @@ export class BasicsController {
       );
     }
 
+    return;
+  }
+
+  @Get(":tconst/crews")
+  @Header("Cache-Control", "no-store")
+  @HttpCode(HttpStatus.OK)
+  async getCrewsByTconst(@Param("tconst") tconst: string) {
+    const crews = await this.crewsService.findByTconst(tconst);
+
+    if (crews.length === 0) {
+      throw new NotFoundException(`No crews found for tconst=${tconst}`);
+    }
+
+    return crews;
+  }
+
+  @Post(":tconst/crews")
+  @Header("Cache-Control", "no-store")
+  @HttpCode(HttpStatus.CREATED)
+  async addCrewsToTitle(@Param("tconst") tconst: string) {
+    this.logger.log(`Adding crews to title with tconst=${tconst}`);
+    // Implementation for adding crews to a title would go here
+    return { message: "Crews added successfully" };
+  }
+
+  @Put(":tconst/crews")
+  @Header("Cache-Control", "no-store")
+  @HttpCode(HttpStatus.OK)
+  async updateCrewsByTconst(@Param("tconst") tconst: string) {
+    this.logger.log(`Updating crews for title with tconst=${tconst}`);
+    // Implementation for updating crews for a title would go here
+    return { message: "Crews updated successfully" };
+  }
+
+  @Delete(":tconst/crews")
+  @Header("Cache-Control", "no-store")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteCrewsByTconst(@Param("tconst") tconst: string) {
+    this.logger.log(`Deleting crews for title with tconst=${tconst}`);
+    // Implementation for deleting crews for a title would go here
+    return;
+  }
+
+  @Get(":tconst/crews/:nconst")
+  @Header("Cache-Control", "no-store")
+  @HttpCode(HttpStatus.OK)
+  async getCrewByTconstAndNconst(
+    @Param("tconst") tconst: string,
+    @Param("nconst") nconst: string,
+  ) {
+    this.logger.log(
+      `Fetching crew member with nconst=${nconst} for title with tconst=${tconst}`,
+    );
+    // Implementation for fetching a specific crew member by tconst and nconst would go here
+    return { message: "Crew member fetched successfully" };
+  }
+
+  @Put(":tconst/crews/:nconst")
+  @Header("Cache-Control", "no-store")
+  @HttpCode(HttpStatus.OK)
+  async updateCrewByTconstAndNconst(
+    @Param("tconst") tconst: string,
+    @Param("nconst") nconst: string,
+  ) {
+    this.logger.log(
+      `Updating crew member with nconst=${nconst} for title with tconst=${tconst}`,
+    );
+    // Implementation for updating a specific crew member by tconst and nconst would go here
+    return { message: "Crew member updated successfully" };
+  }
+
+  @Delete(":tconst/crews/:nconst")
+  @Header("Cache-Control", "no-store")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteCrewByTconstAndNconst(
+    @Param("tconst") tconst: string,
+    @Param("nconst") nconst: string,
+  ): Promise<void> {
+    this.logger.log(
+      `Deleting crew member with nconst=${nconst} for title with tconst=${tconst}`,
+    );
+    // Implementation for deleting a specific crew member by tconst and nconst would go here
     return;
   }
 }

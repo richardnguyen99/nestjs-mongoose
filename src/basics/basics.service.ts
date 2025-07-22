@@ -16,6 +16,7 @@ import {
   PrincipalQueryDto,
   PrincipalSingleQueryDto,
 } from "src/principals/dto/principal-query.dto";
+import { CrewsService } from "src/crews/crews.service";
 
 @Injectable()
 export class BasicsService {

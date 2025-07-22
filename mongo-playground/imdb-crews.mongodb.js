@@ -14,6 +14,44 @@ const { dir } = require("console");
 // Select the database to use.
 use("tmdb");
 
+db.crews.aggregate([
+  {
+    $match: {
+      tconst: "tt4154796",
+    },
+  },
+  {
+    $lookup: {
+      from: "names",
+      localField: "directors",
+      foreignField: "nconst",
+      as: "directorsInfo",
+      pipeline: [
+        {
+          $project: {
+            _id: 0,
+          },
+        },
+      ],
+    },
+  },
+  {
+    $lookup: {
+      from: "names",
+      localField: "writers",
+      foreignField: "nconst",
+      as: "writersInfo",
+      pipeline: [
+        {
+          $project: {
+            _id: 0,
+          },
+        },
+      ],
+    },
+  },
+]);
+
 db.crew.find({
   tconst: "tt4154796",
 });
