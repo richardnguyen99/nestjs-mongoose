@@ -40,6 +40,34 @@ export class CrewsService {
     return this.crewsModel.findById(id).exec();
   }
 
+  async addDirector(tconst: string, nconst: string) {
+    return this.crewsModel.findOneAndUpdate(
+      {
+        tconst,
+      },
+      {
+        $addToSet: { directors: nconst },
+      },
+      {
+        new: true,
+      },
+    );
+  }
+
+  async addWriter(tconst: string, nconst: string) {
+    return this.crewsModel.findOneAndUpdate(
+      {
+        tconst,
+      },
+      {
+        $addToSet: { writers: nconst },
+      },
+      {
+        new: true,
+      },
+    );
+  }
+
   private _prepareCrewAggregation<T>(
     aggregation: Aggregate<T[]>,
     query: CrewQueryDto,

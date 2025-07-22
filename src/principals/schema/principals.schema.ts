@@ -102,6 +102,18 @@ PrincipalsSchema.index(
   },
 );
 
+PrincipalsSchema.index(
+  {
+    tconst: 1,
+    nconst: 1,
+    category: 1,
+    job: 1,
+  },
+  {
+    unique: true,
+  },
+);
+
 PrincipalsSchema.pre("save", async function (next) {
   const model = this.model<Model<PrincipalsModel>>(PrincipalsModel.name);
 

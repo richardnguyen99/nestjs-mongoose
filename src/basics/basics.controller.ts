@@ -251,11 +251,20 @@ export class BasicsController {
   ) {
     this.logger.log(body);
 
-    return this.basicsService.addCrewToTitle(tconst, body);
+    const newCrew = await this.basicsService.addCrewToTitle(tconst, body);
+
+    if (newCrew.category === "director") {
+      await this.crewsService.addDirector(tconst, newCrew.nconst);
+    } else if (newCrew.category === "writer") {
+      await this.crewsService.addWriter(tconst, newCrew.nconst);
+    }
+
+    return newCrew;
   }
 
   @Put(":tconst/crews")
   @Header("Cache-Control", "no-store")
+  @Header("Content-Type", "application/json")
   @HttpCode(HttpStatus.OK)
   async updateCrewsByTconst(@Param("tconst") tconst: string) {
     this.logger.log(`Updating crews for title with tconst=${tconst}`);
