@@ -344,14 +344,31 @@ export class BasicsController {
   @Put(":tconst/crews/:nconst")
   @Header("Cache-Control", "no-store")
   @HttpCode(HttpStatus.OK)
+  @UsePipes(new ZodValidationPipe(principalUpdateSchema))
   async updateCrewByTconstAndNconst(
     @Param("tconst") tconst: string,
     @Param("nconst") nconst: string,
+    @Body() body: PrincipalUpdateDto,
   ) {
     this.logger.log(
       `Updating crew member with nconst=${nconst} for title with tconst=${tconst}`,
     );
-    // Implementation for updating a specific crew member by tconst and nconst would go here
+
+    const ordering = body.ordering;
+
+    const updateCrew = await this.basicsService.updateCrewInTitle(
+      tconst,
+      nconst,
+      ordering,
+      body,
+    );
+
+    if (!updateCrew) {
+      throw new NotFoundException(
+        `No crew member found for tconst=${tconst} and nconst=${nconst}`,
+      );
+    }
+
     return { message: "Crew member updated successfully" };
   }
 

@@ -247,6 +247,20 @@ export class BasicsService {
     );
   }
 
+  async updateCrewInTitle(
+    tconst: string,
+    nconst: string,
+    ordering: number,
+    principalDto: PrincipalUpdateDto,
+  ) {
+    return this.principalsService.update(
+      tconst,
+      nconst,
+      ordering,
+      principalDto,
+    );
+  }
+
   async removeCastFromTitle(tconst: string, nconst: string) {
     return this.principalsService.deleteByTconstAndNconst(tconst, nconst);
   }
