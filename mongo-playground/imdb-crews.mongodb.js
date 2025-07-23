@@ -14,6 +14,10 @@ const { dir } = require("console");
 // Select the database to use.
 use("tmdb");
 
+db.crews.find({
+  tconst: "tt4154796",
+});
+
 db.crews.aggregate([
   {
     $match: {
@@ -51,10 +55,6 @@ db.crews.aggregate([
     },
   },
 ]);
-
-db.crew.find({
-  tconst: "tt4154796",
-});
 
 db.crew.updateMany({}, [
   {

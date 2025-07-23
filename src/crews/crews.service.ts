@@ -1,9 +1,10 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
-import { Aggregate, Model } from "mongoose";
+import mongoose, { Aggregate, Model, StringExpression } from "mongoose";
 
 import { CrewsDocument, CrewsModel } from "./schema/crews.schema";
 import { CrewQueryDto } from "./dto/crew-query.dto";
+import { CrewUpdateDto } from "./dto/crew-update.dto";
 
 @Injectable()
 export class CrewsService {
@@ -66,6 +67,40 @@ export class CrewsService {
         new: true,
       },
     );
+  }
+
+  async update(
+    tconst: string,
+    updateDto: CrewUpdateDto,
+    options?: { new?: boolean },
+  ): Promise<CrewsDocument | null> {
+    const updateQuery: mongoose.UpdateQuery<CrewsDocument> = {};
+
+    if (updateDto.directors) {
+      if (updateDto.directors.add) {
+        updateQuery.$addToSet = {
+          directors: { $each: updateDto.directors.add },
+        };
+      }
+
+      if (updateDto.directors.remove) {
+        updateQuery.$pull = { directors: { $in: updateDto.directors.remove } };
+      }
+    }
+
+    if (updateDto.writers) {
+      if (updateDto.writers.add) {
+        updateQuery.$addToSet = {
+          writers: { $each: updateDto.writers.add },
+        };
+      }
+
+      if (updateDto.writers.remove) {
+        updateQuery.$pull = { writers: { $in: updateDto.writers.remove } };
+      }
+    }
+
+    return this.crewsModel.findOneAndUpdate({ tconst }, updateQuery, options);
   }
 
   private _prepareCrewAggregation<T>(

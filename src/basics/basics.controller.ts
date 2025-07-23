@@ -37,6 +37,8 @@ import {
 } from "src/principals/dto/principal-query.dto";
 import { CrewsService } from "src/crews/crews.service";
 import { CrewQueryDto, crewQuerySchema } from "src/crews/dto/crew-query.dto";
+import { CrewUpdateDto, crewUpdateSchema } from "src/crews/dto/crew-update.dto";
+import { PrincipalsService } from "src/principals/principals.service";
 
 @Controller({
   version: "1",
@@ -48,6 +50,7 @@ export class BasicsController {
   constructor(
     private readonly basicsService: BasicsService,
     private readonly crewsService: CrewsService,
+    private readonly principalsService: PrincipalsService,
   ) {}
 
   @Post()
@@ -266,10 +269,48 @@ export class BasicsController {
   @Header("Cache-Control", "no-store")
   @Header("Content-Type", "application/json")
   @HttpCode(HttpStatus.OK)
-  async updateCrewsByTconst(@Param("tconst") tconst: string) {
-    this.logger.log(`Updating crews for title with tconst=${tconst}`);
-    // Implementation for updating crews for a title would go here
-    return { message: "Crews updated successfully" };
+  @UsePipes(new ZodValidationPipe(crewUpdateSchema))
+  async updateCrewsByTconst(
+    @Param("tconst") tconst: string,
+    @Body() body: CrewUpdateDto,
+  ) {
+    const updatedCrew = await this.crewsService.update(tconst, body, {
+      new: true,
+    });
+
+    if (!updatedCrew) {
+      throw new NotFoundException(`No crews found for tconst=${tconst}`);
+    }
+
+    const removedPrincipals: { tconst: string; nconst: string }[] = [];
+
+    if (body.writers.remove) {
+      for (const nconst of body.writers.remove) {
+        removedPrincipals.push({
+          tconst,
+          nconst,
+        });
+      }
+    }
+
+    if (body.directors.remove) {
+      for (const nconst of body.directors.remove) {
+        removedPrincipals.push({
+          tconst,
+          nconst,
+        });
+      }
+    }
+
+    if (removedPrincipals.length > 0) {
+      const result = await this.principalsService.bulkDelete(removedPrincipals);
+
+      this.logger.log(
+        `Bulk delete result:\n${JSON.stringify(result, null, 2)}`,
+      );
+    }
+
+    return updatedCrew;
   }
 
   @Delete(":tconst/crews")
