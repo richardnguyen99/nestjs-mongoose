@@ -316,15 +316,21 @@ export class BasicsController {
   @Get(":tconst/crews/:nconst")
   @Header("Cache-Control", "no-store")
   @HttpCode(HttpStatus.OK)
+  @UsePipes(new ZodValidationPipe(principalSingleQuerySchema))
   async getCrewByTconstAndNconst(
     @Param("tconst") tconst: string,
     @Param("nconst") nconst: string,
+    @Query() options?: PrincipalSingleQueryDto,
   ) {
     this.logger.log(
       `Fetching crew member with nconst=${nconst} for title with tconst=${tconst}`,
     );
 
-    const crew = await this.basicsService.findByTconstAndNconst(tconst, nconst);
+    const crew = await this.basicsService.findByTconstAndNconst(
+      tconst,
+      nconst,
+      options,
+    );
 
     if (!crew) {
       throw new NotFoundException(
