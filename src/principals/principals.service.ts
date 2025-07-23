@@ -58,13 +58,13 @@ export class PrincipalsService {
       .match({
         tconst,
         nconst,
-        category: { $in: ["actor", "actress"] },
       })
       .group({
         _id: { tconst: "$tconst", nconst: "$nconst" },
         characters: { $push: "$characters" },
         category: { $first: "$category" },
         ordering: { $push: "$ordering" },
+        job: { $push: "$job" },
       })
       .project({
         _id: 0,
@@ -72,6 +72,13 @@ export class PrincipalsService {
         nconst: "$_id.nconst",
         category: 1,
         ordering: 1,
+        job: {
+          $filter: {
+            input: "$job",
+            as: "job",
+            cond: { $ne: ["$$job", null] }, // Filter out null jobs
+          },
+        },
         characters: {
           $reduce: {
             input: "$characters",

@@ -313,15 +313,6 @@ export class BasicsController {
     return updatedCrew;
   }
 
-  @Delete(":tconst/crews")
-  @Header("Cache-Control", "no-store")
-  @HttpCode(HttpStatus.NO_CONTENT)
-  async deleteCrewsByTconst(@Param("tconst") tconst: string) {
-    this.logger.log(`Deleting crews for title with tconst=${tconst}`);
-    // Implementation for deleting crews for a title would go here
-    return;
-  }
-
   @Get(":tconst/crews/:nconst")
   @Header("Cache-Control", "no-store")
   @HttpCode(HttpStatus.OK)
@@ -332,8 +323,16 @@ export class BasicsController {
     this.logger.log(
       `Fetching crew member with nconst=${nconst} for title with tconst=${tconst}`,
     );
-    // Implementation for fetching a specific crew member by tconst and nconst would go here
-    return { message: "Crew member fetched successfully" };
+
+    const crew = await this.basicsService.findByTconstAndNconst(tconst, nconst);
+
+    if (!crew) {
+      throw new NotFoundException(
+        `No crew member found for tconst=${tconst} and nconst=${nconst}`,
+      );
+    }
+
+    return crew;
   }
 
   @Put(":tconst/crews/:nconst")
