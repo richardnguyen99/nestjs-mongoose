@@ -35,10 +35,8 @@ import {
   PrincipalSingleQueryDto,
   principalSingleQuerySchema,
 } from "src/principals/dto/principal-query.dto";
-import { CrewsService } from "src/crews/crews.service";
 import { CrewQueryDto, crewQuerySchema } from "src/crews/dto/crew-query.dto";
 import { CrewUpdateDto, crewUpdateSchema } from "src/crews/dto/crew-update.dto";
-import { PrincipalsService } from "src/principals/principals.service";
 
 @Controller({
   version: "1",
@@ -47,11 +45,7 @@ import { PrincipalsService } from "src/principals/principals.service";
 export class BasicsController {
   private readonly logger = new Logger(BasicsController.name);
 
-  constructor(
-    private readonly basicsService: BasicsService,
-    private readonly crewsService: CrewsService,
-    private readonly principalsService: PrincipalsService,
-  ) {}
+  constructor(private readonly basicsService: BasicsService) {}
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -235,13 +229,20 @@ export class BasicsController {
   ) {
     this.logger.log(query);
 
-    const crews = await this.crewsService.findByTconst(tconst, query);
+    const crew = await this.basicsService.getCrewByTconst(tconst, query);
 
-    if (crews.length === 0) {
-      throw new NotFoundException(`No crews found for tconst=${tconst}`);
+    // There is no crew record matching the tconst
+    if (crew.totalCount === 0) {
+      throw new NotFoundException(`No crew found for tconst=${tconst}`);
     }
 
-    return crews;
+    if (crew.currentPage > crew.totalPages) {
+      throw new BadRequestException(
+        `Current page ${crew.currentPage} exceeds total pages ${crew.totalPages}`,
+      );
+    }
+
+    return crew;
   }
 
   @Post(":tconst/crews")
@@ -256,12 +257,6 @@ export class BasicsController {
 
     const newCrew = await this.basicsService.addCrewToTitle(tconst, body);
 
-    if (newCrew.category === "director") {
-      await this.crewsService.addDirector(tconst, newCrew.nconst);
-    } else if (newCrew.category === "writer") {
-      await this.crewsService.addWriter(tconst, newCrew.nconst);
-    }
-
     return newCrew;
   }
 
@@ -274,43 +269,16 @@ export class BasicsController {
     @Param("tconst") tconst: string,
     @Body() body: CrewUpdateDto,
   ) {
-    const updatedCrew = await this.crewsService.update(tconst, body, {
-      new: true,
-    });
+    const updatedCrewRecord = await this.basicsService.updateCrewRecord(
+      tconst,
+      body,
+    );
 
-    if (!updatedCrew) {
-      throw new NotFoundException(`No crews found for tconst=${tconst}`);
+    if (!updatedCrewRecord) {
+      throw new NotFoundException(`No crew found for tconst=${tconst}`);
     }
 
-    const removedPrincipals: { tconst: string; nconst: string }[] = [];
-
-    if (body.writers.remove) {
-      for (const nconst of body.writers.remove) {
-        removedPrincipals.push({
-          tconst,
-          nconst,
-        });
-      }
-    }
-
-    if (body.directors.remove) {
-      for (const nconst of body.directors.remove) {
-        removedPrincipals.push({
-          tconst,
-          nconst,
-        });
-      }
-    }
-
-    if (removedPrincipals.length > 0) {
-      const result = await this.principalsService.bulkDelete(removedPrincipals);
-
-      this.logger.log(
-        `Bulk delete result:\n${JSON.stringify(result, null, 2)}`,
-      );
-    }
-
-    return updatedCrew;
+    return updatedCrewRecord;
   }
 
   @Get(":tconst/crews/:nconst")

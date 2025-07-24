@@ -1,5 +1,10 @@
 import { Model } from "mongoose";
-import { Injectable, Logger } from "@nestjs/common";
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 
 import { BasicsDocument, BasicsModel } from "./schema/basics.schema";
@@ -15,6 +20,9 @@ import {
   PrincipalQueryDto,
   PrincipalSingleQueryDto,
 } from "src/principals/dto/principal-query.dto";
+import { CrewsService } from "src/crews/crews.service";
+import { CrewQueryDto } from "src/crews/dto/crew-query.dto";
+import { CrewUpdateDto } from "src/crews/dto/crew-update.dto";
 
 @Injectable()
 export class BasicsService {
@@ -39,6 +47,7 @@ export class BasicsService {
     @InjectModel(BasicsModel.name) private basicsModel: Model<BasicsModel>,
     private readonly namesService: NamesService,
     private readonly principalsService: PrincipalsService,
+    private readonly crewsService: CrewsService,
   ) {
     // Ensure indexes are created
     this.basicsModel.ensureIndexes().catch((error) => {
@@ -209,6 +218,12 @@ export class BasicsService {
     return result;
   }
 
+  async getCrewByTconst(tconst: string, options: CrewQueryDto) {
+    const [crew] = await this.crewsService.findByTconst(tconst, options);
+
+    return crew;
+  }
+
   async addCastToTitle(
     tconst: string,
     principalDto: Omit<PrincipalCreateDto, "tconst">,
@@ -229,6 +244,12 @@ export class BasicsService {
       ...crewDto,
       tconst,
     });
+
+    if (newCrew.category === "director") {
+      await this.crewsService.addDirector(tconst, newCrew.nconst);
+    } else if (newCrew.category === "writer") {
+      await this.crewsService.addWriter(tconst, newCrew.nconst);
+    }
 
     return newCrew;
   }
@@ -259,6 +280,46 @@ export class BasicsService {
       ordering,
       principalDto,
     );
+  }
+
+  async updateCrewRecord(tconst: string, updateDto: CrewUpdateDto) {
+    const updatedCrew = await this.crewsService.update(tconst, updateDto, {
+      new: true,
+    });
+
+    if (!updatedCrew) {
+      return null;
+    }
+
+    const removedPrincipals: { tconst: string; nconst: string }[] = [];
+
+    if (updateDto.writers.remove) {
+      for (const nconst of updateDto.writers.remove) {
+        removedPrincipals.push({
+          tconst,
+          nconst,
+        });
+      }
+    }
+
+    if (updateDto.directors.remove) {
+      for (const nconst of updateDto.directors.remove) {
+        removedPrincipals.push({
+          tconst,
+          nconst,
+        });
+      }
+    }
+
+    if (removedPrincipals.length > 0) {
+      const result = await this.principalsService.bulkDelete(removedPrincipals);
+
+      this.logger.log(
+        `Bulk delete result:\n${JSON.stringify(result, null, 2)}`,
+      );
+    }
+
+    return updatedCrew;
   }
 
   async removeCastFromTitle(tconst: string, nconst: string) {

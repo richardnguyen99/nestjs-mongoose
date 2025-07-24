@@ -1,10 +1,11 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
-import mongoose, { Aggregate, Model, StringExpression } from "mongoose";
+import mongoose, { Aggregate, Model } from "mongoose";
 
-import { CrewsDocument, CrewsModel } from "./schema/crews.schema";
-import { CrewQueryDto } from "./dto/crew-query.dto";
-import { CrewUpdateDto } from "./dto/crew-update.dto";
+import { CrewsDocument, CrewsModel } from "src/crews/schema/crews.schema";
+import { CrewQueryDto } from "src/crews/dto/crew-query.dto";
+import { CrewUpdateDto } from "src/crews/dto/crew-update.dto";
+import { CrewsAggregationInterface } from "src/crews/interfaces/crews-interface.interface";
 
 @Injectable()
 export class CrewsService {
@@ -27,12 +28,25 @@ export class CrewsService {
   async findByTconst(
     tconst: string,
     query: CrewQueryDto,
-  ): Promise<CrewsDocument[]> {
-    let aggregation = this.crewsModel.aggregate<CrewsDocument>().match({
-      tconst,
-    });
+  ): Promise<CrewsAggregationInterface[]> {
+    let aggregation = this.crewsModel
+      .aggregate<CrewsAggregationInterface>()
+      .match({
+        tconst,
+      });
 
     aggregation = this._prepareCrewAggregation(aggregation, query);
+
+    aggregation = aggregation
+      .facet({
+        totalCount: [{ $count: "count" }],
+        results: [{ $sort: { ordering: 1 } }, { $skip: 0 }, { $limit: 10 }],
+      })
+      .addFields({
+        totalCount: { $arrayElemAt: ["$totalCount.count", 0] },
+        perPage: 10,
+        currentPage: 1,
+      });
 
     return aggregation.exec();
   }
