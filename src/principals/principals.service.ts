@@ -262,14 +262,12 @@ export class PrincipalsService {
     ordering: number,
     dto: PrincipalUpdateDto,
   ): Promise<PrincipalsModel | null> {
-    const updatedPrincipal = await this.principalsModel
+    return this.principalsModel
       .findOneAndUpdate({ tconst, nconst, ordering }, dto, {
         new: true,
-        upsert: true,
+        runValidators: true,
       })
       .exec();
-
-    return updatedPrincipal;
   }
 
   async deleteByTconst(tconst: string): Promise<void> {

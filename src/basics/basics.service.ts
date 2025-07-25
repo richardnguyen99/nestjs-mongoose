@@ -274,12 +274,49 @@ export class BasicsService {
     ordering: number,
     principalDto: PrincipalUpdateDto,
   ) {
-    return this.principalsService.update(
+    const updatePrincipal = await this.principalsService.update(
       tconst,
       nconst,
       ordering,
       principalDto,
     );
+
+    if (!updatePrincipal) {
+      return null;
+    }
+
+    const updateDto: CrewUpdateDto = {} as CrewUpdateDto;
+
+    if (typeof principalDto.category !== "undefined") {
+      updatePrincipal.category = principalDto.category;
+
+      if (principalDto.category === "director") {
+        updateDto.directors = {
+          add: [updatePrincipal.nconst],
+        };
+
+        updateDto.writers = {
+          remove: [updatePrincipal.nconst],
+        };
+      }
+
+      if (principalDto.category === "writer") {
+        updateDto.writers = {
+          add: [updatePrincipal.nconst],
+        };
+
+        updateDto.directors = {
+          remove: [updatePrincipal.nconst],
+        };
+      }
+    }
+
+    if (Object.keys(updateDto).length > 0) {
+      this.logger.log(updateDto);
+      await this.crewsService.update(tconst, updateDto);
+    }
+
+    return updatePrincipal;
   }
 
   async updateCrewRecord(tconst: string, updateDto: CrewUpdateDto) {
