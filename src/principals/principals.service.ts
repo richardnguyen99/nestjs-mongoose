@@ -281,7 +281,7 @@ export class PrincipalsService {
   }
 
   async deleteByTconstAndNconst(tconst: string, nconst: string) {
-    return this.principalsModel.deleteMany({ tconst, nconst }).exec();
+    return this.principalsModel.findOneAndDelete({ tconst, nconst }).exec();
   }
 
   async bulkDelete(records: { tconst: string; nconst: string }[]) {

@@ -210,7 +210,7 @@ export class BasicsController {
   ): Promise<void> {
     const result = await this.basicsService.removeCastFromTitle(tconst, nconst);
 
-    if (!result || result.deletedCount === 0) {
+    if (!result) {
       throw new NotFoundException(
         `No cast found for tconst=${tconst} and nconst=${nconst}`,
       );
@@ -337,7 +337,7 @@ export class BasicsController {
       );
     }
 
-    return { message: "Crew member updated successfully" };
+    return updateCrew;
   }
 
   @Delete(":tconst/crews/:nconst")
@@ -350,7 +350,15 @@ export class BasicsController {
     this.logger.log(
       `Deleting crew member with nconst=${nconst} for title with tconst=${tconst}`,
     );
-    // Implementation for deleting a specific crew member by tconst and nconst would go here
+
+    const result = await this.basicsService.removeCrewFromTitle(tconst, nconst);
+
+    if (!result) {
+      throw new NotFoundException(
+        `No crew member found for tconst=${tconst} and nconst=${nconst}`,
+      );
+    }
+
     return;
   }
 }

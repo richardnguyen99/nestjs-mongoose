@@ -117,6 +117,28 @@ export class CrewsService {
     return this.crewsModel.findOneAndUpdate({ tconst }, updateQuery, options);
   }
 
+  async removeDirector(tconst: string, nconst: string) {
+    return this.crewsModel.findOneAndUpdate(
+      {
+        tconst,
+      },
+      {
+        $pull: { directors: nconst },
+      },
+    );
+  }
+
+  async removeWriter(tconst: string, nconst: string) {
+    return this.crewsModel.findOneAndUpdate(
+      {
+        tconst,
+      },
+      {
+        $pull: { writers: nconst },
+      },
+    );
+  }
+
   private _prepareCrewAggregation<T>(
     aggregation: Aggregate<T[]>,
     query: CrewQueryDto,

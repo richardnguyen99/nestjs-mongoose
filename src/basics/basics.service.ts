@@ -325,4 +325,23 @@ export class BasicsService {
   async removeCastFromTitle(tconst: string, nconst: string) {
     return this.principalsService.deleteByTconstAndNconst(tconst, nconst);
   }
+
+  async removeCrewFromTitle(tconst: string, nconst: string) {
+    const deletedCrew = await this.principalsService.deleteByTconstAndNconst(
+      tconst,
+      nconst,
+    );
+
+    if (!deletedCrew) {
+      return null;
+    }
+
+    if (deletedCrew.category === "director") {
+      await this.crewsService.removeDirector(tconst, deletedCrew.nconst);
+    } else if (deletedCrew.category === "writer") {
+      await this.crewsService.removeWriter(tconst, deletedCrew.nconst);
+    }
+
+    return deletedCrew;
+  }
 }

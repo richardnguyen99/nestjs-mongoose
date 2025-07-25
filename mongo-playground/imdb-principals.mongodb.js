@@ -11,6 +11,7 @@
 
 // Select the database to use.
 use("tmdb");
+db.principals.find({ tconst: "tt4154796", nconst: "nm1411347" });
 
 // db.principals.findOne({
 // tconst: "tt4154796",
