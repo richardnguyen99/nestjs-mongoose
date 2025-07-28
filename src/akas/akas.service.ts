@@ -5,6 +5,7 @@ import { Aggregate, Model } from "mongoose";
 import { AkasDocument, AkasModel } from "./schema/akas.schema";
 import { AkasAggregationInterface } from "./interfaces/akas-query.interface";
 import { AkaQueryDto } from "./dto/aka-query.dto";
+import { AkaCreateDto } from "./dto/aka-create.dto";
 
 @Injectable()
 export class AkasService {
@@ -86,8 +87,20 @@ export class AkasService {
     return this.akasModel.findById(id).exec();
   }
 
-  async createAka(akaData: Partial<AkasModel>): Promise<AkasModel> {
-    const newAka = new this.akasModel(akaData);
+  async createAka(akaDto: AkaCreateDto): Promise<AkasModel> {
+    this.logger.log(akaDto);
+
+    const newAka = new this.akasModel({
+      titleId: akaDto.titleId,
+      title: akaDto.title,
+      region: akaDto.region,
+      language: akaDto.language,
+      types: akaDto.types?.join(",") || null,
+      attributes: akaDto.attributes?.join(",") || null,
+      isOriginalTitle: akaDto.isOriginalTitle,
+    });
+    newAka.isNew = true;
+
     return newAka.save();
   }
 

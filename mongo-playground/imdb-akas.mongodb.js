@@ -12,6 +12,22 @@
 // Select the database to use.
 use("tmdb");
 
+db.akas.aggregate([
+  {
+    $match: {
+      titleId: "tt4154796",
+    },
+  },
+  {
+    $sort: {
+      ordering: 1,
+    },
+  },
+  {
+    $limit: 50,
+  },
+]);
+
 db.akas.updateMany({}, [
   {
     $set: {

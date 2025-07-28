@@ -33,7 +33,7 @@ export class AkasModel extends mongoose.Document {
    */
   @Prop({
     type: mongoose.Schema.Types.Int32,
-    required: true,
+    default: 1,
   })
   ordering: number;
 
@@ -102,3 +102,20 @@ export class AkasModel extends mongoose.Document {
 
 export const AkasSchema = SchemaFactory.createForClass(AkasModel);
 export type AkasDocument = mongoose.HydratedDocument<AkasModel>;
+
+AkasSchema.pre("save", async function (next) {
+  if (this.isNew) {
+    const titleId = this.titleId;
+    const latestOrdering = await this.model("AkasModel")
+      .aggregate()
+      .match({ titleId })
+      .sort({ ordering: -1 })
+      .limit(1)
+      .exec();
+
+    this.ordering =
+      latestOrdering.length > 0 ? latestOrdering[0].ordering + 1 : 1;
+  }
+
+  next();
+});

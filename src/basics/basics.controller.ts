@@ -37,7 +37,17 @@ import {
 } from "src/principals/dto/principal-query.dto";
 import { CrewQueryDto, crewQuerySchema } from "src/crews/dto/crew-query.dto";
 import { CrewUpdateDto, crewUpdateSchema } from "src/crews/dto/crew-update.dto";
-import { AkaQueryDto, akaQueryDto } from "src/akas/dto/aka-query.dto";
+import {
+  AkaQueryDto,
+  akaQueryDto,
+  baseAkaQueryDto,
+} from "src/akas/dto/aka-query.dto";
+import {
+  AkaCreateDto,
+  akaCreateDto,
+  baseAkaCreateDto,
+  BaseAkaCreateDto,
+} from "src/akas/dto/aka-create.dto";
 
 @Controller({
   version: "1",
@@ -386,5 +396,20 @@ export class BasicsController {
     }
 
     return akas;
+  }
+
+  @Post(":tconst/akas")
+  @Header("Cache-Control", "no-store")
+  @HttpCode(HttpStatus.CREATED)
+  @UsePipes(new ZodValidationPipe(baseAkaCreateDto))
+  async addAkasToTitle(
+    @Param("tconst") tconst: string,
+    @Body() body: BaseAkaCreateDto,
+  ) {
+    this.logger.log(body);
+
+    const newAka = await this.basicsService.addAkasToTitle(tconst, body);
+
+    return newAka;
   }
 }

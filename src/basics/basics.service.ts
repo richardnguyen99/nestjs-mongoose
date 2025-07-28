@@ -26,6 +26,7 @@ import { CrewUpdateDto } from "src/crews/dto/crew-update.dto";
 import { AkasService } from "src/akas/akas.service";
 import { AkasDocument } from "src/akas/schema/akas.schema";
 import { AkaQueryDto } from "src/akas/dto/aka-query.dto";
+import { AkaCreateDto, BaseAkaCreateDto } from "src/akas/dto/aka-create.dto";
 
 @Injectable()
 export class BasicsService {
@@ -390,5 +391,14 @@ export class BasicsService {
     const [akas] = await this.akasService.getAkasByTitleId(tconst, query);
 
     return akas;
+  }
+
+  async addAkasToTitle(tconst: string, akaDto: BaseAkaCreateDto) {
+    const newAka = await this.akasService.createAka({
+      ...akaDto,
+      titleId: tconst,
+    });
+
+    return newAka;
   }
 }
