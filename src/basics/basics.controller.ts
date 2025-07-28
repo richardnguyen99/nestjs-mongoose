@@ -437,4 +437,30 @@ export class BasicsController {
 
     return updateAka;
   }
+
+  @Delete(":tconst/akas/:ordering")
+  @Header("Cache-Control", "no-store")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteAkaByTconstAndOrdering(
+    @Param("tconst") tconst: string,
+    @Param("ordering") ordering: number,
+  ): Promise<void> {
+    this.logger.log({
+      tconst,
+      ordering,
+    });
+
+    const deleteAka = await this.basicsService.removeAkasFromTitle(
+      tconst,
+      ordering,
+    );
+
+    if (!deleteAka) {
+      throw new NotFoundException(
+        `No aka found for tconst=${tconst} and ordering=${ordering}`,
+      );
+    }
+
+    return;
+  }
 }

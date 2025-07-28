@@ -416,4 +416,10 @@ export class BasicsService {
 
     return updatedAka;
   }
+
+  async removeAkasFromTitle(tconst: string, ordering: number) {
+    const deletedAka = await this.akasService.deleteAka(tconst, ordering);
+
+    return deletedAka;
+  }
 }
