@@ -6,6 +6,7 @@ import { AkasDocument, AkasModel } from "./schema/akas.schema";
 import { AkasAggregationInterface } from "./interfaces/akas-query.interface";
 import { AkaQueryDto } from "./dto/aka-query.dto";
 import { AkaCreateDto } from "./dto/aka-create.dto";
+import { AkaUpdateDto } from "./dto/aka-update.dto";
 
 @Injectable()
 export class AkasService {
@@ -104,17 +105,38 @@ export class AkasService {
     return newAka.save();
   }
 
-  async updateAka(
-    titleId: string,
-    updateData: Partial<AkasModel>,
-  ): Promise<AkasDocument | null> {
+  async updateAka(updateData: AkaUpdateDto): Promise<AkasDocument | null> {
+    const types =
+      updateData.types && updateData.types.length > 0
+        ? updateData.types.join(",")
+        : null;
+
+    const attributes =
+      updateData.attributes && updateData.attributes.length > 0
+        ? updateData.attributes.join(",")
+        : null;
+
     return this.akasModel
-      .findOneAndUpdate({ titleId }, updateData, { new: true })
+      .findOneAndUpdate(
+        { titleId: updateData.titleId, ordering: updateData.ordering },
+        {
+          title: updateData.title,
+          region: updateData.region,
+          language: updateData.language,
+          types,
+          attributes,
+          isOriginalTitle: updateData.isOriginalTitle,
+        },
+        { new: true },
+      )
       .exec();
   }
 
-  async deleteAka(titleId: string): Promise<AkasDocument | null> {
-    return this.akasModel.findOneAndDelete({ titleId }).exec();
+  async deleteAka(
+    titleId: string,
+    ordering: number,
+  ): Promise<AkasDocument | null> {
+    return this.akasModel.findOneAndDelete({ titleId, ordering }).exec();
   }
 
   _prepareAkasAggregation(

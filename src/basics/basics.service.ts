@@ -27,6 +27,7 @@ import { AkasService } from "src/akas/akas.service";
 import { AkasDocument } from "src/akas/schema/akas.schema";
 import { AkaQueryDto } from "src/akas/dto/aka-query.dto";
 import { AkaCreateDto, BaseAkaCreateDto } from "src/akas/dto/aka-create.dto";
+import { BaseAkaUpdateDto } from "src/akas/dto/aka-update.dto";
 
 @Injectable()
 export class BasicsService {
@@ -400,5 +401,19 @@ export class BasicsService {
     });
 
     return newAka;
+  }
+
+  async updateAkasInTitle(
+    tconst: string,
+    ordering: number,
+    body: BaseAkaUpdateDto,
+  ) {
+    const updatedAka = await this.akasService.updateAka({
+      titleId: tconst,
+      ordering,
+      ...body,
+    });
+
+    return updatedAka;
   }
 }

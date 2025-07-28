@@ -48,6 +48,11 @@ import {
   baseAkaCreateDto,
   BaseAkaCreateDto,
 } from "src/akas/dto/aka-create.dto";
+import {
+  akaUpdateDto,
+  BaseAkaUpdateDto,
+  baseAkaUpdateDto,
+} from "src/akas/dto/aka-update.dto";
 
 @Controller({
   version: "1",
@@ -411,5 +416,25 @@ export class BasicsController {
     const newAka = await this.basicsService.addAkasToTitle(tconst, body);
 
     return newAka;
+  }
+
+  @Put(":tconst/akas/:ordering")
+  @Header("Cache-Control", "no-store")
+  @HttpCode(HttpStatus.OK)
+  @UsePipes(new ZodValidationPipe(baseAkaUpdateDto))
+  async updateAkaByTconstAndOrdering(
+    @Param("tconst") tconst: string,
+    @Param("ordering") ordering: number,
+    @Body() body: BaseAkaUpdateDto,
+  ) {
+    this.logger.log(body);
+
+    const updateAka = await this.basicsService.updateAkasInTitle(
+      tconst,
+      ordering,
+      body,
+    );
+
+    return updateAka;
   }
 }

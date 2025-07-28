@@ -119,3 +119,5 @@ AkasSchema.pre("save", async function (next) {
 
   next();
 });
+
+AkasSchema.index({ titleId: 1, ordering: 1 }, { unique: true });
