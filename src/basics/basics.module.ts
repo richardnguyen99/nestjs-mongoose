@@ -7,6 +7,7 @@ import { BasicsModel, BasicsSchema } from "./schema/basics.schema";
 import { PrincipalsModule } from "src/principals/principals.module";
 import { NamesModule } from "src/names/names.module";
 import { CrewsModule } from "src/crews/crews.module";
+import { AkasModule } from "src/akas/akas.module";
 
 @Module({
   providers: [BasicsService],
@@ -24,6 +25,7 @@ import { CrewsModule } from "src/crews/crews.module";
     NamesModule,
     PrincipalsModule,
     CrewsModule,
+    AkasModule,
   ],
 })
 export class BasicsModule {}

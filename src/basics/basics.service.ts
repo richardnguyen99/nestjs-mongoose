@@ -23,6 +23,8 @@ import {
 import { CrewsService } from "src/crews/crews.service";
 import { CrewQueryDto } from "src/crews/dto/crew-query.dto";
 import { CrewUpdateDto } from "src/crews/dto/crew-update.dto";
+import { AkasService } from "src/akas/akas.service";
+import { AkasDocument } from "src/akas/schema/akas.schema";
 
 @Injectable()
 export class BasicsService {
@@ -48,6 +50,7 @@ export class BasicsService {
     private readonly namesService: NamesService,
     private readonly principalsService: PrincipalsService,
     private readonly crewsService: CrewsService,
+    private readonly akasService: AkasService,
   ) {
     // Ensure indexes are created
     this.basicsModel.ensureIndexes().catch((error) => {
@@ -380,5 +383,11 @@ export class BasicsService {
     }
 
     return deletedCrew;
+  }
+
+  async getAkasByTconst(tconst: string) {
+    const [akas] = await this.akasService.getAkasByTitleId(tconst);
+
+    return akas;
   }
 }

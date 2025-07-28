@@ -361,4 +361,25 @@ export class BasicsController {
 
     return;
   }
+
+  @Get(":tconst/akas")
+  @Header("Cache-Control", "no-store")
+  @HttpCode(HttpStatus.OK)
+  async getAkasByTconst(@Param("tconst") tconst: string) {
+    const akas = await this.basicsService.getAkasByTconst(tconst);
+
+    this.logger.log(akas);
+
+    if (akas.totalCount === 0) {
+      throw new NotFoundException(`No akas found for tconst=${tconst}`);
+    }
+
+    if (akas.currentPage > akas.totalPages) {
+      throw new BadRequestException(
+        `Current page ${akas.currentPage} exceeds total pages ${akas.totalPages}`,
+      );
+    }
+
+    return akas;
+  }
 }
