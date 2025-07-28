@@ -37,6 +37,7 @@ import {
 } from "src/principals/dto/principal-query.dto";
 import { CrewQueryDto, crewQuerySchema } from "src/crews/dto/crew-query.dto";
 import { CrewUpdateDto, crewUpdateSchema } from "src/crews/dto/crew-update.dto";
+import { AkaQueryDto, akaQueryDto } from "src/akas/dto/aka-query.dto";
 
 @Controller({
   version: "1",
@@ -365,10 +366,14 @@ export class BasicsController {
   @Get(":tconst/akas")
   @Header("Cache-Control", "no-store")
   @HttpCode(HttpStatus.OK)
-  async getAkasByTconst(@Param("tconst") tconst: string) {
-    const akas = await this.basicsService.getAkasByTconst(tconst);
+  @UsePipes(new ZodValidationPipe(akaQueryDto))
+  async getAkasByTconst(
+    @Param("tconst") tconst: string,
+    @Query() query: AkaQueryDto,
+  ) {
+    this.logger.log(query);
 
-    this.logger.log(akas);
+    const akas = await this.basicsService.getAkasByTconst(tconst, query);
 
     if (akas.totalCount === 0) {
       throw new NotFoundException(`No akas found for tconst=${tconst}`);

@@ -1,9 +1,10 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
-import { Model } from "mongoose";
+import { Aggregate, Model } from "mongoose";
 
 import { AkasDocument, AkasModel } from "./schema/akas.schema";
 import { AkasAggregationInterface } from "./interfaces/akas-query.interface";
+import { AkaQueryDto } from "./dto/aka-query.dto";
 
 @Injectable()
 export class AkasService {
@@ -23,10 +24,18 @@ export class AkasService {
     return this.akasModel.find().exec();
   }
 
-  async getAkasByTitleId(titleId: string): Promise<AkasAggregationInterface[]> {
-    return this.akasModel
+  async getAkasByTitleId(
+    titleId: string,
+    query: AkaQueryDto,
+  ): Promise<AkasAggregationInterface[]> {
+    this.logger.log(query);
+    let aggregation = this.akasModel
       .aggregate<AkasAggregationInterface>()
-      .match({ titleId })
+      .match({ titleId });
+
+    aggregation = this._prepareAkasAggregation(aggregation, query);
+
+    return aggregation
       .facet({
         totalCount: [{ $count: "count" }],
         results: [
@@ -34,10 +43,10 @@ export class AkasService {
             $sort: { ordering: 1 },
           },
           {
-            $skip: 0,
+            $skip: (query.page - 1) * query.limit,
           },
           {
-            $limit: 10,
+            $limit: query.limit,
           },
         ],
       })
@@ -54,16 +63,23 @@ export class AkasService {
             if: { $gt: [{ $size: "$totalCount" }, 0] },
             then: {
               $ceil: {
-                $divide: [{ $arrayElemAt: ["$totalCount.count", 0] }, 10],
+                $divide: [
+                  { $arrayElemAt: ["$totalCount.count", 0] },
+                  query.limit,
+                ],
               },
             },
             else: 0,
           },
         },
-        currentPage: 1,
-        perPage: 10,
+        currentPage: query.page,
+        perPage: query.limit,
       })
       .exec();
+  }
+
+  async getAkasByTitleIdWithRegion(tconst: string, region: string) {
+    return;
   }
 
   async getAkaById(id: string): Promise<AkasDocument | null> {
@@ -86,5 +102,32 @@ export class AkasService {
 
   async deleteAka(titleId: string): Promise<AkasDocument | null> {
     return this.akasModel.findOneAndDelete({ titleId }).exec();
+  }
+
+  _prepareAkasAggregation(
+    aggregation: Aggregate<AkasAggregationInterface[]>,
+    query: AkaQueryDto,
+  ): Aggregate<AkasAggregationInterface[]> {
+    if (query) {
+      if (query.language) {
+        aggregation = aggregation.match({ language: query.language });
+      }
+
+      if (query.region) {
+        aggregation = aggregation.match({ region: query.region });
+      }
+
+      if (query.types && query.types.length > 0) {
+        aggregation = aggregation.match({ types: { $in: query.types } });
+      }
+
+      if (query.attributes && query.attributes.length > 0) {
+        aggregation = aggregation.match({
+          attributes: { $in: query.attributes },
+        });
+      }
+    }
+
+    return aggregation;
   }
 }

@@ -25,6 +25,7 @@ import { CrewQueryDto } from "src/crews/dto/crew-query.dto";
 import { CrewUpdateDto } from "src/crews/dto/crew-update.dto";
 import { AkasService } from "src/akas/akas.service";
 import { AkasDocument } from "src/akas/schema/akas.schema";
+import { AkaQueryDto } from "src/akas/dto/aka-query.dto";
 
 @Injectable()
 export class BasicsService {
@@ -385,8 +386,8 @@ export class BasicsService {
     return deletedCrew;
   }
 
-  async getAkasByTconst(tconst: string) {
-    const [akas] = await this.akasService.getAkasByTitleId(tconst);
+  async getAkasByTconst(tconst: string, query: AkaQueryDto) {
+    const [akas] = await this.akasService.getAkasByTitleId(tconst, query);
 
     return akas;
   }
