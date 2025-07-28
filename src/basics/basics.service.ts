@@ -28,6 +28,7 @@ import { AkasDocument } from "src/akas/schema/akas.schema";
 import { AkaQueryDto } from "src/akas/dto/aka-query.dto";
 import { AkaCreateDto, BaseAkaCreateDto } from "src/akas/dto/aka-create.dto";
 import { BaseAkaUpdateDto } from "src/akas/dto/aka-update.dto";
+import { EpisodesService } from "src/episodes/episodes.service";
 
 @Injectable()
 export class BasicsService {
@@ -54,6 +55,7 @@ export class BasicsService {
     private readonly principalsService: PrincipalsService,
     private readonly crewsService: CrewsService,
     private readonly akasService: AkasService,
+    private readonly episodesService: EpisodesService,
   ) {
     // Ensure indexes are created
     this.basicsModel.ensureIndexes().catch((error) => {

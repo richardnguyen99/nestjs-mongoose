@@ -8,8 +8,9 @@ import { RequestIdMiddleware } from "./middlewares/request-id.middleware";
 import { HttpLoggerMiddleware } from "./middlewares/http-logger.middleware";
 import { NamesModule } from "./names/names.module";
 import { PrincipalsModule } from "./principals/principals.module";
-import { CrewsModule } from './crews/crews.module';
-import { AkasModule } from './akas/akas.module';
+import { CrewsModule } from "./crews/crews.module";
+import { AkasModule } from "./akas/akas.module";
+import { EpisodesModule } from "./episodes/episodes.module";
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { AkasModule } from './akas/akas.module';
     PrincipalsModule,
     CrewsModule,
     AkasModule,
+    EpisodesModule,
   ],
   controllers: [AppController],
   providers: [],

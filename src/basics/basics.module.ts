@@ -8,6 +8,7 @@ import { PrincipalsModule } from "src/principals/principals.module";
 import { NamesModule } from "src/names/names.module";
 import { CrewsModule } from "src/crews/crews.module";
 import { AkasModule } from "src/akas/akas.module";
+import { EpisodesModule } from "src/episodes/episodes.module";
 
 @Module({
   providers: [BasicsService],
@@ -26,6 +27,7 @@ import { AkasModule } from "src/akas/akas.module";
     PrincipalsModule,
     CrewsModule,
     AkasModule,
+    EpisodesModule,
   ],
 })
 export class BasicsModule {}
