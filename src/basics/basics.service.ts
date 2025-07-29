@@ -424,4 +424,30 @@ export class BasicsService {
 
     return deletedAka;
   }
+
+  async getEpisodesByTconst(tconst: string) {
+    const basics = await this.findByTconst(tconst);
+
+    if (
+      !basics ||
+      (basics.titleType !== "tvSeries" && basics.titleType !== "tvMiniseries")
+    ) {
+      return null;
+    }
+
+    const episodes = await this.episodesService.getSeasonsByTconst(tconst);
+
+    return {
+      _id: basics._id,
+      tconst: basics.tconst,
+      title: basics.primaryTitle,
+      titleType: basics.titleType,
+      totalSeasons: episodes.length,
+      totalEpisodes: episodes.reduce(
+        (acc, season) => acc + (season as any).episodes.length,
+        0,
+      ),
+      seasons: episodes,
+    };
+  }
 }
