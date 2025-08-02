@@ -53,6 +53,10 @@ import {
   BaseAkaUpdateDto,
   baseAkaUpdateDto,
 } from "src/akas/dto/aka-update.dto";
+import {
+  BaseEpisodeCreateDto,
+  baseEpisodeCreateSchema,
+} from "src/episodes/dto/episode-create.dto";
 
 @Controller({
   version: "1",
@@ -477,5 +481,20 @@ export class BasicsController {
     }
 
     return episodeResult;
+  }
+
+  @Post(":tconst/episodes")
+  @Header("Cache-Control", "no-store")
+  @HttpCode(HttpStatus.CREATED)
+  @UsePipes(new ZodValidationPipe(baseEpisodeCreateSchema))
+  async addEpisodeToTitle(
+    @Param("tconst") tconst: string,
+    @Body() body: BaseEpisodeCreateDto,
+  ) {
+    this.logger.log(body);
+
+    const newEpisode = await this.basicsService.addEpisodeToTitle(tconst, body);
+
+    return newEpisode;
   }
 }

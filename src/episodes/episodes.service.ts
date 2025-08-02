@@ -3,6 +3,7 @@ import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 
 import { EpisodesDocument, EpisodesModel } from "./schema/episodes.schema";
+import { EpisodeCreateDto } from "./dto/episode-create.dto";
 
 @Injectable()
 export class EpisodesService {
@@ -94,9 +95,11 @@ export class EpisodesService {
   }
 
   async createEpisode(
-    episodeData: Partial<EpisodesDocument>,
+    episodeData: EpisodeCreateDto,
   ): Promise<EpisodesDocument> {
     const episode = new this.episodesModel(episodeData);
+    episode.isNew = true;
+
     return episode.save();
   }
 

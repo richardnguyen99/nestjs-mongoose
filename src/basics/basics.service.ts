@@ -29,6 +29,7 @@ import { AkaQueryDto } from "src/akas/dto/aka-query.dto";
 import { AkaCreateDto, BaseAkaCreateDto } from "src/akas/dto/aka-create.dto";
 import { BaseAkaUpdateDto } from "src/akas/dto/aka-update.dto";
 import { EpisodesService } from "src/episodes/episodes.service";
+import { BaseEpisodeCreateDto } from "src/episodes/dto/episode-create.dto";
 
 @Injectable()
 export class BasicsService {
@@ -449,5 +450,12 @@ export class BasicsService {
       ),
       seasons: episodes,
     };
+  }
+
+  async addEpisodeToTitle(tconst: string, body: BaseEpisodeCreateDto) {
+    return this.episodesService.createEpisode({
+      ...body,
+      parentTconst: tconst,
+    });
   }
 }

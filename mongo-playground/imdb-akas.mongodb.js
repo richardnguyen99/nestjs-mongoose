@@ -12,6 +12,27 @@
 // Select the database to use.
 use("tmdb");
 
+const cursor = db.akas.aggregate([
+  {
+    $group: {
+      _id: { titleId: "$titleId", ordering: "$ordering" },
+      ids: { $push: "$_id" },
+      count: { $sum: 1 },
+    },
+  },
+  {
+    $match: {
+      count: { $gt: 1 },
+    },
+  },
+]);
+
+cursor.forEach((doc) => {
+  // Keep the first one, remove the rest
+  const [, ...duplicateIds] = doc.ids; // skip the first one
+  db.akas.deleteMany({ _id: { $in: duplicateIds } });
+});
+
 db.akas.aggregate([
   {
     $match: {

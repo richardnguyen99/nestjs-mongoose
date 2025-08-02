@@ -33,7 +33,7 @@ export class EpisodesModel extends mongoose.Document {
    * @example "tt1234567" ("Friends" TV Series)
    */
   @Prop({
-    type: mongoose.Schema.Types.Int32,
+    type: mongoose.Schema.Types.String,
     required: true,
     index: true,
   })
@@ -64,3 +64,4 @@ export const EpisodesSchema = SchemaFactory.createForClass(EpisodesModel);
 export type EpisodesDocument = mongoose.HydratedDocument<EpisodesModel>;
 
 EpisodesSchema.index({ tconst: 1, parentTconst: 1 }, { unique: true });
+EpisodesSchema.index({ parentTconst: 1, seasonNumber: 1, episodeNumber: 1 });
