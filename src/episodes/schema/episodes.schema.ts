@@ -1,5 +1,8 @@
+import { NotFoundException } from "@nestjs/common";
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
-import mongoose from "mongoose";
+import mongoose, { Model } from "mongoose";
+
+import { BasicsModel } from "src/basics/schema/basics.schema";
 
 @Schema({
   versionKey: false,
@@ -65,3 +68,27 @@ export type EpisodesDocument = mongoose.HydratedDocument<EpisodesModel>;
 
 EpisodesSchema.index({ tconst: 1, parentTconst: 1 }, { unique: true });
 EpisodesSchema.index({ parentTconst: 1, seasonNumber: 1, episodeNumber: 1 });
+
+EpisodesSchema.pre("save", async function (next) {
+  if (this.isNew) {
+    const basicsModel = this.model<Model<BasicsModel>>("BasicsModel");
+
+    const parentTconst = await basicsModel.findOne({
+      tconst: this.parentTconst,
+    });
+
+    if (!parentTconst) {
+      return next(new NotFoundException("Parent TV Series not found"));
+    }
+
+    const tconst = await basicsModel.findOne({
+      tconst: this.tconst,
+    });
+
+    if (!tconst) {
+      return next(new NotFoundException("Episode not found"));
+    }
+  }
+
+  next();
+});
