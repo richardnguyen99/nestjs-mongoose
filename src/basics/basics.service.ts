@@ -30,6 +30,7 @@ import { AkaCreateDto, BaseAkaCreateDto } from "src/akas/dto/aka-create.dto";
 import { BaseAkaUpdateDto } from "src/akas/dto/aka-update.dto";
 import { EpisodesService } from "src/episodes/episodes.service";
 import { BaseEpisodeCreateDto } from "src/episodes/dto/episode-create.dto";
+import { BaseEpisodeUpdateDto } from "src/episodes/dto/episode-update.dto";
 
 @Injectable()
 export class BasicsService {
@@ -466,5 +467,13 @@ export class BasicsService {
       ...body,
       parentTconst: tconst,
     });
+  }
+
+  async updateEpisodeInTitle(
+    parentTconst: string,
+    tconst: string,
+    body: BaseEpisodeUpdateDto,
+  ) {
+    return this.episodesService.updateEpisode(parentTconst, tconst, body);
   }
 }

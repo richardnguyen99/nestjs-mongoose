@@ -4,6 +4,7 @@ import { Model } from "mongoose";
 
 import { EpisodesDocument, EpisodesModel } from "./schema/episodes.schema";
 import { EpisodeCreateDto } from "./dto/episode-create.dto";
+import { EpisodeUpdateDto } from "./dto/episode-update.dto";
 
 @Injectable()
 export class EpisodesService {
@@ -140,10 +141,17 @@ export class EpisodesService {
   async updateEpisode(
     parentTconst: string,
     tconst: string,
-    episodeData: Partial<EpisodesDocument>,
+    episodeData: EpisodeUpdateDto,
   ): Promise<EpisodesDocument | null> {
     return this.episodesModel
-      .findOneAndUpdate({ parentTconst, tconst }, episodeData, { new: true })
+      .findOneAndUpdate(
+        { parentTconst, tconst },
+        {
+          episodeNumber: episodeData.episodeNumber,
+          seasonNumber: episodeData.seasonNumber,
+        },
+        { new: true },
+      )
       .exec();
   }
 

@@ -67,7 +67,6 @@ export const EpisodesSchema = SchemaFactory.createForClass(EpisodesModel);
 export type EpisodesDocument = mongoose.HydratedDocument<EpisodesModel>;
 
 EpisodesSchema.index({ tconst: 1, parentTconst: 1 }, { unique: true });
-EpisodesSchema.index({ parentTconst: 1, seasonNumber: 1, episodeNumber: 1 });
 
 EpisodesSchema.pre("save", async function (next) {
   if (this.isNew) {

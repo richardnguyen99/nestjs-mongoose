@@ -57,6 +57,10 @@ import {
   BaseEpisodeCreateDto,
   baseEpisodeCreateSchema,
 } from "src/episodes/dto/episode-create.dto";
+import {
+  BaseEpisodeUpdateDto,
+  baseEpisodeUpdateSchema,
+} from "src/episodes/dto/episode-update.dto";
 
 @Controller({
   version: "1",
@@ -522,5 +526,35 @@ export class BasicsController {
     }
 
     return episode;
+  }
+
+  @Put(":parentTconst/episodes/:tconst")
+  @Header("Cache-Control", "no-store")
+  @HttpCode(HttpStatus.OK)
+  @UsePipes(new ZodValidationPipe(baseEpisodeUpdateSchema))
+  async updateEpisodeByTconst(
+    @Param("parentTconst") parentTconst: string,
+    @Param("tconst") tconst: string,
+    @Body() body: BaseEpisodeUpdateDto,
+  ) {
+    this.logger.log({
+      parentTconst,
+      tconst,
+      body,
+    });
+
+    const updatedEpisode = await this.basicsService.updateEpisodeInTitle(
+      parentTconst,
+      tconst,
+      body,
+    );
+
+    if (!updatedEpisode) {
+      throw new NotFoundException(
+        `No episode found for parentTconst=${parentTconst} and tconst=${tconst}`,
+      );
+    }
+
+    return updatedEpisode;
   }
 }
