@@ -497,4 +497,30 @@ export class BasicsController {
 
     return newEpisode;
   }
+
+  @Get(":parentTconst/episodes/:tconst")
+  @Header("Cache-Control", "no-store")
+  @HttpCode(HttpStatus.OK)
+  async getEpisodeByTconst(
+    @Param("parentTconst") parentTconst: string,
+    @Param("tconst") tconst: string,
+  ) {
+    this.logger.log({
+      parentTconst,
+      tconst,
+    });
+
+    const episode = await this.basicsService.getASingleEpisodeFromTitle(
+      parentTconst,
+      tconst,
+    );
+
+    if (!episode) {
+      throw new NotFoundException(
+        `No episode found for parentTconst=${parentTconst} and tconst=${tconst}`,
+      );
+    }
+
+    return episode;
+  }
 }

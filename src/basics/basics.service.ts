@@ -452,6 +452,15 @@ export class BasicsService {
     };
   }
 
+  async getASingleEpisodeFromTitle(parentTconst: string, tconst: string) {
+    const [episode] = await this.episodesService.getEpisodeByTconst(
+      parentTconst,
+      tconst,
+    );
+
+    return episode;
+  }
+
   async addEpisodeToTitle(tconst: string, body: BaseEpisodeCreateDto) {
     return this.episodesService.createEpisode({
       ...body,

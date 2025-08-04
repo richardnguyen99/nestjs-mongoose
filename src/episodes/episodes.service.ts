@@ -82,14 +82,48 @@ export class EpisodesService {
     return aggregation.exec();
   }
 
-  async getEpisodeByTconst(
-    parentTconst: string,
-    tconst: string,
-  ): Promise<EpisodesDocument | null> {
+  async getEpisodeByTconst(parentTconst: string, tconst: string) {
     return this.episodesModel
-      .findOne({
+      .aggregate()
+      .match({
         parentTconst,
         tconst,
+      })
+      .lookup({
+        from: "basics",
+        localField: "tconst",
+        foreignField: "tconst",
+        as: "episodeDetail",
+        pipeline: [
+          {
+            $addFields: {
+              imdbUrl: {
+                $concat: [
+                  "https://www.imdb.com/title/",
+                  "$tconst",
+                  "/?ref_=fn_al_tt_1",
+                ],
+              },
+            },
+          },
+        ],
+      })
+      .unwind("$episodeDetail")
+      .project({
+        _id: 0,
+        tconst: 1,
+        parentTconst: 1,
+        seasonNumber: 1,
+        episodeNumber: 1,
+        titleType: "$episodeDetail.titleType",
+        primaryTitle: "$episodeDetail.primaryTitle",
+        originalTitle: "$episodeDetail.originalTitle",
+        isAdult: "$episodeDetail.isAdult",
+        startYear: "$episodeDetail.startYear",
+        endYear: "$episodeDetail.endYear",
+        runtimeMinutes: "$episodeDetail.runtimeMinutes",
+        genres: "$episodeDetail.genres",
+        imdbUrl: "$episodeDetail.imdbUrl",
       })
       .exec();
   }
