@@ -6,20 +6,24 @@ import { NamesModel } from "./schema/names.schema";
 import { NameCreateDto } from "./dto/name-create.dto";
 import { NameUpdateDto, nameUpdateSchema } from "./dto/name-update.dto";
 import { NameSearchDto } from "./dto/name-search.dto";
+import { ConfigService } from "@nestjs/config";
 
 @Injectable()
 export class NamesService {
   private readonly logger = new Logger(NamesService.name);
 
   constructor(
+    private readonly configService: ConfigService,
     @InjectModel(NamesModel.name) private namesModel: Model<NamesModel>,
   ) {
-    // Ensure indexes are created
-    this.namesModel.ensureIndexes().catch((error) => {
-      console.error("Error creating indexes for NamesModel:", error);
+    if (this.configService.get<string>("NODE_ENV") === "development") {
+      // Ensure indexes are created
+      this.namesModel.ensureIndexes().catch((error) => {
+        console.error("Error creating indexes for NamesModel:", error);
 
-      process.exit(1);
-    });
+        process.exit(1);
+      });
+    }
   }
 
   async create(dto: NameCreateDto): Promise<NamesModel> {

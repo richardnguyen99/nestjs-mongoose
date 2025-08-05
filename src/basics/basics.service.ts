@@ -31,6 +31,7 @@ import { BaseAkaUpdateDto } from "src/akas/dto/aka-update.dto";
 import { EpisodesService } from "src/episodes/episodes.service";
 import { BaseEpisodeCreateDto } from "src/episodes/dto/episode-create.dto";
 import { BaseEpisodeUpdateDto } from "src/episodes/dto/episode-update.dto";
+import { ConfigService } from "@nestjs/config";
 
 @Injectable()
 export class BasicsService {
@@ -52,6 +53,7 @@ export class BasicsService {
   private readonly LONG_RUNTIME_MINUTES_MARK = 70;
 
   constructor(
+    private readonly configService: ConfigService,
     @InjectModel(BasicsModel.name) private basicsModel: Model<BasicsModel>,
     private readonly namesService: NamesService,
     private readonly principalsService: PrincipalsService,
@@ -59,12 +61,14 @@ export class BasicsService {
     private readonly akasService: AkasService,
     private readonly episodesService: EpisodesService,
   ) {
-    // Ensure indexes are created
-    this.basicsModel.ensureIndexes().catch((error) => {
-      console.error("Error creating indexes for BasicsModel:", error);
+    if (this.configService.get<string>("NODE_ENV") === "development") {
+      // Ensure indexes are created
+      this.basicsModel.ensureIndexes().catch((error) => {
+        console.error("Error creating indexes for BasicsModel:", error);
 
-      process.exit(1);
-    });
+        process.exit(1);
+      });
+    }
   }
 
   async createBasic(dto: BasicCreateDto): Promise<BasicsModel> {

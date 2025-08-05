@@ -5,19 +5,25 @@ import { Model } from "mongoose";
 import { EpisodesDocument, EpisodesModel } from "./schema/episodes.schema";
 import { EpisodeCreateDto } from "./dto/episode-create.dto";
 import { EpisodeUpdateDto } from "./dto/episode-update.dto";
+import { ConfigService } from "@nestjs/config";
 
 @Injectable()
 export class EpisodesService {
   private readonly logger = new Logger(EpisodesService.name);
 
   constructor(
+    private readonly configService: ConfigService,
     @InjectModel(EpisodesModel.name)
     private episodesModel: Model<EpisodesModel>,
   ) {
-    this.episodesModel.syncIndexes().catch((error) => {
-      console.error("Error syncing indexes for EpisodesModel", error);
-      process.exit(1);
-    });
+    if (this.configService.get<string>("NODE_ENV") === "development") {
+      // Ensure indexes are created
+      this.episodesModel.ensureIndexes().catch((error) => {
+        console.error("Error creating indexes for EpisodesModel:", error);
+
+        process.exit(1);
+      });
+    }
   }
 
   async getSeasonsByTconst(tconst: string): Promise<EpisodesDocument[]> {

@@ -6,19 +6,25 @@ import { CrewsDocument, CrewsModel } from "src/crews/schema/crews.schema";
 import { CrewQueryDto } from "src/crews/dto/crew-query.dto";
 import { CrewUpdateDto } from "src/crews/dto/crew-update.dto";
 import { CrewsAggregationInterface } from "src/crews/interfaces/crews-interface.interface";
+import { ConfigService } from "@nestjs/config";
 
 @Injectable()
 export class CrewsService {
   private readonly logger = new Logger("CrewsService");
 
   constructor(
+    private readonly configService: ConfigService,
     @InjectModel(CrewsModel.name)
     private readonly crewsModel: Model<CrewsModel>,
   ) {
-    this.crewsModel.syncIndexes().catch((error) => {
-      this.logger.error("Error syncing indexes", error);
-      process.exit(1);
-    });
+    if (this.configService.get<string>("NODE_ENV") === "development") {
+      // Ensure indexes are created
+      this.crewsModel.ensureIndexes().catch((error) => {
+        console.error("Error creating indexes for CrewsModel:", error);
+
+        process.exit(1);
+      });
+    }
   }
 
   async findAll(): Promise<CrewsDocument[]> {

@@ -7,19 +7,24 @@ import { AkasAggregationInterface } from "./interfaces/akas-query.interface";
 import { AkaQueryDto } from "./dto/aka-query.dto";
 import { AkaCreateDto } from "./dto/aka-create.dto";
 import { AkaUpdateDto } from "./dto/aka-update.dto";
+import { ConfigService } from "@nestjs/config";
 
 @Injectable()
 export class AkasService {
   private readonly logger = new Logger(AkasService.name);
 
   constructor(
+    private readonly configService: ConfigService,
     @InjectModel(AkasModel.name) private readonly akasModel: Model<AkasModel>,
   ) {
-    this.akasModel.syncIndexes().catch((error) => {
-      this.logger.error("Error syncing indexes for AkasModel", error);
+    if (this.configService.get<string>("NODE_ENV") === "development") {
+      // Ensure indexes are created
+      this.akasModel.ensureIndexes().catch((error) => {
+        console.error("Error creating indexes for AkasModel:", error);
 
-      process.exit(1);
-    });
+        process.exit(1);
+      });
+    }
   }
 
   async getAllAkas(): Promise<AkasModel[]> {

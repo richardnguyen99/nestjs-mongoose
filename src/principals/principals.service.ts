@@ -12,6 +12,7 @@ import {
   PrincipalQueryDto,
   PrincipalSingleQueryDto,
 } from "./dto/principal-query.dto";
+import { ConfigService } from "@nestjs/config";
 
 @Injectable()
 export class PrincipalsService {
@@ -20,14 +21,18 @@ export class PrincipalsService {
   private readonly DEFAULT_PER_PAGE = 5;
 
   constructor(
+    private readonly configService: ConfigService,
     @InjectModel(PrincipalsModel.name)
     private readonly principalsModel: Model<PrincipalsModel>,
   ) {
-    this.principalsModel.syncIndexes().catch((error) => {
-      this.logger.error("Error syncing indexes", error);
+    if (this.configService.get<string>("NODE_ENV") === "development") {
+      // Ensure indexes are created
+      this.principalsModel.ensureIndexes().catch((error) => {
+        console.error("Error creating indexes for PrincipalsModel:", error);
 
-      process.exit(1);
-    });
+        process.exit(1);
+      });
+    }
   }
 
   async findAll(): Promise<PrincipalsModel[]> {

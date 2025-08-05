@@ -77,11 +77,11 @@
     "coverageDirectory": "./coverage",
     "testEnvironment": "node",
     "roots": [
-      "<rootDir>/src/",
-      "<rootDir>/libs/"
+      "<rootDir>/src/"
     ],
     "moduleNameMapper": {
-      "^y/logger(|/.*)$": "<rootDir>/libs/libs/logger/src/$1"
+      "^y/logger(|/.*)$": "<rootDir>/libs/libs/logger/src/$1",
+      "^src/(.*)$": "<rootDir>/src/$1"
     }
   }
 }
