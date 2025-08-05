@@ -557,4 +557,30 @@ export class BasicsController {
 
     return updatedEpisode;
   }
+
+  @Delete(":parentTconst/episodes/:tconst")
+  @Header("Cache-Control", "no-store")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteEpisodeByTconst(
+    @Param("parentTconst") parentTconst: string,
+    @Param("tconst") tconst: string,
+  ): Promise<void> {
+    this.logger.log({
+      parentTconst,
+      tconst,
+    });
+
+    const deleteEpisode = await this.basicsService.removeEpisodeFromTitle(
+      parentTconst,
+      tconst,
+    );
+
+    if (!deleteEpisode) {
+      throw new NotFoundException(
+        `No episode found for parentTconst=${parentTconst} and tconst=${tconst}`,
+      );
+    }
+
+    return;
+  }
 }

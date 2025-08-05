@@ -476,4 +476,17 @@ export class BasicsService {
   ) {
     return this.episodesService.updateEpisode(parentTconst, tconst, body);
   }
+
+  async removeEpisodeFromTitle(parentTconst: string, tconst: string) {
+    const deletedEpisode = await this.episodesService.deleteEpisode(
+      parentTconst,
+      tconst,
+    );
+
+    if (!deletedEpisode) {
+      return null;
+    }
+
+    return deletedEpisode;
+  }
 }
