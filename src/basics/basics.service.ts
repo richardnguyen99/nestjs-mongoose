@@ -299,35 +299,35 @@ export class BasicsService {
       return null;
     }
 
-    const updateDto: CrewUpdateDto = {} as CrewUpdateDto;
+    const updateCrewDto: CrewUpdateDto = {} as CrewUpdateDto;
 
     if (typeof principalDto.category !== "undefined") {
       updatePrincipal.category = principalDto.category;
 
       if (principalDto.category === "director") {
-        updateDto.directors = {
+        updateCrewDto.directors = {
           add: [updatePrincipal.nconst],
         };
 
-        updateDto.writers = {
+        updateCrewDto.writers = {
           remove: [updatePrincipal.nconst],
         };
       }
 
       if (principalDto.category === "writer") {
-        updateDto.writers = {
+        updateCrewDto.writers = {
           add: [updatePrincipal.nconst],
         };
 
-        updateDto.directors = {
+        updateCrewDto.directors = {
           remove: [updatePrincipal.nconst],
         };
       }
     }
 
-    if (Object.keys(updateDto).length > 0) {
-      this.logger.log(updateDto);
-      await this.crewsService.update(tconst, updateDto);
+    if (Object.keys(updateCrewDto).length > 0) {
+      this.logger.log(updateCrewDto);
+      await this.crewsService.update(tconst, updateCrewDto);
     }
 
     return updatePrincipal;

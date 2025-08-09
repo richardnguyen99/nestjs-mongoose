@@ -18,12 +18,16 @@ import { EpisodesModel } from "src/episodes/schema/episodes.schema";
 import { BasicCreateDto } from "./dto/basic-create.dto";
 import { BasicUpdateDto } from "./dto/basic-update.dto";
 import { BasicSearchDto } from "./dto/basic-search.dto";
+import { PrincipalQueryDto } from "src/principals/dto/principal-query.dto";
+import { CrewQueryDto } from "src/crews/dto/crew-query.dto";
+import { PrincipalCreateDto } from "src/principals/dto/principal-create.dto";
+import { PrincipalUpdateDto } from "src/principals/dto/principal-update.dto";
 
 describe("BasicsService", () => {
   let service: BasicsService;
   let principalService: PrincipalsService;
+  let crewService: CrewsService;
   let basicMockModel: Model<BasicsModel>;
-  const mockBasicModel: jest.Mock = jest.fn();
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -65,6 +69,7 @@ describe("BasicsService", () => {
 
     service = module.get<BasicsService>(BasicsService);
     principalService = module.get<PrincipalsService>(PrincipalsService);
+    crewService = module.get<CrewsService>(CrewsService);
     basicMockModel = module.get<Model<BasicsModel>>(
       getModelToken(BasicsModel.name),
     );
@@ -73,20 +78,6 @@ describe("BasicsService", () => {
   afterEach(() => {
     // restore the spy created with spyOn
     jest.restoreAllMocks();
-  });
-
-  it("should be defined", () => {
-    expect(service).toBeDefined();
-  });
-
-  it("should have a findById method", () => {
-    expect(service.findById).toBeDefined();
-    expect(typeof service.findById).toBe("function");
-  });
-
-  it("should have a findByTconst method", () => {
-    expect(service.findByTconst).toBeDefined();
-    expect(typeof service.findByTconst).toBe("function");
   });
 
   it("should return documents by findById correctly", async () => {
@@ -363,5 +354,487 @@ describe("BasicsService", () => {
 
     expect(findChain.where).toHaveBeenCalledWith("runtimeMinutes");
     expect(findChain.gt).toHaveBeenCalledWith(70);
+  });
+
+  it("should return principals by tconst", async () => {
+    const spy = jest
+      .spyOn(principalService, "findCastByTconst")
+      .mockResolvedValue([
+        {
+          results: [
+            {
+              _id: "mock-id",
+              tconst: "tt1234567",
+              nconst: "nm1234567",
+              ordering: 1,
+            } as any,
+          ],
+          totalCount: 1,
+          currentPage: 2,
+          perPage: 10,
+          totalPages: 1,
+        },
+      ]);
+
+    const tconst = "tt1234567";
+    const options: PrincipalQueryDto = {
+      page: 2,
+      limit: 10,
+      include: {
+        name: true,
+        title: true,
+      },
+    };
+
+    const result = await service.getCastByTconst(tconst, options);
+
+    expect(result).toEqual({
+      results: [
+        {
+          _id: "mock-id",
+          tconst: "tt1234567",
+          nconst: "nm1234567",
+          ordering: 1,
+        },
+      ],
+      totalCount: 1,
+      currentPage: 2,
+      perPage: 10,
+      totalPages: 1,
+    });
+    expect(spy).toHaveBeenCalledWith(tconst, options);
+  });
+
+  it("should return crews by tconst", async () => {
+    const spy = jest.spyOn(crewService, "findByTconst").mockResolvedValue([
+      {
+        results: [
+          {
+            _id: "mock-id",
+            tconst: "tt1234567",
+            directors: ["nm1234567"],
+            writers: ["nm2345678"],
+            ordering: 1,
+          } as any,
+        ],
+        totalCount: 1,
+        currentPage: 1,
+        totalPages: 1,
+      },
+    ]);
+
+    const tconst = "tt1234567";
+    const options: CrewQueryDto = {
+      lean: true,
+    };
+
+    const result = await service.getCrewByTconst(tconst, options);
+
+    expect(result).toEqual({
+      results: [
+        {
+          _id: "mock-id",
+          tconst: "tt1234567",
+          directors: ["nm1234567"],
+          writers: ["nm2345678"],
+          ordering: 1,
+        },
+      ],
+      totalCount: 1,
+      currentPage: 1,
+      totalPages: 1,
+    });
+    expect(spy).toHaveBeenCalledWith(tconst, options);
+  });
+
+  it("should add cast to title", async () => {
+    const spy = jest.spyOn(principalService, "create").mockResolvedValue({
+      _id: "mock-id",
+      tconst: "tt1234567",
+      nconst: "nm1234567",
+      category: "actor",
+      job: null,
+      characters: ["Character 1"],
+    } as any);
+
+    const tconst = "tt1234567";
+    const nconst = "nm1234567";
+    const principalDto: Omit<PrincipalCreateDto, "tconst"> = {
+      nconst,
+      category: "actor",
+      job: null,
+      characters: ["Character 1"],
+    };
+
+    const result = await service.addCastToTitle(tconst, principalDto);
+
+    expect(result).toEqual({
+      _id: "mock-id",
+      tconst: "tt1234567",
+      nconst: "nm1234567",
+      category: "actor",
+      job: null,
+      characters: ["Character 1"],
+    });
+    expect(spy).toHaveBeenCalledWith({ ...principalDto, tconst });
+  });
+
+  it("should add crew to title", async () => {
+    const principalCreate = jest
+      .spyOn(principalService, "create")
+      .mockImplementation((dto) => {
+        const mockValues = {
+          tt1234567: {
+            nconst: "nm2345678",
+            category: "writer",
+            job: null,
+            characters: [],
+          },
+          tt2345678: {
+            nconst: "nm1234567",
+            category: "director",
+            job: null,
+            characters: [],
+          },
+        };
+
+        return Promise.resolve(mockValues[dto.tconst]);
+      });
+
+    const addDirectorSpy = jest
+      .spyOn(crewService, "addDirector")
+      .mockResolvedValue({} as any);
+
+    const addWriterSpy = jest
+      .spyOn(crewService, "addWriter")
+      .mockResolvedValue({} as any);
+
+    const writerDto: Omit<PrincipalCreateDto, "tconst"> = {
+      nconst: "nm2345678",
+      category: "writer",
+      job: null,
+      characters: [],
+    };
+
+    const directorDto: Omit<PrincipalCreateDto, "tconst"> = {
+      nconst: "nm1234567",
+      category: "director",
+      job: null,
+      characters: [],
+    };
+
+    const writerResult = await service.addCrewToTitle("tt1234567", writerDto);
+    expect(writerResult).toEqual({
+      nconst: "nm2345678",
+      category: "writer",
+      job: null,
+      characters: [],
+    });
+    expect(addWriterSpy).toHaveBeenCalledWith("tt1234567", writerDto.nconst);
+
+    const directorResult = await service.addCrewToTitle(
+      "tt2345678",
+      directorDto,
+    );
+    expect(directorResult).toEqual({
+      nconst: "nm1234567",
+      category: "director",
+      job: null,
+      characters: [],
+    });
+    expect(addDirectorSpy).toHaveBeenCalledWith(
+      "tt2345678",
+      directorDto.nconst,
+    );
+  });
+
+  it("should update cast in title", async () => {
+    const spy = jest
+      .spyOn(principalService, "update")
+      .mockResolvedValue({} as any);
+
+    const tconst = "tt1234567";
+    const nconst = "nm1234567";
+    const updateDto: PrincipalUpdateDto = {
+      category: "actor",
+      job: "lead",
+      characters: ["Character 1", "Character 2"],
+      ordering: 1,
+    };
+
+    const result = await service.updateCastInTitle(
+      tconst,
+      nconst,
+      updateDto.ordering,
+      updateDto,
+    );
+
+    expect(result).toEqual({});
+    expect(spy).toHaveBeenCalledWith(
+      tconst,
+      nconst,
+      updateDto.ordering,
+      updateDto,
+    );
+  });
+
+  it("should update crew in title", async () => {
+    const mockWriter = {
+      tconst: "tt4154796",
+      nconst: "nm1411347",
+      category: "writer",
+      job: "Mantis created by",
+      characters: [],
+      ordering: 40,
+    };
+
+    const mockDirector = {
+      tconst: "tt4154796",
+      ordering: 20,
+      nconst: "nm0751648",
+      category: "director",
+      job: null,
+      characters: [],
+    };
+
+    const crewServiceUpdateSpy = jest
+      .spyOn(crewService, "update")
+      .mockResolvedValue({} as any);
+
+    const principalServiceUpdateSpy = jest
+      .spyOn(principalService, "update")
+      .mockImplementation((tconst, nconst, ordering, dto) => {
+        if (
+          tconst === "tt4154796" &&
+          nconst === "nm0751648" &&
+          ordering === 20
+        ) {
+          return Promise.resolve({
+            ...mockDirector,
+          }) as any;
+        }
+
+        if (
+          tconst === "tt4154796" &&
+          nconst === "nm1411347" &&
+          ordering === 40
+        ) {
+          return Promise.resolve({
+            ...mockWriter,
+          }) as any;
+        }
+
+        return null;
+      });
+
+    const nullResult = await service.updateCrewInTitle(
+      "tt1234567",
+      "nm0751648",
+      1,
+      {
+        category: "director",
+        job: null,
+        characters: [],
+        ordering: 1,
+      },
+    );
+
+    expect(nullResult).toBeNull();
+
+    const directorResult = await service.updateCrewInTitle(
+      "tt4154796",
+      "nm0751648",
+      20,
+      {
+        category: "director",
+        job: null,
+        characters: [],
+        ordering: 20,
+      },
+    );
+    expect(directorResult).toEqual({
+      tconst: "tt4154796",
+      nconst: "nm0751648",
+      category: "director",
+      job: null,
+      characters: [],
+      ordering: 20,
+    });
+    expect(crewServiceUpdateSpy).toHaveBeenCalledWith("tt4154796", {
+      directors: {
+        add: ["nm0751648"],
+      },
+      writers: {
+        remove: ["nm0751648"],
+      },
+    });
+
+    const writerResult = await service.updateCrewInTitle(
+      "tt4154796",
+      "nm1411347",
+      40,
+      {
+        category: "writer",
+        job: "Mantis created by",
+        characters: [],
+        ordering: 40,
+      },
+    );
+    expect(writerResult).toEqual({
+      tconst: "tt4154796",
+      nconst: "nm1411347",
+      category: "writer",
+      job: "Mantis created by",
+      characters: [],
+      ordering: 40,
+    });
+    expect(crewServiceUpdateSpy).toHaveBeenCalledWith("tt4154796", {
+      directors: {
+        remove: ["nm1411347"],
+      },
+      writers: {
+        add: ["nm1411347"],
+      },
+    });
+  });
+
+  it("should update crew records", async () => {
+    const mockCrew = {
+      tconst: "tt4154796",
+      directors: ["nm0751577", "nm0751648"],
+      writers: ["nm1321655", "nm1321656", "nm0498278"],
+    };
+
+    const crewServiceUpdateSpy = jest
+      .spyOn(crewService, "update")
+      .mockImplementation((tconst) => {
+        if (tconst === "tt4154796") {
+          return Promise.resolve(mockCrew as any);
+        }
+        return Promise.resolve(null);
+      });
+
+    const principalServiceBulkDeleteSpy = jest
+      .spyOn(principalService, "bulkDelete")
+      .mockResolvedValue({} as any);
+
+    const nullResult = await service.updateCrewRecord("tt1234567", {
+      directors: {
+        add: [],
+        remove: [],
+      },
+      writers: {
+        add: [],
+        remove: [],
+      },
+    });
+    expect(nullResult).toBeNull();
+    expect(principalServiceBulkDeleteSpy).toHaveBeenCalledTimes(0);
+
+    const result = await service.updateCrewRecord("tt4154796", {
+      directors: {
+        add: ["nm0751577", "nm0751648"],
+        remove: ["nm0751648"],
+      },
+      writers: {
+        add: ["nm1321655", "nm1321656", "nm0498278"],
+        remove: ["nm1321655", "nm1321656"],
+      },
+    });
+    expect(result).toEqual(mockCrew);
+    expect(principalServiceBulkDeleteSpy).toHaveBeenCalledWith([
+      {
+        tconst: "tt4154796",
+        nconst: "nm1321655",
+      },
+      {
+        tconst: "tt4154796",
+        nconst: "nm1321656",
+      },
+      {
+        tconst: "tt4154796",
+        nconst: "nm0751648",
+      },
+    ]);
+  });
+
+  it("should remove cast from title", async () => {
+    const spy = jest
+      .spyOn(principalService, "deleteByTconstAndNconst")
+      .mockResolvedValue({} as any);
+
+    const result = await service.removeCastFromTitle("tt1234567", "nm1234567");
+
+    expect(result).toEqual({});
+    expect(spy).toHaveBeenCalledWith("tt1234567", "nm1234567");
+  });
+
+  it("should remove crew from title", async () => {
+    const mockWriter = {
+      tconst: "tt4154796",
+      nconst: "nm1411347",
+      category: "writer",
+      job: "Mantis created by",
+      characters: [],
+      ordering: 40,
+    };
+
+    const mockDirector = {
+      tconst: "tt4154796",
+      ordering: 20,
+      nconst: "nm0751648",
+      category: "director",
+      job: null,
+      characters: [],
+    };
+
+    const principalServiceDeleteSpy = jest
+      .spyOn(principalService, "deleteByTconstAndNconst")
+      .mockImplementation((tconst, nconst) => {
+        if (tconst === "tt4154796") {
+          if (nconst === "nm1411347") {
+            return Promise.resolve(mockWriter as any);
+          }
+          if (nconst === "nm0751648") {
+            return Promise.resolve(mockDirector as any);
+          }
+        }
+        return Promise.resolve(null);
+      });
+
+    const crewServiceDeleteDirectorSpy = jest
+      .spyOn(crewService, "removeDirector")
+      .mockResolvedValue({} as any);
+    const crewServiceDeleteWriterSpy = jest
+      .spyOn(crewService, "removeWriter")
+      .mockResolvedValue({} as any);
+
+    const nullResult = await service.removeCrewFromTitle(
+      "tt1234567",
+      "nm0751648",
+    );
+    expect(nullResult).toBeNull();
+    expect(crewServiceDeleteDirectorSpy).toHaveBeenCalledTimes(0);
+    expect(crewServiceDeleteWriterSpy).toHaveBeenCalledTimes(0);
+
+    const directorResult = await service.removeCrewFromTitle(
+      "tt4154796",
+      "nm0751648",
+    );
+    expect(directorResult).toEqual(mockDirector);
+    expect(crewServiceDeleteDirectorSpy).toHaveBeenCalledWith(
+      "tt4154796",
+      "nm0751648",
+    );
+
+    const writerResult = await service.removeCrewFromTitle(
+      "tt4154796",
+      "nm1411347",
+    );
+    expect(writerResult).toEqual(mockWriter);
+    expect(crewServiceDeleteWriterSpy).toHaveBeenCalledWith(
+      "tt4154796",
+      "nm1411347",
+    );
   });
 });
