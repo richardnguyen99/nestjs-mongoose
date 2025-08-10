@@ -13,7 +13,7 @@ import { EpisodesService } from "src/episodes/episodes.service";
 import { NamesModel } from "src/names/schema/names.schema";
 import { PrincipalsModel } from "src/principals/schema/principals.schema";
 import { CrewsModel } from "src/crews/schema/crews.schema";
-import { AkasModel } from "src/akas/schema/akas.schema";
+import { AkasDocument, AkasModel } from "src/akas/schema/akas.schema";
 import { EpisodesModel } from "src/episodes/schema/episodes.schema";
 import { BasicCreateDto } from "./dto/basic-create.dto";
 import { BasicUpdateDto } from "./dto/basic-update.dto";
@@ -22,11 +22,13 @@ import { PrincipalQueryDto } from "src/principals/dto/principal-query.dto";
 import { CrewQueryDto } from "src/crews/dto/crew-query.dto";
 import { PrincipalCreateDto } from "src/principals/dto/principal-create.dto";
 import { PrincipalUpdateDto } from "src/principals/dto/principal-update.dto";
+import { title } from "process";
 
 describe("BasicsService", () => {
   let service: BasicsService;
   let principalService: PrincipalsService;
   let crewService: CrewsService;
+  let akaService: AkasService;
   let basicMockModel: Model<BasicsModel>;
 
   beforeEach(async () => {
@@ -70,6 +72,7 @@ describe("BasicsService", () => {
     service = module.get<BasicsService>(BasicsService);
     principalService = module.get<PrincipalsService>(PrincipalsService);
     crewService = module.get<CrewsService>(CrewsService);
+    akaService = module.get<AkasService>(AkasService);
     basicMockModel = module.get<Model<BasicsModel>>(
       getModelToken(BasicsModel.name),
     );
@@ -836,5 +839,142 @@ describe("BasicsService", () => {
       "tt4154796",
       "nm1411347",
     );
+  });
+
+  it("should get akas from title", async () => {
+    const mockAkas = [
+      {
+        titleId: "tt4154796",
+        ordering: 36,
+        title: "Avengers: Endgame",
+        region: "XWW",
+        language: "en",
+        types: "imdbDisplay",
+        attributes: null,
+        isOriginalTitle: false,
+      },
+      {
+        titleId: "tt4154796",
+        ordering: 35,
+        title: "Avengers: Endgame",
+        region: "UY",
+        language: null,
+        types: null,
+        attributes: "3-D version",
+        isOriginalTitle: false,
+      },
+    ];
+
+    const spy = jest.spyOn(akaService, "getAkasByTitleId").mockResolvedValue([
+      {
+        totalCount: 2,
+        totalPages: 1,
+        currentPage: 1,
+        perPage: 10,
+        results: mockAkas as AkasDocument[],
+      },
+    ]);
+
+    const result = await service.getAkasByTconst("tt4154796", {
+      page: 1,
+      limit: 10,
+    });
+
+    expect(result).toEqual({
+      totalCount: 2,
+      totalPages: 1,
+      currentPage: 1,
+      perPage: 10,
+      results: mockAkas,
+    });
+    expect(spy).toHaveBeenCalledWith("tt4154796", {
+      page: 1,
+      limit: 10,
+    });
+  });
+
+  it("should create an aka for a title", async () => {
+    const mockAka = {
+      titleId: "tt4154796",
+      ordering: 35,
+      title: "Avengers: Endgame",
+      region: "UY",
+      language: null,
+      types: null,
+      attributes: "3-D version",
+      isOriginalTitle: false,
+    };
+
+    const spy = jest
+      .spyOn(akaService, "createAka")
+      .mockResolvedValue(mockAka as AkasDocument);
+
+    const result = await service.addAkasToTitle("tt4154796", {
+      title: "Avengers: Endgame",
+      region: "UY",
+      attributes: ["3-D version"],
+      isOriginalTitle: false,
+      language: null,
+      types: null,
+    });
+
+    expect(result).toEqual(mockAka);
+    expect(spy).toHaveBeenCalledWith({
+      titleId: "tt4154796",
+      title: "Avengers: Endgame",
+      region: "UY",
+      attributes: ["3-D version"],
+      isOriginalTitle: false,
+      language: null,
+      types: null,
+    });
+  });
+
+  it("should update an aka for a title", async () => {
+    const mockAka = {
+      titleId: "tt4154796",
+      ordering: 28,
+      title: "Avengers: Endgame",
+      region: "SE",
+      language: null,
+      types: "imdbDisplay",
+      attributes: null,
+      isOriginalTitle: false,
+    };
+
+    const spy = jest
+      .spyOn(akaService, "updateAka")
+      .mockResolvedValue(mockAka as AkasDocument);
+
+    const result = await service.updateAkasInTitle("tt4154796", 28, {
+      title: "Avengers: Endgame",
+      region: "SE",
+      language: null,
+      types: ["imdbDisplay"],
+      attributes: null,
+      isOriginalTitle: false,
+    });
+
+    expect(result).toEqual(mockAka);
+    expect(spy).toHaveBeenCalledWith({
+      titleId: "tt4154796",
+      ordering: 28,
+      title: "Avengers: Endgame",
+      region: "SE",
+      language: null,
+      types: ["imdbDisplay"],
+      attributes: null,
+      isOriginalTitle: false,
+    });
+  });
+
+  it("should delete an aka from a title", async () => {
+    const spy = jest
+      .spyOn(akaService, "deleteAka")
+      .mockResolvedValue({} as any);
+
+    const result = await service.removeAkasFromTitle("tt4154796", 28);
+    expect(result).toEqual({});
+    expect(spy).toHaveBeenCalledWith("tt4154796", 28);
   });
 });
