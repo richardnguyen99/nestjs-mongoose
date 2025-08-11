@@ -37,19 +37,12 @@ import {
 } from "src/principals/dto/principal-query.dto";
 import { CrewQueryDto, crewQuerySchema } from "src/crews/dto/crew-query.dto";
 import { CrewUpdateDto, crewUpdateSchema } from "src/crews/dto/crew-update.dto";
+import { AkaQueryDto, akaQueryDto } from "src/akas/dto/aka-query.dto";
 import {
-  AkaQueryDto,
-  akaQueryDto,
-  baseAkaQueryDto,
-} from "src/akas/dto/aka-query.dto";
-import {
-  AkaCreateDto,
-  akaCreateDto,
   baseAkaCreateDto,
   BaseAkaCreateDto,
 } from "src/akas/dto/aka-create.dto";
 import {
-  akaUpdateDto,
   BaseAkaUpdateDto,
   baseAkaUpdateDto,
 } from "src/akas/dto/aka-update.dto";
