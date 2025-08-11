@@ -6,6 +6,7 @@ import { EpisodesDocument, EpisodesModel } from "./schema/episodes.schema";
 import { EpisodeCreateDto } from "./dto/episode-create.dto";
 import { EpisodeUpdateDto } from "./dto/episode-update.dto";
 import { ConfigService } from "@nestjs/config";
+import { GetSeasonAggregation } from "./interfaces/get-season-aggregation.interface";
 
 @Injectable()
 export class EpisodesService {
@@ -26,10 +27,12 @@ export class EpisodesService {
     }
   }
 
-  async getSeasonsByTconst(tconst: string): Promise<EpisodesDocument[]> {
-    let aggregation = this.episodesModel.aggregate().match({
-      parentTconst: tconst,
-    });
+  async getSeasonsByTconst(tconst: string) {
+    let aggregation = this.episodesModel
+      .aggregate<GetSeasonAggregation>()
+      .match({
+        parentTconst: tconst,
+      });
 
     aggregation = aggregation
       .lookup({
@@ -77,7 +80,6 @@ export class EpisodesService {
       .project({
         _id: 0,
         season: "$_id.season",
-        parentDetail: 1,
         episodes: {
           $sortArray: {
             input: "$episodes",

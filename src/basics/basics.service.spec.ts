@@ -4,7 +4,7 @@ import { ConfigModule } from "@nestjs/config";
 import { FilterQuery, Model } from "mongoose";
 import { getModelToken } from "@nestjs/mongoose";
 
-import { BasicsModel } from "./schema/basics.schema";
+import { BasicsDocument, BasicsModel } from "./schema/basics.schema";
 import { NamesService } from "src/names/names.service";
 import { PrincipalsService } from "src/principals/principals.service";
 import { CrewsService } from "src/crews/crews.service";
@@ -14,7 +14,10 @@ import { NamesModel } from "src/names/schema/names.schema";
 import { PrincipalsModel } from "src/principals/schema/principals.schema";
 import { CrewsModel } from "src/crews/schema/crews.schema";
 import { AkasDocument, AkasModel } from "src/akas/schema/akas.schema";
-import { EpisodesModel } from "src/episodes/schema/episodes.schema";
+import {
+  EpisodesDocument,
+  EpisodesModel,
+} from "src/episodes/schema/episodes.schema";
 import { BasicCreateDto } from "./dto/basic-create.dto";
 import { BasicUpdateDto } from "./dto/basic-update.dto";
 import { BasicSearchDto } from "./dto/basic-search.dto";
@@ -22,13 +25,14 @@ import { PrincipalQueryDto } from "src/principals/dto/principal-query.dto";
 import { CrewQueryDto } from "src/crews/dto/crew-query.dto";
 import { PrincipalCreateDto } from "src/principals/dto/principal-create.dto";
 import { PrincipalUpdateDto } from "src/principals/dto/principal-update.dto";
-import { title } from "process";
+import { GetSeasonAggregation } from "src/episodes/interfaces/get-season-aggregation.interface";
 
 describe("BasicsService", () => {
   let service: BasicsService;
   let principalService: PrincipalsService;
   let crewService: CrewsService;
   let akaService: AkasService;
+  let episodeService: EpisodesService;
   let basicMockModel: Model<BasicsModel>;
 
   beforeEach(async () => {
@@ -73,6 +77,7 @@ describe("BasicsService", () => {
     principalService = module.get<PrincipalsService>(PrincipalsService);
     crewService = module.get<CrewsService>(CrewsService);
     akaService = module.get<AkasService>(AkasService);
+    episodeService = module.get<EpisodesService>(EpisodesService);
     basicMockModel = module.get<Model<BasicsModel>>(
       getModelToken(BasicsModel.name),
     );
@@ -976,5 +981,219 @@ describe("BasicsService", () => {
     const result = await service.removeAkasFromTitle("tt4154796", 28);
     expect(result).toEqual({});
     expect(spy).toHaveBeenCalledWith("tt4154796", 28);
+  });
+
+  it("should return episodes by parent tconst", async () => {
+    const basicMovieMock = {
+      tconst: "tt0114709",
+      titleType: "movie",
+      primaryTitle: "Toy Story",
+      originalTitle: "Toy Story",
+      isAdult: false,
+      startYear: 1995,
+      endYear: null,
+      runtimeMinutes: 81,
+      genres: ["comedy", "adventure", "animation"],
+    };
+
+    const basicSeriesMock = {
+      tconst: "tt0898266",
+      titleType: "tvSeries",
+      primaryTitle: "The Big Bang Theory",
+      originalTitle: "The Big Bang Theory",
+      isAdult: false,
+      startYear: 2007,
+      endYear: 2019,
+      runtimeMinutes: 22,
+      genres: ["comedy", "romance"],
+    };
+
+    const episodeMocks = [
+      {
+        season: 1,
+        episodes: [
+          {
+            tconst: "tt1256599",
+            episodeNumber: 1,
+            titleType: "tvEpisode",
+            primaryTitle: "The Bad Fish Paradigm",
+            originalTitle: "The Bad Fish Paradigm",
+            isAdult: false,
+            startYear: 2008,
+            endYear: null,
+            runtimeMinutes: 22,
+            genres: ["comedy", "romance"],
+          },
+          {
+            tconst: "tt1256030",
+            episodeNumber: 2,
+            titleType: "tvEpisode",
+            primaryTitle: "The Codpiece Topology",
+            originalTitle: "The Codpiece Topology",
+            isAdult: false,
+            startYear: 2008,
+            endYear: null,
+            runtimeMinutes: 21,
+            genres: ["comedy", "romance"],
+          },
+        ],
+      },
+    ];
+
+    const basicServiceSpy = jest
+      .spyOn(service, "findByTconst")
+      .mockImplementation((tconst) => {
+        const mockData = {
+          tt0114709: basicMovieMock,
+          tt0898266: basicSeriesMock,
+        };
+
+        return Promise.resolve(mockData[tconst] || null);
+      });
+
+    const episodeServiceSpy = jest
+      .spyOn(episodeService, "getSeasonsByTconst")
+      .mockResolvedValue(episodeMocks as unknown as GetSeasonAggregation[]);
+
+    const nullResult = await service.getEpisodesByTconst("tt1234567");
+    expect(nullResult).toBeNull();
+    expect(basicServiceSpy).toHaveBeenCalledWith("tt1234567");
+    expect(episodeServiceSpy).toHaveBeenCalledTimes(0);
+
+    const movieResult = await service.getEpisodesByTconst("tt0114709");
+    expect(movieResult).toBeNull();
+    expect(basicServiceSpy).toHaveBeenCalledWith("tt0114709");
+    expect(episodeServiceSpy).toHaveBeenCalledTimes(0);
+
+    const seriesResult = await service.getEpisodesByTconst("tt0898266");
+    expect(seriesResult).toEqual({
+      _id: undefined,
+      tconst: "tt0898266",
+      titleType: "tvSeries",
+      title: "The Big Bang Theory",
+      totalSeasons: 1,
+      totalEpisodes: 2,
+      seasons: episodeMocks,
+    });
+    expect(basicServiceSpy).toHaveBeenCalledWith("tt0898266");
+    expect(episodeServiceSpy).toHaveBeenCalledWith("tt0898266");
+  });
+
+  it("should return a single episode by tconst", async () => {
+    const mockEpisode = [
+      {
+        tconst: "tt6674736",
+        parentTconst: "tt0898266",
+        seasonNumber: 12,
+        episodeNumber: 24,
+        titleType: "tvEpisode",
+        primaryTitle: "The Stockholm Syndrome",
+        originalTitle: "The Stockholm Syndrome",
+        isAdult: false,
+        startYear: 2019,
+        endYear: null,
+        runtimeMinutes: 23,
+        genres: ["comedy", "romance"],
+      },
+    ];
+
+    const spy = jest
+      .spyOn(episodeService, "getEpisodeByTconst")
+      .mockResolvedValue(mockEpisode as any);
+
+    const result = await service.getASingleEpisodeFromTitle(
+      "tt0898266",
+      "tt6674736",
+    );
+    expect(result).toEqual(mockEpisode[0]);
+    expect(spy).toHaveBeenCalledWith("tt0898266", "tt6674736");
+  });
+
+  it("should add an episode to a title", async () => {
+    const mockEpisode = {
+      tconst: "tt1127908",
+      parentTconst: "tt0898266",
+      seasonNumber: 1,
+      episodeNumber: 17,
+    };
+
+    const spy = jest
+      .spyOn(episodeService, "createEpisode")
+      .mockResolvedValue(mockEpisode as EpisodesDocument);
+
+    const result = await service.addEpisodeToTitle("tt0898266", {
+      tconst: "tt1127908",
+      seasonNumber: 1,
+      episodeNumber: 17,
+    });
+
+    expect(result).toEqual(mockEpisode);
+    expect(spy).toHaveBeenCalledWith({
+      tconst: "tt1127908",
+      parentTconst: "tt0898266",
+      seasonNumber: 1,
+      episodeNumber: 17,
+    });
+  });
+
+  it("should update an episode in a title", async () => {
+    const mockEpisode = {
+      tconst: "tt1127908",
+      parentTconst: "tt0898266",
+      seasonNumber: 1,
+      episodeNumber: 18,
+    };
+
+    const spy = jest
+      .spyOn(episodeService, "updateEpisode")
+      .mockResolvedValue(mockEpisode as EpisodesDocument);
+
+    const result = await service.updateEpisodeInTitle(
+      "tt0898266",
+      "tt1127908",
+      {
+        seasonNumber: 1,
+        episodeNumber: 17,
+      },
+    );
+
+    expect(result).toEqual(mockEpisode);
+    expect(spy).toHaveBeenCalledWith("tt0898266", "tt1127908", {
+      seasonNumber: 1,
+      episodeNumber: 17,
+    });
+  });
+
+  it("should remove the episode from a title", async () => {
+    const mockEpisode = {
+      tconst: "tt1127908",
+      parentTconst: "tt0898266",
+      seasonNumber: 1,
+      episodeNumber: 17,
+    };
+
+    const spy = jest
+      .spyOn(episodeService, "deleteEpisode")
+      .mockImplementation((parentTconst, tconst) => {
+        if (parentTconst === "tt0898266" && tconst === "tt1127908") {
+          return Promise.resolve(mockEpisode as EpisodesDocument);
+        }
+
+        return Promise.resolve(null);
+      });
+
+    const nullResult = await service.removeEpisodeFromTitle(
+      "tt0898266",
+      "tt9999999",
+    );
+    expect(nullResult).toBeNull();
+
+    const result = await service.removeEpisodeFromTitle(
+      "tt0898266",
+      "tt1127908",
+    );
+
+    expect(result).toEqual(mockEpisode);
+    expect(spy).toHaveBeenCalledWith("tt0898266", "tt1127908");
   });
 });
