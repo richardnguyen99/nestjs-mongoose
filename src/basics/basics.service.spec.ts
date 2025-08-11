@@ -172,9 +172,22 @@ describe("BasicsService", () => {
       genres: [" Action ", "Sci-Fi"],
     };
 
+    const adultDto: BasicCreateDto = {
+      ...dto,
+      tconst: "tt2345678",
+      isAdult: true,
+    };
+
     const mockSave = jest.fn().mockResolvedValue({
       ...dto,
       isAdult: 0,
+      genres: ["Action", "Sci-Fi"],
+      _id: "someObjectId",
+    });
+
+    const adultMockSave = jest.fn().mockResolvedValue({
+      ...adultDto,
+      isAdult: 1,
       genres: ["Action", "Sci-Fi"],
       _id: "someObjectId",
     });
@@ -187,7 +200,15 @@ describe("BasicsService", () => {
       save: mockSave,
     };
 
-    jest
+    const adultMockModelInstance = {
+      ...adultDto,
+      isAdult: 1,
+      genres: ["Action", "Sci-Fi"],
+      isNew: true,
+      save: adultMockSave,
+    };
+
+    const nonAdultSpy = jest
       .spyOn(service as any, "basicsModel")
       .mockImplementation(() => mockModelInstance as any);
 
@@ -197,6 +218,22 @@ describe("BasicsService", () => {
     expect(result).toEqual({
       ...dto,
       isAdult: 0,
+      genres: ["Action", "Sci-Fi"],
+      _id: "someObjectId",
+    });
+
+    nonAdultSpy.mockClear();
+
+    const adultSpy = jest
+      .spyOn(service as any, "basicsModel")
+      .mockImplementation(() => adultMockModelInstance as any);
+
+    const adultResult = await service.createBasic(adultDto);
+
+    expect(adultMockSave).toHaveBeenCalled();
+    expect(adultResult).toEqual({
+      ...adultDto,
+      isAdult: 1,
       genres: ["Action", "Sci-Fi"],
       _id: "someObjectId",
     });
@@ -305,7 +342,7 @@ describe("BasicsService", () => {
       filter: {
         isAdult: false,
         titleType: ["movie", "short"],
-        genre: "Drama",
+        genre: ["Drama"],
         since: 2000,
         until: 2020,
         duration: "medium",
@@ -318,7 +355,7 @@ describe("BasicsService", () => {
       limit: 5,
     };
 
-    const options2: Omit<BasicSearchDto, "q"> = {
+    const shortDurationOptions: Omit<BasicSearchDto, "q"> = {
       ...options1,
       filter: {
         ...options1.filter,
@@ -326,11 +363,42 @@ describe("BasicsService", () => {
       },
     };
 
-    const options3: Omit<BasicSearchDto, "q"> = {
+    const longDurationOptions: Omit<BasicSearchDto, "q"> = {
       ...options1,
       filter: {
         ...options1.filter,
         duration: "long",
+      },
+    };
+
+    const adultOptions: Omit<BasicSearchDto, "q"> = {
+      ...options1,
+      filter: {
+        ...options1.filter,
+        isAdult: true,
+      },
+    };
+
+    const singleTitleTypeOptions: Omit<BasicSearchDto, "q"> = {
+      ...options1,
+      filter: {
+        ...options1.filter,
+        titleType: "movie",
+      },
+    };
+
+    const singleGenreOptions: Omit<BasicSearchDto, "q"> = {
+      ...options1,
+      filter: {
+        ...options1.filter,
+        genre: "Drama",
+      },
+    };
+
+    const endYearSortOptions: Omit<BasicSearchDto, "q"> = {
+      ...options1,
+      sort: {
+        endYear: 1,
       },
     };
 
@@ -351,17 +419,67 @@ describe("BasicsService", () => {
     expect(findChain.gt).toHaveBeenCalledWith(30);
     expect(findChain.lte).toHaveBeenCalledWith(70);
 
-    const result2 = await service.searchByTitle("test title", options2);
-    expect(result2).toEqual([]);
+    const shortDurationResult = await service.searchByTitle(
+      "test title",
+      shortDurationOptions,
+    );
+    expect(shortDurationResult).toEqual([]);
 
     expect(findChain.where).toHaveBeenCalledWith("runtimeMinutes");
     expect(findChain.lte).toHaveBeenCalledWith(30);
 
-    const result3 = await service.searchByTitle("test title", options3);
-    expect(result3).toEqual([]);
+    const longDurationResult = await service.searchByTitle(
+      "test title",
+      longDurationOptions,
+    );
+    expect(longDurationResult).toEqual([]);
 
     expect(findChain.where).toHaveBeenCalledWith("runtimeMinutes");
     expect(findChain.gt).toHaveBeenCalledWith(70);
+
+    const adultResult = await service.searchByTitle("test title", adultOptions);
+
+    expect(adultResult).toEqual([]);
+    expect(findChain.where).toHaveBeenCalledWith("isAdult");
+    expect(findChain.equals).toHaveBeenCalledWith(1);
+
+    const singleTitleTypeResult = await service.searchByTitle(
+      "test title",
+      singleTitleTypeOptions,
+    );
+
+    expect(singleTitleTypeResult).toEqual([]);
+    expect(findChain.where).toHaveBeenCalledWith("titleType");
+    expect(findChain.in).toHaveBeenCalledWith(["movie"]);
+
+    const singleGenreResult = await service.searchByTitle(
+      "test title",
+      singleGenreOptions,
+    );
+    expect(singleGenreResult).toEqual([]);
+    expect(findChain.where).toHaveBeenCalledWith("genres");
+    expect(findChain.in).toHaveBeenCalledWith(["Drama"]);
+
+    const endYearSortResult = await service.searchByTitle(
+      "test title",
+      endYearSortOptions,
+    );
+
+    expect(endYearSortResult).toEqual([]);
+    expect(findChain.sort).toHaveBeenCalledWith(
+      expect.objectContaining({
+        endYear: 1,
+      }),
+    );
+
+    const emptyOptionResult = await service.searchByTitle("test title");
+    expect(emptyOptionResult).toEqual([]);
+    expect(findChain.sort).toHaveBeenCalledWith(
+      expect.objectContaining({
+        startYear: 1,
+        primaryTitle: -1,
+      }),
+    );
   });
 
   it("should return principals by tconst", async () => {

@@ -52,6 +52,7 @@ export class BasicsService {
   private readonly MEDIUM_RUNTIME_MINUTES_MARK = 30;
   private readonly LONG_RUNTIME_MINUTES_MARK = 70;
 
+  /* istanbul ignore next */
   constructor(
     private readonly configService: ConfigService,
     @InjectModel(BasicsModel.name) private basicsModel: Model<BasicsModel>,
