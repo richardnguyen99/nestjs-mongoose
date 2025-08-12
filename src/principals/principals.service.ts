@@ -13,6 +13,7 @@ import {
   PrincipalSingleQueryDto,
 } from "./dto/principal-query.dto";
 import { ConfigService } from "@nestjs/config";
+import { SinglePrincipalAggregation } from "./interfaces/principal-aggregation.interface";
 
 @Injectable()
 export class PrincipalsService {
@@ -51,7 +52,7 @@ export class PrincipalsService {
     tconst: string,
     nconst: string,
     options?: PrincipalSingleQueryDto,
-  ): Promise<PrincipalsDocument[]> {
+  ) {
     // IMDB stores multiple roles for a person in a title in separate documents.
     // This will query the all documents for the given tconst and nconst, and
     // group the characters into a single array while maintains the other fields.
@@ -59,7 +60,7 @@ export class PrincipalsService {
     // nconst.
 
     const aggregation = this.principalsModel
-      .aggregate()
+      .aggregate<SinglePrincipalAggregation>()
       .match({
         tconst,
         nconst,

@@ -50,8 +50,22 @@ export class CrewsService {
       })
       .addFields({
         totalCount: { $arrayElemAt: ["$totalCount.count", 0] },
-        perPage: 10,
-        currentPage: 1,
+        currentPage: query.page,
+        perPage: query.limit,
+        totalPages: {
+          $cond: {
+            if: { $gt: [{ $size: "$totalCount" }, 0] },
+            then: {
+              $ceil: {
+                $divide: [
+                  { $arrayElemAt: ["$totalCount.count", 0] },
+                  query.limit,
+                ],
+              },
+            },
+            else: 0,
+          },
+        },
       });
 
     return aggregation.exec();

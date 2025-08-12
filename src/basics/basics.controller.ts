@@ -363,7 +363,7 @@ export class BasicsController {
   async deleteCrewByTconstAndNconst(
     @Param("tconst") tconst: string,
     @Param("nconst") nconst: string,
-  ): Promise<void> {
+  ) {
     this.logger.log(
       `Deleting crew member with nconst=${nconst} for title with tconst=${tconst}`,
     );
@@ -376,7 +376,7 @@ export class BasicsController {
       );
     }
 
-    return;
+    return result;
   }
 
   @Get(":tconst/akas")

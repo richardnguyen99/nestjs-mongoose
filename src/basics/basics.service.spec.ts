@@ -552,6 +552,8 @@ describe("BasicsService", () => {
     const tconst = "tt1234567";
     const options: CrewQueryDto = {
       lean: true,
+      page: 1,
+      limit: 10,
     };
 
     const result = await service.getCrewByTconst(tconst, options);

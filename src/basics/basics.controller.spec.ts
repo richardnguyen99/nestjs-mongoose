@@ -10,6 +10,9 @@ import { BasicUpdateDto } from "./dto/basic-update.dto";
 import { PrincipalsDocument } from "src/principals/schema/principals.schema";
 import { PrincipalCreateDto } from "src/principals/dto/principal-create.dto";
 import { PrincipalUpdateDto } from "src/principals/dto/principal-update.dto";
+import { CrewsAggregationInterface } from "src/crews/interfaces/crews-interface.interface";
+import { CrewUpdateDto } from "src/crews/dto/crew-update.dto";
+import { CrewsDocument } from "src/crews/schema/crews.schema";
 
 describe("BasicsController", () => {
   let controller: BasicsController;
@@ -26,6 +29,11 @@ describe("BasicsController", () => {
     findByTconstAndNconst: jest.fn(),
     updateCastInTitle: jest.fn(),
     removeCastFromTitle: jest.fn(),
+    getCrewByTconst: jest.fn(),
+    addCrewToTitle: jest.fn(),
+    updateCrewRecord: jest.fn(),
+    updateCrewInTitle: jest.fn(),
+    removeCrewFromTitle: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -371,5 +379,229 @@ describe("BasicsController", () => {
 
     expect(result).toEqual(mockedResult);
     expect(spy).toHaveBeenCalledWith("tt4154796", "nm0000375");
+  });
+
+  it("should return crews by tconst", async () => {
+    const mockedResult = {
+      totalCount: 1,
+      results: [
+        {
+          tconst: "tt4154796",
+          directors: ["nm0751577"],
+          writers: ["nm0317493"],
+          directorsInfo: [
+            {
+              nconst: "nm0751577",
+              primaryName: "Anthony Russo",
+              birthYear: 1970,
+              deathYear: null,
+              roleDetails: {
+                ordering: 19,
+                category: "director",
+                job: null,
+                characters: [],
+              },
+            },
+          ],
+          writersInfo: [
+            {
+              nconst: "nm0317493",
+              primaryName: "Keith Giffen",
+              birthYear: 1952,
+              deathYear: 2023,
+              roleDetails: {
+                category: "writer",
+                job: "Rocket Raccoon created by",
+                characters: [],
+                ordering: 38,
+              },
+            },
+          ],
+        },
+      ],
+      perPage: 10,
+      currentPage: 1,
+      totalPages: 1,
+    } as CrewsAggregationInterface;
+
+    const spy = jest
+      .spyOn(service, "getCrewByTconst")
+      .mockResolvedValue(mockedResult);
+
+    const result = await controller.getCrewsByTconst("tt4154796", {
+      page: 1,
+      limit: 10,
+      lean: false,
+    });
+
+    expect(result).toEqual(mockedResult);
+    expect(spy).toHaveBeenCalledWith("tt4154796", {
+      page: 1,
+      limit: 10,
+      lean: false,
+    });
+  });
+
+  it("should create a new crew", async () => {
+    const createCrewDto = {
+      tconst: "tt4154796",
+      nconst: "nm1411347",
+      category: "writer",
+      job: "Mantis created by",
+      characters: [],
+    } as PrincipalCreateDto;
+
+    const mockedResult = {
+      _id: "someObjectId",
+      tconst: "tt4154796",
+      nconst: "nm1411347",
+      category: "writer",
+      job: "Mantis created by",
+      ordering: 40,
+      characters: [] as string[],
+    } as PrincipalsDocument;
+
+    const spy = jest
+      .spyOn(service, "addCrewToTitle")
+      .mockResolvedValue(mockedResult);
+
+    const result = await controller.addCrewsToTitle("tt4154796", createCrewDto);
+    expect(result).toEqual(mockedResult);
+    expect(spy).toHaveBeenCalledWith("tt4154796", createCrewDto);
+  });
+
+  it("should get a single crew by tconst and nconst", async () => {
+    const mockedResult = {
+      category: "writer",
+      ordering: [40],
+      tconst: "tt4154796",
+      nconst: "nm1411347",
+      job: ["Mantis created by"],
+      characters: [],
+      nameDetails: {
+        primaryName: "Don Heck",
+        birthYear: 1929,
+        deathYear: 1995,
+        primaryProfession: ["writer", "art_department", "miscellaneous"],
+        knownForTitles: ["tt0371746", "tt6791350", "tt1300854", "tt10648342"],
+      },
+      titleDetails: {
+        titleType: "movie",
+        primaryTitle: "Avengers: Endgame",
+        originalTitle: "Avengers: Endgame",
+        isAdult: false,
+        startYear: 2019,
+        endYear: null,
+        runtimeMinutes: 181,
+        genres: ["sci-fi", "adventure", "action"],
+      },
+    };
+
+    const spy = jest
+      .spyOn(service, "findByTconstAndNconst")
+      .mockResolvedValue(mockedResult);
+
+    const result = await controller.getCrewByTconstAndNconst(
+      "tt4154796",
+      "nm1411347",
+      {
+        include: { name: true, title: true },
+      },
+    );
+
+    expect(result).toEqual(mockedResult);
+    expect(spy).toHaveBeenCalledWith("tt4154796", "nm1411347", {
+      include: { name: true, title: true },
+    });
+  });
+
+  it("should update a crew entry by tconst", async () => {
+    const mockedResult = {
+      tconst: "tt4154796",
+      directors: ["nm0751577"],
+      writers: ["nm2757098", "nm0317493"],
+    } as CrewsDocument;
+
+    const crewUpdateDto = {
+      directors: {
+        add: ["nm0751648"],
+        remove: ["nm0751577"],
+      },
+      writers: {
+        add: ["nm1411347"],
+        remove: ["nm0317493"],
+      },
+    } as CrewUpdateDto;
+
+    const spy = jest
+      .spyOn(service, "updateCrewRecord")
+      .mockResolvedValue(mockedResult);
+
+    const result = await controller.updateCrewsByTconst(
+      "tt4154796",
+      crewUpdateDto,
+    );
+
+    expect(result).toEqual(mockedResult);
+    expect(spy).toHaveBeenCalledWith("tt4154796", crewUpdateDto);
+  });
+
+  it("should update a single crew entry by tconst and nconst", async () => {
+    const mockedResult = {
+      tconst: "tt4154796",
+      nconst: "nm1411347",
+      category: "writer",
+      job: "Mantis created by",
+      characters: [] as string[],
+      ordering: 40,
+    } as PrincipalsDocument;
+
+    const principalCrewUpdateDto = {
+      category: "writer",
+      job: "Mantis created by",
+      characters: [],
+      ordering: 40,
+    } as PrincipalUpdateDto;
+
+    const spy = jest
+      .spyOn(service, "updateCrewInTitle")
+      .mockResolvedValue(mockedResult);
+
+    const result = await controller.updateCrewByTconstAndNconst(
+      "tt4154796",
+      "nm1411347",
+      principalCrewUpdateDto,
+    );
+
+    expect(result).toEqual(mockedResult);
+    expect(spy).toHaveBeenCalledWith(
+      "tt4154796",
+      "nm1411347",
+      principalCrewUpdateDto.ordering,
+      principalCrewUpdateDto,
+    );
+  });
+
+  it("should delete a crew entry by tconst and nconst", async () => {
+    const mockedResult = {
+      tconst: "tt4154796",
+      nconst: "nm1411347",
+      category: "writer",
+      job: "Mantis created by",
+      characters: [] as string[],
+      ordering: 40,
+    } as PrincipalsDocument;
+
+    const spy = jest
+      .spyOn(service, "removeCrewFromTitle")
+      .mockResolvedValue(mockedResult);
+
+    const result = await controller.deleteCrewByTconstAndNconst(
+      "tt4154796",
+      "nm1411347",
+    );
+
+    expect(result).toEqual(mockedResult);
+    expect(spy).toHaveBeenCalledWith("tt4154796", "nm1411347");
   });
 });
