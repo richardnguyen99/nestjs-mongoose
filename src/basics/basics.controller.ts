@@ -445,7 +445,7 @@ export class BasicsController {
   async deleteAkaByTconstAndOrdering(
     @Param("tconst") tconst: string,
     @Param("ordering") ordering: number,
-  ): Promise<void> {
+  ) {
     this.logger.log({
       tconst,
       ordering,
@@ -462,7 +462,7 @@ export class BasicsController {
       );
     }
 
-    return;
+    return deleteAka;
   }
 
   @Get(":tconst/episodes")

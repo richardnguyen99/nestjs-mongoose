@@ -13,6 +13,10 @@ import { PrincipalUpdateDto } from "src/principals/dto/principal-update.dto";
 import { CrewsAggregationInterface } from "src/crews/interfaces/crews-interface.interface";
 import { CrewUpdateDto } from "src/crews/dto/crew-update.dto";
 import { CrewsDocument } from "src/crews/schema/crews.schema";
+import { AkasAggregationInterface } from "src/akas/interfaces/akas-query.interface";
+import { BaseAkaCreateDto } from "src/akas/dto/aka-create.dto";
+import { AkasDocument } from "src/akas/schema/akas.schema";
+import { BaseAkaUpdateDto } from "src/akas/dto/aka-update.dto";
 
 describe("BasicsController", () => {
   let controller: BasicsController;
@@ -34,6 +38,10 @@ describe("BasicsController", () => {
     updateCrewRecord: jest.fn(),
     updateCrewInTitle: jest.fn(),
     removeCrewFromTitle: jest.fn(),
+    getAkasByTconst: jest.fn(),
+    addAkasToTitle: jest.fn(),
+    updateAkasInTitle: jest.fn(),
+    removeAkasFromTitle: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -603,5 +611,164 @@ describe("BasicsController", () => {
 
     expect(result).toEqual(mockedResult);
     expect(spy).toHaveBeenCalledWith("tt4154796", "nm1411347");
+  });
+
+  it("should return akas by tconst", async () => {
+    const mockResult = {
+      totalCount: 4,
+      results: [
+        {
+          _id: "68633dc8637708bdb6b3552f",
+          titleId: "tt0583459",
+          ordering: 1,
+          title: "The One Where Monica Gets a Roommate",
+          region: null,
+          language: null,
+          types: "original",
+          attributes: null,
+          isOriginalTitle: true,
+        },
+        {
+          _id: "68633f54fc25438cbe9165d8",
+          titleId: "tt0583459",
+          ordering: 1,
+          title: "The One Where Monica Gets a Roommate",
+          region: null,
+          language: null,
+          types: "original",
+          attributes: null,
+          isOriginalTitle: true,
+        },
+        {
+          _id: "68633dc8637708bdb6b3552b",
+          titleId: "tt0583459",
+          ordering: 2,
+          title: "The One Where Monica Gets a Roommate",
+          region: "US",
+          language: null,
+          types: null,
+          attributes: null,
+          isOriginalTitle: false,
+        },
+        {
+          _id: "68633f54fc25438cbe9165d9",
+          titleId: "tt0583459",
+          ordering: 2,
+          title: "The One Where Monica Gets a Roommate",
+          region: "US",
+          language: null,
+          types: null,
+          attributes: null,
+          isOriginalTitle: false,
+        },
+      ],
+      totalPages: 1,
+      currentPage: 1,
+      perPage: 10,
+    } as AkasAggregationInterface;
+
+    const spy = jest
+      .spyOn(service, "getAkasByTconst")
+      .mockResolvedValue(mockResult);
+
+    const result = await controller.getAkasByTconst("tt0583459", {
+      page: 1,
+      limit: 10,
+    });
+
+    expect(result).toEqual(mockResult);
+    expect(spy).toHaveBeenCalledWith("tt0583459", {
+      page: 1,
+      limit: 10,
+    });
+  });
+
+  it("should create a new aka entry", async () => {
+    const createAkaDto = {
+      ordering: 21,
+      title: "Avengers: Endgame",
+      region: "IN",
+      language: "fr",
+      types: ["imdbDisplay"],
+      attributes: null,
+      isOriginalTitle: false,
+    } as BaseAkaCreateDto;
+
+    const mockedResult = {
+      _id: "someObjectId",
+      titleId: "tt4154796",
+      ordering: 21,
+      title: "Avengers: Endgame",
+      region: "IN",
+    } as AkasDocument;
+
+    const spy = jest
+      .spyOn(service, "addAkasToTitle")
+      .mockResolvedValue(mockedResult);
+
+    const result = await controller.addAkasToTitle("tt4154796", createAkaDto);
+
+    expect(result).toEqual(mockedResult);
+    expect(spy).toHaveBeenCalledWith("tt4154796", createAkaDto);
+  });
+
+  it("should update an aka entry by tconst and ordering", async () => {
+    const updateAkaDto = {
+      title: "Qisasçılar: Final",
+      region: "AZ",
+      language: "az",
+      types: null,
+      attributes: null,
+      isOriginalTitle: false,
+    } as BaseAkaUpdateDto;
+
+    const mockedResult = {
+      titleId: "tt4154796",
+      ordering: 57,
+      title: "Qisasçılar: Final",
+      region: "AZ",
+      language: "az",
+      types: null,
+      attributes: null,
+      isOriginalTitle: false,
+    } as AkasDocument;
+
+    const spy = jest
+      .spyOn(service, "updateAkasInTitle")
+      .mockResolvedValue(mockedResult);
+
+    const result = await controller.updateAkaByTconstAndOrdering(
+      "tt4154796",
+      57,
+      updateAkaDto,
+    );
+
+    expect(result).toEqual(mockedResult);
+    expect(spy).toHaveBeenCalledWith("tt4154796", 57, updateAkaDto);
+  });
+
+  it("should delete an aka entry by tconst and ordering", async () => {
+    const mockedResult = {
+      titleId: "tt4154796",
+      ordering: 57,
+      title: "Qisasçılar: Final",
+      region: "AZ",
+      language: "az",
+      types: null,
+      attributes: null,
+      isOriginalTitle: false,
+    } as AkasDocument;
+
+    const spy = jest
+      .spyOn(service, "removeAkasFromTitle")
+      .mockResolvedValue(mockedResult);
+
+    const result = await controller.deleteAkaByTconstAndOrdering(
+      "tt4154796",
+      57,
+    );
+
+    expect(result).toEqual(mockedResult);
+    expect(spy).toHaveBeenCalledWith("tt4154796", 57);
   });
 });
