@@ -557,7 +557,7 @@ export class BasicsController {
   async deleteEpisodeByTconst(
     @Param("parentTconst") parentTconst: string,
     @Param("tconst") tconst: string,
-  ): Promise<void> {
+  ) {
     this.logger.log({
       parentTconst,
       tconst,
@@ -574,6 +574,6 @@ export class BasicsController {
       );
     }
 
-    return;
+    return deleteEpisode;
   }
 }

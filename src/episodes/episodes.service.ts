@@ -7,6 +7,7 @@ import { EpisodeCreateDto } from "./dto/episode-create.dto";
 import { EpisodeUpdateDto } from "./dto/episode-update.dto";
 import { ConfigService } from "@nestjs/config";
 import { GetSeasonAggregation } from "./interfaces/get-season-aggregation.interface";
+import { GetEpisodeAggregation } from "./interfaces/get-episode-aggregation.interface";
 
 @Injectable()
 export class EpisodesService {
@@ -93,7 +94,7 @@ export class EpisodesService {
 
   async getEpisodeByTconst(parentTconst: string, tconst: string) {
     return this.episodesModel
-      .aggregate()
+      .aggregate<GetEpisodeAggregation>()
       .match({
         parentTconst,
         tconst,

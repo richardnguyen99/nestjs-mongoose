@@ -17,6 +17,14 @@ import { AkasAggregationInterface } from "src/akas/interfaces/akas-query.interfa
 import { BaseAkaCreateDto } from "src/akas/dto/aka-create.dto";
 import { AkasDocument } from "src/akas/schema/akas.schema";
 import { BaseAkaUpdateDto } from "src/akas/dto/aka-update.dto";
+import { GetSeasonAggregation } from "src/episodes/interfaces/get-season-aggregation.interface";
+import {
+  BaseEpisodeCreateDto,
+  EpisodeCreateDto,
+} from "src/episodes/dto/episode-create.dto";
+import { EpisodesDocument } from "src/episodes/schema/episodes.schema";
+import { GetEpisodeAggregation } from "src/episodes/interfaces/get-episode-aggregation.interface";
+import { BaseEpisodeUpdateDto } from "src/episodes/dto/episode-update.dto";
 
 describe("BasicsController", () => {
   let controller: BasicsController;
@@ -42,6 +50,11 @@ describe("BasicsController", () => {
     addAkasToTitle: jest.fn(),
     updateAkasInTitle: jest.fn(),
     removeAkasFromTitle: jest.fn(),
+    getEpisodesByTconst: jest.fn(),
+    addEpisodeToTitle: jest.fn(),
+    getASingleEpisodeFromTitle: jest.fn(),
+    updateEpisodeInTitle: jest.fn(),
+    removeEpisodeFromTitle: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -115,7 +128,7 @@ describe("BasicsController", () => {
         titleType: "movie",
         primaryTitle: "Toy Story",
         originalTitle: "Toy Story",
-        isAdult: 0,
+        isAdult: false,
         startYear: 1995,
         endYear: null,
         runtimeMinutes: 81,
@@ -127,7 +140,7 @@ describe("BasicsController", () => {
         titleType: "movie",
         primaryTitle: "Toy Story 3",
         originalTitle: "Toy Story 3",
-        isAdult: 0,
+        isAdult: false,
         startYear: 2010,
         endYear: null,
         runtimeMinutes: 103,
@@ -156,7 +169,7 @@ describe("BasicsController", () => {
       titleType: "movie",
       primaryTitle: "Avengers: Endgame",
       originalTitle: "Avengers: Endgame",
-      isAdult: 0,
+      isAdult: false,
       startYear: 2019,
       endYear: null,
       runtimeMinutes: 181,
@@ -180,7 +193,7 @@ describe("BasicsController", () => {
       titleType: "movie",
       primaryTitle: "Avengers: Endgame",
       originalTitle: "Avengers: Endgame",
-      isAdult: 0,
+      isAdult: false,
       startYear: 2019,
       endYear: null,
       runtimeMinutes: 181,
@@ -206,7 +219,7 @@ describe("BasicsController", () => {
       titleType: "movie",
       primaryTitle: "Avengers: Endgame",
       originalTitle: "Avengers: Endgame",
-      isAdult: 0,
+      isAdult: false,
       startYear: 2019,
       endYear: null,
       runtimeMinutes: 181,
@@ -770,5 +783,195 @@ describe("BasicsController", () => {
 
     expect(result).toEqual(mockedResult);
     expect(spy).toHaveBeenCalledWith("tt4154796", 57);
+  });
+
+  it("should return episodes by tconst", async () => {
+    const mockedSeasons = [
+      {
+        season: 1,
+        episodes: [
+          {
+            tconst: "tt0775431",
+            episodeNumber: 1,
+            titleType: "tvEpisode",
+            primaryTitle: "Pilot",
+            originalTitle: "Pilot",
+            isAdult: false,
+            startYear: 2007,
+            endYear: null,
+            runtimeMinutes: 23,
+            genres: ["comedy", "romance"],
+            imdbUrl: "https://www.imdb.com/title/tt0775431/?ref_=fn_al_tt_1",
+          },
+          {
+            tconst: "tt1091289",
+            episodeNumber: 2,
+            titleType: "tvEpisode",
+            primaryTitle: "The Big Bran Hypothesis",
+            originalTitle: "The Big Bran Hypothesis",
+            isAdult: false,
+            startYear: 2007,
+            endYear: null,
+            runtimeMinutes: 21,
+            genres: ["comedy", "romance"],
+            imdbUrl: "https://www.imdb.com/title/tt1091289/?ref_=fn_al_tt_1",
+          },
+        ],
+      },
+      {
+        season: 2,
+        episodes: [
+          {
+            tconst: "tt1256599",
+            episodeNumber: 1,
+            titleType: "tvEpisode",
+            primaryTitle: "The Bad Fish Paradigm",
+            originalTitle: "The Bad Fish Paradigm",
+            isAdult: false,
+            startYear: 2008,
+            endYear: null,
+            runtimeMinutes: 22,
+            genres: ["comedy", "romance"],
+            imdbUrl: "https://www.imdb.com/title/tt1256599/?ref_=fn_al_tt_1",
+          },
+        ],
+      },
+    ] as GetSeasonAggregation[];
+
+    const spy = jest.spyOn(service, "getEpisodesByTconst").mockResolvedValue({
+      _id: "someObjectId",
+      tconst: "tt0775431",
+      title: "The Big Bang Theory",
+      titleType: "tvSeries",
+      totalSeasons: 2,
+      totalEpisodes: 3,
+      seasons: mockedSeasons,
+    });
+
+    const result = await controller.getEpisodesByTconst("tt0775431");
+
+    expect(result).toEqual({
+      _id: "someObjectId",
+      tconst: "tt0775431",
+      title: "The Big Bang Theory",
+      titleType: "tvSeries",
+      totalSeasons: 2,
+      totalEpisodes: 3,
+      seasons: mockedSeasons,
+    });
+
+    expect(spy).toHaveBeenCalledWith("tt0775431");
+  });
+
+  it("should create a new episode", async () => {
+    const createEpisodeDto = {
+      tconst: "tt6674736",
+      seasonNumber: 12,
+      episodeNumber: 24,
+    } as BaseEpisodeCreateDto;
+
+    const mockedResult = {
+      tconst: "tt6674736",
+      parentTconst: "tt0898266",
+      seasonNumber: 12,
+      episodeNumber: 24,
+      _id: "68917787a1608e8091abc0a6",
+    } as EpisodesDocument;
+
+    const spy = jest
+      .spyOn(service, "addEpisodeToTitle")
+      .mockResolvedValue(mockedResult);
+
+    const result = await controller.addEpisodeToTitle(
+      "tt0898266",
+      createEpisodeDto,
+    );
+
+    expect(result).toEqual(mockedResult);
+    expect(spy).toHaveBeenCalledWith("tt0898266", createEpisodeDto);
+  });
+
+  it("should return a single episode by tconst", async () => {
+    const mockedResult = {
+      tconst: "tt6674736",
+      parentTconst: "tt0898266",
+      seasonNumber: 12,
+      episodeNumber: 24,
+      titleType: "tvEpisode",
+      primaryTitle: "The Stockholm Syndrome",
+      originalTitle: "The Stockholm Syndrome",
+      isAdult: false,
+      startYear: 2019,
+      endYear: null,
+      runtimeMinutes: 23,
+      genres: ["comedy", "romance"],
+      imdbUrl: "https://www.imdb.com/title/tt6674736/?ref_=fn_al_tt_1",
+    } as GetEpisodeAggregation;
+
+    const spy = jest
+      .spyOn(service, "getASingleEpisodeFromTitle")
+      .mockResolvedValue(mockedResult);
+
+    const result = await controller.getEpisodeByTconst(
+      "tt0898266",
+      "tt6674736",
+    );
+
+    expect(result).toEqual(mockedResult);
+    expect(spy).toHaveBeenCalledWith("tt0898266", "tt6674736");
+  });
+
+  it("should update an episode by tconst", async () => {
+    const updateEpisodeDto = {
+      episodeNumber: 24,
+      seasonNumber: 12,
+    } as BaseEpisodeUpdateDto;
+
+    const mockedResult = {
+      _id: "688d81340f3387b545db5108",
+      tconst: "tt6674736",
+      parentTconst: "tt0898266",
+      seasonNumber: 12,
+      episodeNumber: 24,
+    } as EpisodesDocument;
+
+    const spy = jest
+      .spyOn(service, "updateEpisodeInTitle")
+      .mockResolvedValue(mockedResult);
+
+    const result = await controller.updateEpisodeByTconst(
+      "tt0898266",
+      "tt6674736",
+      updateEpisodeDto,
+    );
+
+    expect(result).toEqual(mockedResult);
+    expect(spy).toHaveBeenCalledWith(
+      "tt0898266",
+      "tt6674736",
+      updateEpisodeDto,
+    );
+  });
+
+  it("should delete an episode by tconst", async () => {
+    const mockedResult = {
+      _id: "688d81340f3387b545db5108",
+      tconst: "tt6674736",
+      parentTconst: "tt0898266",
+      seasonNumber: 12,
+      episodeNumber: 24,
+    } as EpisodesDocument;
+
+    const spy = jest
+      .spyOn(service, "removeEpisodeFromTitle")
+      .mockResolvedValue(mockedResult);
+
+    const result = await controller.deleteEpisodeByTconst(
+      "tt0898266",
+      "tt6674736",
+    );
+
+    expect(result).toEqual(mockedResult);
+    expect(spy).toHaveBeenCalledWith("tt0898266", "tt6674736");
   });
 });

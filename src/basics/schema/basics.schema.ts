@@ -94,10 +94,10 @@ export class BasicsModel extends mongoose.Document {
   originalTitle: string;
 
   /**
-   * 0: non-adult title; 1: adult title
+   * false: non-adult title; true: adult title
    */
-  @Prop({ required: true, type: mongoose.Schema.Types.Number })
-  isAdult: number;
+  @Prop({ required: true, type: mongoose.Schema.Types.Boolean })
+  isAdult: boolean;
 
   /**
    * represents the release year of a title. In the case of TV Series, it is
