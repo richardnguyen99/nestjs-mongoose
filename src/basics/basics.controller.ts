@@ -224,7 +224,7 @@ export class BasicsController {
   async deleteCastByTconstAndNconst(
     @Param("tconst") tconst: string,
     @Param("nconst") nconst: string,
-  ): Promise<void> {
+  ) {
     const result = await this.basicsService.removeCastFromTitle(tconst, nconst);
 
     if (!result) {
@@ -233,7 +233,7 @@ export class BasicsController {
       );
     }
 
-    return;
+    return result;
   }
 
   @Get(":tconst/crews")
