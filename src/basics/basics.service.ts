@@ -116,13 +116,17 @@ export class BasicsService {
     nconst: string,
     options?: PrincipalSingleQueryDto,
   ) {
-    const [cast] = await this.principalsService.findByTconstAndNconst(
+    const cast = await this.principalsService.findByTconstAndNconst(
       tconst,
       nconst,
       options,
     );
 
-    return cast;
+    if (!cast || cast.length === 0) {
+      return null;
+    }
+
+    return cast[0];
   }
 
   async updateByTconst(
@@ -459,12 +463,18 @@ export class BasicsService {
   }
 
   async getASingleEpisodeFromTitle(parentTconst: string, tconst: string) {
-    const [episode] = await this.episodesService.getEpisodeByTconst(
+    const result = await this.episodesService.getEpisodeByTconst(
       parentTconst,
       tconst,
     );
 
-    return episode;
+    this.logger.log(`Result: ${JSON.stringify(result, null, 2)}`);
+
+    if (!result || result.length === 0) {
+      return null;
+    }
+
+    return result[0];
   }
 
   async addEpisodeToTitle(tconst: string, body: BaseEpisodeCreateDto) {

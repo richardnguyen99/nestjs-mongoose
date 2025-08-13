@@ -24,5 +24,6 @@ export interface CrewsAggregationInterface {
   totalCount: number;
   totalPages: number;
   currentPage: number;
+  perPage: number;
   results: CrewResult[];
 }

@@ -159,6 +159,19 @@ describe("BasicsService", () => {
     expect(result).toEqual(mockDocument);
   });
 
+  it("should return null for findByTconstAndNconst when no document found", async () => {
+    const spy = jest
+      .spyOn(principalService, "findByTconstAndNconst")
+      .mockResolvedValue([]);
+
+    const result = await service.findByTconstAndNconst(
+      "nonexistent-tconst",
+      "nonexistent-nconst",
+    );
+
+    expect(result).toBeNull();
+  });
+
   it("should create a basic entry", async () => {
     const dto: BasicCreateDto = {
       tconst: "tt1234567",
@@ -546,6 +559,7 @@ describe("BasicsService", () => {
         totalCount: 1,
         currentPage: 1,
         totalPages: 1,
+        perPage: 10,
       },
     ]);
 
@@ -571,6 +585,7 @@ describe("BasicsService", () => {
       totalCount: 1,
       currentPage: 1,
       totalPages: 1,
+      perPage: 10,
     });
     expect(spy).toHaveBeenCalledWith(tconst, options);
   });
@@ -1227,6 +1242,19 @@ describe("BasicsService", () => {
     );
     expect(result).toEqual(mockEpisode[0]);
     expect(spy).toHaveBeenCalledWith("tt0898266", "tt6674736");
+  });
+
+  it("should return null for a non-existent episode", async () => {
+    const spy = jest
+      .spyOn(episodeService, "getEpisodeByTconst")
+      .mockResolvedValue([]);
+
+    const result = await service.getASingleEpisodeFromTitle(
+      "tt0898266",
+      "tt9999999",
+    );
+    expect(result).toBeNull();
+    expect(spy).toHaveBeenCalledWith("tt0898266", "tt9999999");
   });
 
   it("should add an episode to a title", async () => {

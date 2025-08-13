@@ -25,6 +25,7 @@ import {
 import { EpisodesDocument } from "src/episodes/schema/episodes.schema";
 import { GetEpisodeAggregation } from "src/episodes/interfaces/get-episode-aggregation.interface";
 import { BaseEpisodeUpdateDto } from "src/episodes/dto/episode-update.dto";
+import { BadRequestException, NotFoundException } from "@nestjs/common";
 
 describe("BasicsController", () => {
   let controller: BasicsController;
@@ -185,6 +186,19 @@ describe("BasicsController", () => {
     expect(spy).toHaveBeenCalledWith("tt4154796");
   });
 
+  it("should throw a not-found exception when basic entry is not found", async () => {
+    const spy = jest.spyOn(service, "findByTconst").mockResolvedValue(null);
+
+    const throwErrorFn = async () => {
+      await controller.getByTconst("nonexistent");
+    };
+
+    await expect(throwErrorFn).rejects.toThrow(NotFoundException);
+    await expect(throwErrorFn).rejects.toThrow(
+      `Title with tconst=nonexistent not found`,
+    );
+  });
+
   it("should update a basic entry by tconst", async () => {
     const updateBasicDto = {} as BasicUpdateDto;
 
@@ -213,6 +227,19 @@ describe("BasicsController", () => {
     expect(spy).toHaveBeenCalledWith("tt4154796", updateBasicDto);
   });
 
+  it("should throw a not-found exception when basic entry is not found", async () => {
+    const spy = jest.spyOn(service, "updateByTconst").mockResolvedValue(null);
+
+    const throwErrorFn = async () => {
+      await controller.updateBasicByTconst("nonexistent", {});
+    };
+
+    await expect(throwErrorFn).rejects.toThrow(NotFoundException);
+    await expect(throwErrorFn).rejects.toThrow(
+      `Title with tconst=nonexistent not found`,
+    );
+  });
+
   it("should delete a basic entry by tconst", async () => {
     const mockedResult = {
       tconst: "tt4154796",
@@ -234,6 +261,19 @@ describe("BasicsController", () => {
 
     expect(result).toEqual(mockedResult);
     expect(spy).toHaveBeenCalledWith("tt4154796");
+  });
+
+  it("should throw a not-found exception when basic entry is not found", async () => {
+    const spy = jest.spyOn(service, "deleteByTconst").mockResolvedValue(null);
+
+    const throwErrorFn = async () => {
+      await controller.deleteByTconst("nonexistent");
+    };
+
+    await expect(throwErrorFn).rejects.toThrow(NotFoundException);
+    await expect(throwErrorFn).rejects.toThrow(
+      `Title with tconst=nonexistent not found`,
+    );
   });
 
   it("should return cast by tconst", async () => {
@@ -276,6 +316,50 @@ describe("BasicsController", () => {
       results: mockedResults,
     });
     expect(spy).toHaveBeenCalledWith("tt4154796", undefined);
+  });
+
+  it("should throw a bad-request exception when current page exceeds total pages", async () => {
+    const spy = jest.spyOn(service, "getCastByTconst").mockResolvedValue({
+      currentPage: 2,
+      totalCount: 1,
+      totalPages: 0,
+      perPage: 10,
+      results: [],
+    });
+
+    const throwErrorFn = async () => {
+      await controller.getCastByTconst("nonexistent", {
+        limit: 10,
+        page: 1,
+      });
+    };
+
+    await expect(throwErrorFn).rejects.toThrow(BadRequestException);
+    await expect(throwErrorFn).rejects.toThrow(
+      `Page exceeds. totalPages=0, currentPage=2`,
+    );
+  });
+
+  it("should throw a not-found exception when no cast is found", async () => {
+    const spy = jest.spyOn(service, "getCastByTconst").mockResolvedValue({
+      totalCount: 0,
+      currentPage: 0,
+      totalPages: 0,
+      perPage: 10,
+      results: [],
+    });
+
+    const throwErrorFn = async () => {
+      await controller.getCastByTconst("nonexistent", {
+        limit: 10,
+        page: 1,
+      });
+    };
+
+    await expect(throwErrorFn).rejects.toThrow(NotFoundException);
+    await expect(throwErrorFn).rejects.toThrow(
+      `No cast found for tconst=nonexistent`,
+    );
   });
 
   it("should create a new cast entry", async () => {
@@ -343,6 +427,23 @@ describe("BasicsController", () => {
     expect(spy).toHaveBeenCalledWith("tt4154796", "nm0000375", undefined);
   });
 
+  it("should throw a not-found exception when a cast entry is not found", async () => {
+    const spy = jest
+      .spyOn(service, "findByTconstAndNconst")
+      .mockResolvedValue(null);
+
+    const throwErrorFn = async () => {
+      await controller.getCastByTconstAndNconst("something", "nonexistent", {
+        include: { name: true, title: true },
+      });
+    };
+
+    await expect(throwErrorFn).rejects.toThrow(NotFoundException);
+    await expect(throwErrorFn).rejects.toThrow(
+      `No cast found for tconst=something and nconst=nonexistent`,
+    );
+  });
+
   it("should update a cast entry by tconst and nconst", async () => {
     const updateCastDto: PrincipalUpdateDto = {
       ordering: 1,
@@ -379,6 +480,23 @@ describe("BasicsController", () => {
     );
   });
 
+  it("should throw a not-found exception when updating a nonexistent cast", async () => {
+    const spy = jest
+      .spyOn(service, "updateCastInTitle")
+      .mockResolvedValue(null);
+
+    const throwErrorFn = async () => {
+      await controller.updateCastByTconstAndNconst("something", "nonexistent", {
+        ordering: 1,
+      });
+    };
+
+    await expect(throwErrorFn).rejects.toThrow(NotFoundException);
+    await expect(throwErrorFn).rejects.toThrow(
+      `No cast found for tconst=something, nconst=nonexistent and ordering=1`,
+    );
+  });
+
   it("should delete a cast entry by tconst and nconst", async () => {
     const mockedResult = {
       _id: "someObjectId",
@@ -400,6 +518,21 @@ describe("BasicsController", () => {
 
     expect(result).toEqual(mockedResult);
     expect(spy).toHaveBeenCalledWith("tt4154796", "nm0000375");
+  });
+
+  it("should throw a not-found exception when deleting a nonexistent cast", async () => {
+    const spy = jest
+      .spyOn(service, "removeCastFromTitle")
+      .mockResolvedValue(null);
+
+    const throwErrorFn = async () => {
+      await controller.deleteCastByTconstAndNconst("something", "nonexistent");
+    };
+
+    await expect(throwErrorFn).rejects.toThrow(NotFoundException);
+    await expect(throwErrorFn).rejects.toThrow(
+      `No cast found for tconst=something and nconst=nonexistent`,
+    );
   });
 
   it("should return crews by tconst", async () => {
@@ -461,6 +594,52 @@ describe("BasicsController", () => {
       limit: 10,
       lean: false,
     });
+  });
+
+  it("should throw a bad-request exception when current page exceeds total pages", async () => {
+    const spy = jest.spyOn(service, "getCrewByTconst").mockResolvedValue({
+      totalCount: 1,
+      currentPage: 2,
+      totalPages: 0,
+      perPage: 10,
+      results: [],
+    });
+
+    const throwErrorFn = async () => {
+      await controller.getCrewsByTconst("nonexistent", {
+        lean: false,
+        page: 2,
+        limit: 10,
+      });
+    };
+
+    await expect(throwErrorFn).rejects.toThrow(BadRequestException);
+    await expect(throwErrorFn).rejects.toThrow(
+      `Current page 2 exceeds total pages 0`,
+    );
+  });
+
+  it("should throw a not-found exception when no crews are found", async () => {
+    const spy = jest.spyOn(service, "getCrewByTconst").mockResolvedValue({
+      totalCount: 0,
+      currentPage: 0,
+      totalPages: 0,
+      perPage: 0,
+      results: [],
+    });
+
+    const throwErrorFn = async () => {
+      await controller.getCrewsByTconst("nonexistent", {
+        lean: false,
+        page: 1,
+        limit: 10,
+      });
+    };
+
+    await expect(throwErrorFn).rejects.toThrow(NotFoundException);
+    await expect(throwErrorFn).rejects.toThrow(
+      `No crew found for tconst=nonexistent`,
+    );
   });
 
   it("should create a new crew", async () => {
@@ -536,6 +715,23 @@ describe("BasicsController", () => {
     });
   });
 
+  it("should throw a not-found exception when updating a nonexistent crew", async () => {
+    const spy = jest
+      .spyOn(service, "findByTconstAndNconst")
+      .mockResolvedValue(null);
+
+    const throwErrorFn = async () => {
+      await controller.getCrewByTconstAndNconst("something", "nonexistent", {
+        include: { name: true, title: true },
+      });
+    };
+
+    await expect(throwErrorFn).rejects.toThrow(NotFoundException);
+    await expect(throwErrorFn).rejects.toThrow(
+      `No crew member found for tconst=something and nconst=nonexistent`,
+    );
+  });
+
   it("should update a crew entry by tconst", async () => {
     const mockedResult = {
       tconst: "tt4154796",
@@ -565,6 +761,22 @@ describe("BasicsController", () => {
 
     expect(result).toEqual(mockedResult);
     expect(spy).toHaveBeenCalledWith("tt4154796", crewUpdateDto);
+  });
+
+  it("should throw a not-found exception when updating a nonexistent crew record", async () => {
+    const spy = jest.spyOn(service, "updateCrewRecord").mockResolvedValue(null);
+
+    const throwErrorFn = async () => {
+      await controller.updateCrewsByTconst("nonexistent", {
+        directors: {},
+        writers: {},
+      });
+    };
+
+    await expect(throwErrorFn).rejects.toThrow(NotFoundException);
+    await expect(throwErrorFn).rejects.toThrow(
+      `No crew found for tconst=nonexistent`,
+    );
   });
 
   it("should update a single crew entry by tconst and nconst", async () => {
@@ -603,6 +815,26 @@ describe("BasicsController", () => {
     );
   });
 
+  it("should throw a not-found exception when updating a nonexistent crew", async () => {
+    const spy = jest
+      .spyOn(service, "updateCrewInTitle")
+      .mockResolvedValue(null);
+
+    const throwErrorFn = async () => {
+      await controller.updateCrewByTconstAndNconst("tt4154796", "nm1411347", {
+        ordering: 999,
+        category: "writer",
+        job: "Mantis created by",
+        characters: [],
+      });
+    };
+
+    await expect(throwErrorFn).rejects.toThrow(NotFoundException);
+    await expect(throwErrorFn).rejects.toThrow(
+      `No crew member found for tconst=tt4154796 and nconst=nm1411347`,
+    );
+  });
+
   it("should delete a crew entry by tconst and nconst", async () => {
     const mockedResult = {
       tconst: "tt4154796",
@@ -624,6 +856,21 @@ describe("BasicsController", () => {
 
     expect(result).toEqual(mockedResult);
     expect(spy).toHaveBeenCalledWith("tt4154796", "nm1411347");
+  });
+
+  it("should throw a not-found exception when deleting nonexistent crew", async () => {
+    const spy = jest
+      .spyOn(service, "removeCrewFromTitle")
+      .mockResolvedValue(null);
+
+    const throwErrorFn = async () => {
+      await controller.deleteCrewByTconstAndNconst("something", "nonexistent");
+    };
+
+    await expect(throwErrorFn).rejects.toThrow(NotFoundException);
+    await expect(throwErrorFn).rejects.toThrow(
+      `No crew member found for tconst=something and nconst=nonexistent`,
+    );
   });
 
   it("should return akas by tconst", async () => {
@@ -696,6 +943,50 @@ describe("BasicsController", () => {
     });
   });
 
+  it("should throw a not-found exception when no akas are found", async () => {
+    const spy = jest.spyOn(service, "getAkasByTconst").mockResolvedValue({
+      totalCount: 0,
+      results: [],
+      totalPages: 0,
+      currentPage: 0,
+      perPage: 10,
+    });
+
+    const throwErrorFn = async () => {
+      await controller.getAkasByTconst("nonexistent", {
+        page: 1,
+        limit: 10,
+      });
+    };
+
+    await expect(throwErrorFn).rejects.toThrow(NotFoundException);
+    await expect(throwErrorFn).rejects.toThrow(
+      `No akas found for tconst=nonexistent`,
+    );
+  });
+
+  it("should throw a bad-request exception when invalid page is provided", async () => {
+    const spy = jest.spyOn(service, "getAkasByTconst").mockResolvedValue({
+      totalCount: 1,
+      results: [],
+      totalPages: 0,
+      currentPage: 2,
+      perPage: 10,
+    });
+
+    const throwErrorFn = async () => {
+      await controller.getAkasByTconst("tt0583459", {
+        page: 2,
+        limit: 10,
+      });
+    };
+
+    await expect(throwErrorFn).rejects.toThrow(BadRequestException);
+    await expect(throwErrorFn).rejects.toThrow(
+      `Current page 2 exceeds total pages 0`,
+    );
+  });
+
   it("should create a new aka entry", async () => {
     const createAkaDto = {
       ordering: 21,
@@ -760,6 +1051,21 @@ describe("BasicsController", () => {
     expect(spy).toHaveBeenCalledWith("tt4154796", 57, updateAkaDto);
   });
 
+  it("should throw a not-found exception when updating an aka entry that does not exist", async () => {
+    const spy = jest
+      .spyOn(service, "updateAkasInTitle")
+      .mockResolvedValue(null);
+
+    const throwErrorFn = async () => {
+      await controller.updateAkaByTconstAndOrdering("nonexistent", 999, {});
+    };
+
+    await expect(throwErrorFn).rejects.toThrow(NotFoundException);
+    await expect(throwErrorFn).rejects.toThrow(
+      `No aka found for tconst=nonexistent and ordering=999`,
+    );
+  });
+
   it("should delete an aka entry by tconst and ordering", async () => {
     const mockedResult = {
       titleId: "tt4154796",
@@ -783,6 +1089,21 @@ describe("BasicsController", () => {
 
     expect(result).toEqual(mockedResult);
     expect(spy).toHaveBeenCalledWith("tt4154796", 57);
+  });
+
+  it("should throw a not-found exception when deleting an aka entry that does not exist", async () => {
+    const spy = jest
+      .spyOn(service, "removeAkasFromTitle")
+      .mockResolvedValue(null);
+
+    const throwErrorFn = async () => {
+      await controller.deleteAkaByTconstAndOrdering("nonexistent", 999);
+    };
+
+    await expect(throwErrorFn).rejects.toThrow(NotFoundException);
+    await expect(throwErrorFn).rejects.toThrow(
+      `No aka found for tconst=nonexistent and ordering=999`,
+    );
   });
 
   it("should return episodes by tconst", async () => {
@@ -863,6 +1184,21 @@ describe("BasicsController", () => {
     expect(spy).toHaveBeenCalledWith("tt0775431");
   });
 
+  it("should throw a not-found exception when getting episodes for a non-existent title", async () => {
+    const spy = jest
+      .spyOn(service, "getEpisodesByTconst")
+      .mockResolvedValue(null);
+
+    const throwErrorFn = async () => {
+      await controller.getEpisodesByTconst("nonexistent");
+    };
+
+    await expect(throwErrorFn).rejects.toThrow(NotFoundException);
+    await expect(throwErrorFn).rejects.toThrow(
+      `No episodes found for tconst=nonexistent`,
+    );
+  });
+
   it("should create a new episode", async () => {
     const createEpisodeDto = {
       tconst: "tt6674736",
@@ -921,6 +1257,21 @@ describe("BasicsController", () => {
     expect(spy).toHaveBeenCalledWith("tt0898266", "tt6674736");
   });
 
+  it("should throw a not-found exception when getting a non-existent episode", async () => {
+    const spy = jest
+      .spyOn(service, "getASingleEpisodeFromTitle")
+      .mockResolvedValue(null);
+
+    const throwErrorFn = async () => {
+      await controller.getEpisodeByTconst("something", "nonexistent");
+    };
+
+    await expect(throwErrorFn).rejects.toThrow(NotFoundException);
+    await expect(throwErrorFn).rejects.toThrow(
+      `No episode found for parentTconst=something and tconst=nonexistent`,
+    );
+  });
+
   it("should update an episode by tconst", async () => {
     const updateEpisodeDto = {
       episodeNumber: 24,
@@ -953,6 +1304,24 @@ describe("BasicsController", () => {
     );
   });
 
+  it("should throw a not-found exception when updating a non-existent episode", async () => {
+    const spy = jest
+      .spyOn(service, "updateEpisodeInTitle")
+      .mockResolvedValue(null);
+
+    const throwErrorFn = async () => {
+      await controller.updateEpisodeByTconst("something", "nonexistent", {
+        episodeNumber: 1,
+        seasonNumber: 1,
+      });
+    };
+
+    await expect(throwErrorFn).rejects.toThrow(NotFoundException);
+    await expect(throwErrorFn).rejects.toThrow(
+      `No episode found for parentTconst=something and tconst=nonexistent`,
+    );
+  });
+
   it("should delete an episode by tconst", async () => {
     const mockedResult = {
       _id: "688d81340f3387b545db5108",
@@ -973,5 +1342,22 @@ describe("BasicsController", () => {
 
     expect(result).toEqual(mockedResult);
     expect(spy).toHaveBeenCalledWith("tt0898266", "tt6674736");
+  });
+
+  it("should throw a not-found exception when deleting a non-existent episode", async () => {
+    const spy = jest
+      .spyOn(service, "removeEpisodeFromTitle")
+      .mockResolvedValue(null);
+
+    const throwErrorFn = async () => {
+      await controller.deleteEpisodeByTconst("something", "nonexistent");
+    };
+
+    await expect(throwErrorFn).rejects.toThrow(NotFoundException);
+    await expect(throwErrorFn).rejects.toThrow(
+      `No episode found for parentTconst=something and tconst=nonexistent`,
+    );
+
+    expect(spy).toHaveBeenCalledWith("something", "nonexistent");
   });
 });

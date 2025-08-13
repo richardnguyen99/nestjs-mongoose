@@ -436,6 +436,12 @@ export class BasicsController {
       body,
     );
 
+    if (!updateAka) {
+      throw new NotFoundException(
+        `No aka found for tconst=${tconst} and ordering=${ordering}`,
+      );
+    }
+
     return updateAka;
   }
 
