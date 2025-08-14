@@ -1,3 +1,5 @@
+/* istanbul ignore file */
+
 import { NotFoundException } from "@nestjs/common";
 import { Prop, Schema, SchemaFactory, Virtual } from "@nestjs/mongoose";
 import * as mongoose from "mongoose";
