@@ -1,3 +1,5 @@
+/* istanbul ignore file */
+
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import mongoose, { Mongoose } from "mongoose";
 

@@ -13,6 +13,7 @@ import { ConfigService } from "@nestjs/config";
 export class AkasService {
   private readonly logger = new Logger(AkasService.name);
 
+  /* istanbul ignore next */
   constructor(
     private readonly configService: ConfigService,
     @InjectModel(AkasModel.name) private readonly akasModel: Model<AkasModel>,
@@ -83,10 +84,6 @@ export class AkasService {
         perPage: query.limit,
       })
       .exec();
-  }
-
-  async getAkasByTitleIdWithRegion(tconst: string, region: string) {
-    return;
   }
 
   async getAkaById(id: string): Promise<AkasDocument | null> {
