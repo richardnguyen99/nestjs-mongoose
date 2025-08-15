@@ -1,3 +1,4 @@
+import { nonEmptyStringRefiner } from "src/libs/zod/refiners";
 import * as z from "zod";
 
 export const baseAkaCreateDto = z.object({
@@ -50,9 +51,9 @@ export const akaCreateDto = baseAkaCreateDto.extend({
    *
    * @example {"tconst": "tt1234567"} -> "tt1234567"
    */
-  titleId: z.string().refine((value) => value.length > 0, {
-    message: "tconst must be a non-empty string",
-  }),
+  titleId: z
+    .string()
+    .refine(nonEmptyStringRefiner, "tconst must be a non-empty string"),
 });
 
 export type BaseAkaCreateDto = z.infer<typeof baseAkaCreateDto>;

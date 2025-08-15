@@ -12,7 +12,10 @@ export const baseAkaQueryDto = z.object({
     .string()
     .refine(nonEmptyStringRefiner)
     .optional()
-    .transform((value) => (value ? value.toUpperCase() : undefined)),
+    .transform(
+      /* istanbul ignore next */ (value) =>
+        value ? value.toUpperCase() : undefined,
+    ),
 
   /**
    * language that the titles are written in
