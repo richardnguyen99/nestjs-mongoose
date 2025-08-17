@@ -42,10 +42,6 @@ export class NamesController {
   async createName(@Body() dto: NameCreateDto) {
     const createName = await this.namesService.create(dto);
 
-    if (!createName) {
-      throw new NotFoundException("Failed to create name");
-    }
-
     return createName;
   }
 
