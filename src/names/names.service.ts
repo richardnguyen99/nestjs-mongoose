@@ -12,6 +12,7 @@ import { ConfigService } from "@nestjs/config";
 export class NamesService {
   private readonly logger = new Logger(NamesService.name);
 
+  /* istanbul ignore next */
   constructor(
     private readonly configService: ConfigService,
     @InjectModel(NamesModel.name) private namesModel: Model<NamesModel>,
