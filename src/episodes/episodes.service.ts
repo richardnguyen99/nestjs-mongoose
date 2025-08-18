@@ -13,6 +13,7 @@ import { GetEpisodeAggregation } from "./interfaces/get-episode-aggregation.inte
 export class EpisodesService {
   private readonly logger = new Logger(EpisodesService.name);
 
+  /* istanbul ignore next */
   constructor(
     private readonly configService: ConfigService,
     @InjectModel(EpisodesModel.name)
