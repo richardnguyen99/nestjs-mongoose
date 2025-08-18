@@ -1,6 +1,7 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
+import { ConfigService } from "@nestjs/config";
 
 import {
   PrincipalsDocument,
@@ -12,7 +13,6 @@ import {
   PrincipalQueryDto,
   PrincipalSingleQueryDto,
 } from "./dto/principal-query.dto";
-import { ConfigService } from "@nestjs/config";
 import { SinglePrincipalAggregation } from "./interfaces/principal-aggregation.interface";
 
 @Injectable()
@@ -21,6 +21,7 @@ export class PrincipalsService {
 
   private readonly DEFAULT_PER_PAGE = 5;
 
+  /* istanbul ignore next */
   constructor(
     private readonly configService: ConfigService,
     @InjectModel(PrincipalsModel.name)
@@ -242,7 +243,8 @@ export class PrincipalsService {
             perPage: limit,
           },
         ],
-      });
+      })
+      .exec();
   }
 
   async create(dto: PrincipalCreateDto): Promise<PrincipalsModel> {
@@ -269,19 +271,27 @@ export class PrincipalsService {
     dto: PrincipalUpdateDto,
   ): Promise<PrincipalsModel | null> {
     return this.principalsModel
-      .findOneAndUpdate({ tconst, nconst, ordering }, dto, {
-        new: true,
-        runValidators: true,
-      })
+      .findOneAndUpdate(
+        { tconst, nconst, ordering },
+        {
+          category: dto.category,
+          characters: dto.characters,
+          job: dto.job,
+        },
+        {
+          new: true,
+          runValidators: true,
+        },
+      )
       .exec();
   }
 
-  async deleteByTconst(tconst: string): Promise<void> {
-    await this.principalsModel.deleteMany({ tconst }).exec();
+  async deleteByTconst(tconst: string) {
+    return this.principalsModel.deleteMany({ tconst }).exec();
   }
 
-  async deleteByNconst(nconst: string): Promise<void> {
-    await this.principalsModel.deleteMany({ nconst }).exec();
+  async deleteByNconst(nconst: string) {
+    return this.principalsModel.deleteMany({ nconst }).exec();
   }
 
   async deleteByTconstAndNconst(tconst: string, nconst: string) {

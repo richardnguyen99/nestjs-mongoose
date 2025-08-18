@@ -1,6 +1,9 @@
+/* istanbul ignore file */
+
 import { Module } from "@nestjs/common";
-import { PrincipalsService } from "./principals.service";
 import { MongooseModule } from "@nestjs/mongoose";
+
+import { PrincipalsService } from "./principals.service";
 import { PrincipalsModel, PrincipalsSchema } from "./schema/principals.schema";
 
 @Module({
