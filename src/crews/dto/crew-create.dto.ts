@@ -1,5 +1,6 @@
-import { nonEmptyStringRefiner } from "src/libs/zod/refiners";
 import * as z from "zod";
+
+import { nonEmptyStringRefiner } from "src/libs/zod/refiners";
 
 export const baseCrewCreateSchema = z.object({
   /**
@@ -17,13 +18,16 @@ export const baseCrewCreateSchema = z.object({
   writers: z.array(z.string().refine(nonEmptyStringRefiner)),
 });
 
-export const crewCreateSchema = baseCrewCreateSchema.extend({
-  /**
-   * The unique identifier for the title.
-   *
-   * @example { tconst: 'tt1234567' }
-   */
-  tconst: z.string().refine(nonEmptyStringRefiner),
-});
+export const crewCreateSchema = baseCrewCreateSchema
+  .extend({
+    /**
+     * The unique identifier for the title.
+     *
+     * @example { tconst: 'tt1234567' }
+     */
+    tconst: z.string().refine(nonEmptyStringRefiner),
+  })
+  .required();
 
 export type CrewCreateDto = z.infer<typeof crewCreateSchema>;
+export type BaseCrewCreateDto = z.infer<typeof baseCrewCreateSchema>;

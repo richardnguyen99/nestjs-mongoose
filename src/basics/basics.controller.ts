@@ -54,6 +54,7 @@ import {
   BaseEpisodeUpdateDto,
   baseEpisodeUpdateSchema,
 } from "src/episodes/dto/episode-update.dto";
+import { BaseCrewCreateDto } from "src/crews/dto/crew-create.dto";
 
 @Controller({
   version: "1",
@@ -266,13 +267,13 @@ export class BasicsController {
   @Header("Cache-Control", "no-store")
   @HttpCode(HttpStatus.CREATED)
   @UsePipes(new ZodValidationPipe(principalCreateSchema))
-  async addCrewsToTitle(
+  async createCrew(
     @Param("tconst") tconst: string,
-    @Body() body: PrincipalCreateDto,
+    @Body() body: BaseCrewCreateDto,
   ) {
     this.logger.log(body);
 
-    const newCrew = await this.basicsService.addCrewToTitle(tconst, body);
+    const newCrew = await this.basicsService.createCrew(tconst, body);
 
     return newCrew;
   }

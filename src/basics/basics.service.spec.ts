@@ -12,7 +12,7 @@ import { AkasService } from "src/akas/akas.service";
 import { EpisodesService } from "src/episodes/episodes.service";
 import { NamesModel } from "src/names/schema/names.schema";
 import { PrincipalsModel } from "src/principals/schema/principals.schema";
-import { CrewsModel } from "src/crews/schema/crews.schema";
+import { CrewsDocument, CrewsModel } from "src/crews/schema/crews.schema";
 import { AkasDocument, AkasModel } from "src/akas/schema/akas.schema";
 import {
   EpisodesDocument,
@@ -26,6 +26,7 @@ import { CrewQueryDto } from "src/crews/dto/crew-query.dto";
 import { PrincipalCreateDto } from "src/principals/dto/principal-create.dto";
 import { PrincipalUpdateDto } from "src/principals/dto/principal-update.dto";
 import { GetSeasonAggregation } from "src/episodes/interfaces/get-season-aggregation.interface";
+import { BaseCrewCreateDto } from "src/crews/dto/crew-create.dto";
 
 describe("BasicsService", () => {
   let service: BasicsService;
@@ -620,6 +621,42 @@ describe("BasicsService", () => {
       characters: ["Character 1"],
     });
     expect(spy).toHaveBeenCalledWith({ ...principalDto, tconst });
+  });
+
+  it("should create crew", async () => {
+    const createCrewDto = {
+      directors: ["nm0751577", "nm0751648"],
+      writers: [
+        "nm1321655",
+        "nm1321656",
+        "nm0498278",
+        "nm0456158",
+        "nm0800209",
+        "nm1921680",
+        "nm3053444",
+        "nm2757098",
+        "nm0317493",
+        "nm4160687",
+        "nm1293367",
+        "nm1411347",
+      ],
+    } as BaseCrewCreateDto;
+
+    const spy = jest.spyOn(crewService, "create").mockResolvedValue({
+      ...createCrewDto,
+      _id: "someObjectId",
+    } as CrewsDocument);
+
+    const result = await service.createCrew("tt4154796", createCrewDto);
+
+    expect(result).toEqual({
+      _id: "someObjectId",
+      ...createCrewDto,
+    });
+    expect(spy).toHaveBeenCalledWith({
+      tconst: "tt4154796",
+      ...createCrewDto,
+    });
   });
 
   it("should add crew to title", async () => {

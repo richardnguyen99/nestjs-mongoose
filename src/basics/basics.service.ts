@@ -32,6 +32,7 @@ import { EpisodesService } from "src/episodes/episodes.service";
 import { BaseEpisodeCreateDto } from "src/episodes/dto/episode-create.dto";
 import { BaseEpisodeUpdateDto } from "src/episodes/dto/episode-update.dto";
 import { ConfigService } from "@nestjs/config";
+import { BaseCrewCreateDto } from "src/crews/dto/crew-create.dto";
 
 @Injectable()
 export class BasicsService {
@@ -253,6 +254,15 @@ export class BasicsService {
     });
 
     return newPrincipal;
+  }
+
+  async createCrew(tconst: string, crewDto: BaseCrewCreateDto) {
+    const newCrew = await this.crewsService.create({
+      tconst,
+      ...crewDto,
+    });
+
+    return newCrew;
   }
 
   async addCrewToTitle(

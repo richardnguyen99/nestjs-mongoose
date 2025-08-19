@@ -26,6 +26,10 @@ import { EpisodesDocument } from "src/episodes/schema/episodes.schema";
 import { GetEpisodeAggregation } from "src/episodes/interfaces/get-episode-aggregation.interface";
 import { BaseEpisodeUpdateDto } from "src/episodes/dto/episode-update.dto";
 import { BadRequestException, NotFoundException } from "@nestjs/common";
+import {
+  BaseCrewCreateDto,
+  baseCrewCreateSchema,
+} from "src/crews/dto/crew-create.dto";
 
 describe("BasicsController", () => {
   let controller: BasicsController;
@@ -43,6 +47,7 @@ describe("BasicsController", () => {
     updateCastInTitle: jest.fn(),
     removeCastFromTitle: jest.fn(),
     getCrewByTconst: jest.fn(),
+    createCrew: jest.fn(),
     addCrewToTitle: jest.fn(),
     updateCrewRecord: jest.fn(),
     updateCrewInTitle: jest.fn(),
@@ -644,28 +649,47 @@ describe("BasicsController", () => {
 
   it("should create a new crew", async () => {
     const createCrewDto = {
-      tconst: "tt4154796",
-      nconst: "nm1411347",
-      category: "writer",
-      job: "Mantis created by",
-      characters: [],
-    } as PrincipalCreateDto;
+      directors: ["nm0751577", "nm0751648"],
+      writers: [
+        "nm1321655",
+        "nm1321656",
+        "nm0498278",
+        "nm0456158",
+        "nm0800209",
+        "nm1921680",
+        "nm3053444",
+        "nm2757098",
+        "nm0317493",
+        "nm4160687",
+        "nm1293367",
+        "nm1411347",
+      ],
+    } as BaseCrewCreateDto;
 
     const mockedResult = {
-      _id: "someObjectId",
       tconst: "tt4154796",
-      nconst: "nm1411347",
-      category: "writer",
-      job: "Mantis created by",
-      ordering: 40,
-      characters: [] as string[],
-    } as PrincipalsDocument;
+      directors: ["nm0751577", "nm0751648"],
+      writers: [
+        "nm1321655",
+        "nm1321656",
+        "nm0498278",
+        "nm0456158",
+        "nm0800209",
+        "nm1921680",
+        "nm3053444",
+        "nm2757098",
+        "nm0317493",
+        "nm4160687",
+        "nm1293367",
+        "nm1411347",
+      ],
+    } as CrewsDocument;
 
     const spy = jest
-      .spyOn(service, "addCrewToTitle")
+      .spyOn(service, "createCrew")
       .mockResolvedValue(mockedResult);
 
-    const result = await controller.addCrewsToTitle("tt4154796", createCrewDto);
+    const result = await controller.createCrew("tt4154796", createCrewDto);
     expect(result).toEqual(mockedResult);
     expect(spy).toHaveBeenCalledWith("tt4154796", createCrewDto);
   });

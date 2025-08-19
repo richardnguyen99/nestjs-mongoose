@@ -7,11 +7,13 @@ import { CrewQueryDto } from "src/crews/dto/crew-query.dto";
 import { CrewUpdateDto } from "src/crews/dto/crew-update.dto";
 import { CrewsAggregationInterface } from "src/crews/interfaces/crews-interface.interface";
 import { ConfigService } from "@nestjs/config";
+import { CrewCreateDto } from "./dto/crew-create.dto";
 
 @Injectable()
 export class CrewsService {
   private readonly logger = new Logger("CrewsService");
 
+  /* istanbul ignore next */
   constructor(
     private readonly configService: ConfigService,
     @InjectModel(CrewsModel.name)
@@ -75,32 +77,43 @@ export class CrewsService {
     return this.crewsModel.findById(id).exec();
   }
 
+  async create(dto: CrewCreateDto): Promise<CrewsDocument> {
+    const createdCrew = new this.crewsModel(dto);
+    createdCrew.isNew = true;
+
+    return createdCrew.save();
+  }
+
   async addDirector(tconst: string, nconst: string) {
-    return this.crewsModel.findOneAndUpdate(
-      {
-        tconst,
-      },
-      {
-        $addToSet: { directors: nconst },
-      },
-      {
-        new: true,
-      },
-    );
+    return this.crewsModel
+      .findOneAndUpdate(
+        {
+          tconst,
+        },
+        {
+          $addToSet: { directors: nconst },
+        },
+        {
+          new: true,
+        },
+      )
+      .exec();
   }
 
   async addWriter(tconst: string, nconst: string) {
-    return this.crewsModel.findOneAndUpdate(
-      {
-        tconst,
-      },
-      {
-        $addToSet: { writers: nconst },
-      },
-      {
-        new: true,
-      },
-    );
+    return this.crewsModel
+      .findOneAndUpdate(
+        {
+          tconst,
+        },
+        {
+          $addToSet: { writers: nconst },
+        },
+        {
+          new: true,
+        },
+      )
+      .exec();
   }
 
   async update(
@@ -125,38 +138,48 @@ export class CrewsService {
     if (updateDto.writers) {
       if (updateDto.writers.add) {
         updateQuery.$addToSet = {
+          ...updateQuery.$addToSet,
           writers: { $each: updateDto.writers.add },
         };
       }
 
       if (updateDto.writers.remove) {
-        updateQuery.$pull = { writers: { $in: updateDto.writers.remove } };
+        updateQuery.$pull = {
+          ...updateQuery.$pull,
+          writers: { $in: updateDto.writers.remove },
+        };
       }
     }
 
-    return this.crewsModel.findOneAndUpdate({ tconst }, updateQuery, options);
+    return this.crewsModel
+      .findOneAndUpdate({ tconst }, updateQuery, options)
+      .exec();
   }
 
   async removeDirector(tconst: string, nconst: string) {
-    return this.crewsModel.findOneAndUpdate(
-      {
-        tconst,
-      },
-      {
-        $pull: { directors: nconst },
-      },
-    );
+    return this.crewsModel
+      .findOneAndUpdate(
+        {
+          tconst,
+        },
+        {
+          $pull: { directors: nconst },
+        },
+      )
+      .exec();
   }
 
   async removeWriter(tconst: string, nconst: string) {
-    return this.crewsModel.findOneAndUpdate(
-      {
-        tconst,
-      },
-      {
-        $pull: { writers: nconst },
-      },
-    );
+    return this.crewsModel
+      .findOneAndUpdate(
+        {
+          tconst,
+        },
+        {
+          $pull: { writers: nconst },
+        },
+      )
+      .exec();
   }
 
   private _prepareCrewAggregation<T>(
