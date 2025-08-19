@@ -11,6 +11,7 @@ import { PrincipalsModule } from "./principals/principals.module";
 import { CrewsModule } from "./crews/crews.module";
 import { AkasModule } from "./akas/akas.module";
 import { EpisodesModule } from "./episodes/episodes.module";
+import { DatabaseModule } from "./database/database.module";
 
 @Module({
   imports: [
@@ -18,19 +19,7 @@ import { EpisodesModule } from "./episodes/episodes.module";
       isGlobal: true,
     }),
 
-    MongooseModule.forRootAsync({
-      useFactory: async (config: ConfigService) => ({
-        uri: config.get<string>("MONGODB_URI") || "mongodb://localhost:27018",
-        dbName: config.get<string>("MONGODB_DB_NAME") || "tmdb",
-        user: config.get<string>("MONGODB_USER") || "admin",
-        pass: config.get<string>("MONGODB_PASSWORD") || "admin",
-        ssl: config.get<string>("NODE_ENV") === "production",
-        directConnection: true,
-      }),
-
-      inject: [ConfigService],
-    }),
-
+    DatabaseModule,
     BasicsModule,
     NamesModule,
     PrincipalsModule,
