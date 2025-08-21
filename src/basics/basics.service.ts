@@ -183,7 +183,7 @@ export class BasicsService {
       }
 
       if (options.filter.until) {
-        query = query.where("endYear").ne(null).lte(options.filter.until);
+        query = query.where("startYear").ne(null).lte(options.filter.until);
       }
 
       if (options.filter.duration) {
@@ -217,9 +217,6 @@ export class BasicsService {
       if (options.sort.startYear) sort.startYear = options.sort.startYear;
 
       if (options.sort.endYear) sort.endYear = options.sort.endYear;
-
-      if (options.sort.primaryTitle)
-        sort.primaryTitle = options.sort.primaryTitle;
     }
 
     const page = options?.page ?? 1;

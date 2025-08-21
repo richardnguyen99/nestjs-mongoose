@@ -5,6 +5,7 @@ import {
   Injectable,
   NestInterceptor,
 } from "@nestjs/common";
+import { Request, Response } from "express";
 import { Observable } from "rxjs";
 import { map } from "rxjs/operators";
 
@@ -17,8 +18,8 @@ import { OkResponse } from "src/interfaces/response.interface";
 @Injectable()
 export class ResponseInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
-    const request = context.switchToHttp().getRequest();
-    const response = context.switchToHttp().getResponse();
+    const request = context.switchToHttp().getRequest<Request>();
+    const response = context.switchToHttp().getResponse<Response>();
 
     return next.handle().pipe(
       map((data) => {

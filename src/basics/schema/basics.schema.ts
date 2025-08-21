@@ -1,5 +1,3 @@
-/* istanbul ignore file */
-
 import { NotFoundException } from "@nestjs/common";
 import { Prop, Schema, SchemaFactory, Virtual } from "@nestjs/mongoose";
 import * as mongoose from "mongoose";
@@ -168,10 +166,7 @@ BasicsSchema.index(
   },
 );
 
-BasicsSchema.path("genres").validate(function (value) {
-  if (!Array.isArray(value)) {
-    return false;
-  }
+BasicsSchema.path("genres").validate(function (value: string[]) {
   return (
     value.every((genre) => typeof genre === "string" && genre.trim() !== "") &&
     value.length <= 3
@@ -179,7 +174,7 @@ BasicsSchema.path("genres").validate(function (value) {
 }, "Genres must be an array of up to 3 non-empty strings");
 
 BasicsSchema.pre("findOneAndUpdate", async function (next) {
-  const update = this.getUpdate() || {};
+  const update = this.getUpdate();
   const doc = await this.model.findOne<BasicsModel>(this.getQuery()).lean();
 
   if (!doc) {
@@ -189,7 +184,7 @@ BasicsSchema.pre("findOneAndUpdate", async function (next) {
   let updated = { ...doc };
   const err = new mongoose.Error.ValidationError();
 
-  if (update["$set"]) {
+  if (update && update["$set"]) {
     updated = { ...updated, ...update["$set"] };
   }
 

@@ -9,9 +9,9 @@ import { HttpExceptionFilter } from "./filters/http-exception.filter";
 import { ZodExceptionFilter } from "./filters/zod-exception.filter";
 import { ResponseInterceptor } from "./interceptors/response.interceptor";
 import { RequestIdInterceptor } from "./interceptors/request-id.interceptor";
-import { loggerConfig } from "./libs/logger";
 import { MongooseExceptionFilter } from "./filters/mongoose-exception.filter";
 import { MongodbExceptionFilter } from "./filters/mongodb-exception.filter";
+import { loggerConfig } from "./libs/logger";
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -19,7 +19,7 @@ async function bootstrap() {
   });
 
   mongoose.set("debug", (collectionName, method, query, doc) => {
-    if (process.env.NODE_ENV === "production") {
+    if (process.env.NODE_ENV !== "development") {
       return;
     }
 

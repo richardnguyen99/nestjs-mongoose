@@ -68,6 +68,7 @@ export class BasicsController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @Header("Cache-Control", "no-store")
+  @Header("Content-Type", "application/json")
   @UsePipes(new ZodValidationPipe(basicCreateSchema))
   async createBasic(@Body() body: BasicCreateDto) {
     return this.basicsService.createBasic(body);
@@ -90,6 +91,7 @@ export class BasicsController {
 
   @Get(":tconst")
   @HttpCode(HttpStatus.OK)
+  @Header("Content-Type", "application/json")
   async getByTconst(@Param("tconst") tconst: string) {
     const result = await this.basicsService.findByTconst(tconst);
 

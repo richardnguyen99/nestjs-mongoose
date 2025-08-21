@@ -5,6 +5,7 @@ import {
   HttpException,
   Logger,
 } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { Response, Request } from "express";
 
 import { ErrorResponse } from "src/interfaces/response.interface";
