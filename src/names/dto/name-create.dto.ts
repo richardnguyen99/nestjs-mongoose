@@ -7,14 +7,18 @@ export const nameCreateSchema = z.object({
    *
    * @example { nconst: "nm0000123" }
    */
-  nconst: z.string().min(1, "nconst is required"),
+  nconst: z.string().refine(nonEmptyStringRefiner, {
+    message: "must contain at least 1 non-whitespace character",
+  }),
 
   /**
    * name by which the person is most often credited
    *
    * @example { primaryName: "Robert Downy Jr." }
    */
-  primaryName: z.string().min(1, "primaryName is required"),
+  primaryName: z.string().refine(nonEmptyStringRefiner, {
+    message: "must contain at least 1 non-whitespace character",
+  }),
 
   /**
    * Birth year in YYYY format if applicable, else `null`. Throws an error if:
@@ -25,10 +29,10 @@ export const nameCreateSchema = z.object({
    */
   birthYear: z
     .number({
-      message: "birthYear must be a valid year",
+      message: "must be a valid year",
     })
     .int({
-      message: "birthYear must be an integer",
+      message: "must be an integer",
     })
     .nullable()
     .default(null),
@@ -42,10 +46,10 @@ export const nameCreateSchema = z.object({
    */
   deathYear: z
     .number({
-      message: "deathYear must be a valid year",
+      message: "must be a valid year",
     })
     .int({
-      message: "deathYear must be an integer",
+      message: "must be an integer",
     })
     .nullable()
     .default(null),
@@ -61,17 +65,12 @@ export const nameCreateSchema = z.object({
    */
   primaryProfession: z
     .array(
-      z
-        .string()
-        .refine(
-          nonEmptyStringRefiner,
-          "primaryProfession must be a non-empty string",
-        ),
+      z.string().refine(nonEmptyStringRefiner, "must be a non-empty string"),
       {
-        message: "primaryProfession must be an array of strings",
+        message: "must be an array of strings",
       },
     )
-    .max(3, "primaryProfession can only store up to 3 items")
+    .max(3, "can only store up to 3 items")
     .default([]),
 
   /**
@@ -83,14 +82,9 @@ export const nameCreateSchema = z.object({
    */
   knownForTitles: z
     .array(
-      z
-        .string()
-        .refine(
-          nonEmptyStringRefiner,
-          "knownForTitles must be a non-empty string",
-        ),
+      z.string().refine(nonEmptyStringRefiner, "must be a non-empty string"),
       {
-        message: "knownForTitles must be an array of strings",
+        message: "must be an array of strings",
       },
     )
     .default([]),

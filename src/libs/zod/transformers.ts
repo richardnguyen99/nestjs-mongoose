@@ -50,7 +50,7 @@ export const strictIntTransformer = (
   if (isNaN(parsed)) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
-      message: "Value must be a valid integer",
+      message: "must be a valid integer",
     });
     return z.NEVER;
   }

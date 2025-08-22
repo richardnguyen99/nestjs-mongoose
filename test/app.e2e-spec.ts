@@ -19,6 +19,9 @@ import { EpisodesModel } from "src/episodes/schema/episodes.schema";
 import { CrewsModel } from "src/crews/schema/crews.schema";
 import { BasicCreateDto } from "src/basics/dto/basic-create.dto";
 import { BasicUpdateDto } from "src/basics/dto/basic-update.dto";
+import { NameCreateDto } from "src/names/dto/name-create.dto";
+import { NameUpdateDto } from "src/names/dto/name-update.dto";
+import { timestamp } from "rxjs";
 
 describe("AppController (e2e)", () => {
   let app: INestApplication;
@@ -57,22 +60,27 @@ describe("AppController (e2e)", () => {
     basicModel = await moduleFixture.resolve<Model<BasicsModel>>(
       getModelToken(BasicsModel.name),
     );
-    principalModel = moduleFixture.get<Model<PrincipalsModel>>(
+
+    principalModel = await moduleFixture.resolve<Model<PrincipalsModel>>(
       getModelToken(PrincipalsModel.name),
     );
-    nameModel = moduleFixture.get<Model<NamesModel>>(
+
+    nameModel = await moduleFixture.resolve<Model<NamesModel>>(
       getModelToken(NamesModel.name),
     );
-    episodeModel = moduleFixture.get<Model<EpisodesModel>>(
+
+    episodeModel = await moduleFixture.resolve<Model<EpisodesModel>>(
       getModelToken(EpisodesModel.name),
     );
-    crewModel = moduleFixture.get<Model<CrewsModel>>(
+
+    crewModel = await moduleFixture.resolve<Model<CrewsModel>>(
       getModelToken(CrewsModel.name),
     );
   });
 
   afterAll(async () => {
     basicModel.deleteMany({});
+    nameModel.deleteMany({});
     await app.close();
   });
 
@@ -1121,7 +1129,1496 @@ describe("AppController (e2e)", () => {
     });
   });
 
-  describe("Names Routes (/names/*)", () => {});
+  describe("Names Routes (/names/*)", () => {
+    beforeAll(() => {
+      nameModel.insertMany([
+        {
+          nconst: "nm0001435",
+          primaryName: "Lisa Kudrow",
+          birthYear: 1963,
+          deathYear: null,
+          primaryProfession: ["actress", "producer", "writer"],
+          knownForTitles: ["tt0108778", "tt0434672", "tt0120777", "tt1282140"],
+        },
+        {
+          nconst: "nm0030217",
+          primaryName: "Lisa Ann",
+          birthYear: 1972,
+          deathYear: null,
+          primaryProfession: ["actress", "producer", "director"],
+          knownForTitles: ["tt1310622", "tt3356664", "tt3599774", "tt1349010"],
+        },
+        {
+          nconst: "nm0030214",
+          primaryName: "Julia Ann Tavella",
+          birthYear: 1969,
+          deathYear: null,
+          primaryProfession: ["actress", "make_up_department", "miscellaneous"],
+          knownForTitles: ["tt0104415", "tt0408558", "tt0189184", "tt1349010"],
+        },
+        {
+          nconst: "nm0672668",
+          primaryName: "Lisa Pera",
+          birthYear: 1940,
+          deathYear: 2013,
+          primaryProfession: ["actress", "miscellaneous", "sound_department"],
+          knownForTitles: ["tt0372183", "tt0108757", "tt0120794", "tt0116704"],
+        },
+        {
+          nconst: "nm0000375",
+          primaryName: "Robert Downey Jr.",
+          birthYear: 1965,
+          deathYear: null,
+          primaryProfession: ["actor", "producer", "writer"],
+          knownForTitles: ["tt0371746", "tt1300854", "tt0988045", "tt4154796"],
+        },
+        {
+          nconst: "nm0000134",
+          primaryName: "Robert De Niro",
+          birthYear: 1943,
+          deathYear: null,
+          primaryProfession: ["actor", "producer", "director"],
+          knownForTitles: ["tt0101540", "tt0081398", "tt1302006", "tt0077416"],
+        },
+        {
+          nconst: "nm2225369",
+          primaryName: "Jennifer Lawrence",
+          birthYear: 1990,
+          deathYear: null,
+          primaryProfession: ["actress", "producer", "writer"],
+          knownForTitles: ["tt1392170", "tt1045658", "tt1800241", "tt1270798"],
+        },
+        {
+          nconst: "nm0000098",
+          primaryName: "Jennifer Aniston",
+          birthYear: 1969,
+          deathYear: null,
+          primaryProfession: ["actress", "producer", "director"],
+          knownForTitles: ["tt0108778", "tt3442006", "tt1723121", "tt0279113"],
+        },
+        {
+          nconst: "nm0000124",
+          primaryName: "Jennifer Connelly",
+          birthYear: 1970,
+          deathYear: null,
+          primaryProfession: ["actress", "producer", "visual_effects"],
+          knownForTitles: ["tt0268978", "tt0315983", "tt0286716", "tt0180093"],
+        },
+        {
+          nconst: "nm4911194",
+          primaryName: "Jenna Ortega",
+          birthYear: 2002,
+          deathYear: null,
+          primaryProfession: ["actress", "producer", "soundtrack"],
+          knownForTitles: [
+            "tt13443470",
+            "tt11245972",
+            "tt17663992",
+            "tt11847410",
+          ],
+        },
+        {
+          nconst: "nm9586104",
+          primaryName: "Robert Turner",
+          birthYear: 1920,
+          deathYear: 2012,
+          primaryProfession: ["composer"],
+          knownForTitles: ["tt0219242", "tt5656204", "tt28312418"],
+        },
+      ] as NamesModel[]);
+    });
+
+    it("GET /names/ -> 200", async () => {
+      const response = await request(app.getHttpServer()).get("/names/");
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        statusCode: 200,
+        message: "Request successful",
+        timestamp: expect.any(String),
+        data: expect.any(Array),
+      });
+    });
+
+    it("GET /names/:id -> 200", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/names/nm0001435",
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.headers["content-type"]).toContain("application/json");
+      expect(response.body).toEqual({
+        message: "Request successful",
+        statusCode: 200,
+        data: {
+          _id: expect.any(String),
+          nconst: "nm0001435",
+          primaryName: "Lisa Kudrow",
+          birthYear: 1963,
+          deathYear: null,
+          primaryProfession: ["actress", "producer", "writer"],
+          knownForTitles: ["tt0108778", "tt0434672", "tt0120777", "tt1282140"],
+        },
+        timestamp: expect.any(String),
+      });
+    });
+
+    it("GET /names/:id -> 404", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/names/nm0009999",
+      );
+
+      expect(response.status).toBe(404);
+      expect(response.body).toEqual({
+        message: "Name with nconst=nm0009999 not found",
+        statusCode: 404,
+        timestamp: expect.any(String),
+        requestCtx: {
+          method: "GET",
+          query: {},
+          params: {
+            nconst: "nm0009999",
+          },
+          url: "/names/nm0009999",
+        },
+      });
+    });
+
+    it("POST /names/ -> 201", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/names")
+        .send({
+          nconst: "nm1234567",
+          primaryName: "Test Name",
+          birthYear: null,
+          deathYear: null,
+          primaryProfession: ["actor"],
+          knownForTitles: ["tt1234567"],
+        } as NameCreateDto);
+
+      expect(response.status).toBe(201);
+      expect(response.body).toEqual({
+        message: "Resource created successfully",
+        statusCode: 201,
+        timestamp: expect.any(String),
+        data: {
+          _id: expect.any(String),
+          nconst: "nm1234567",
+          primaryName: "Test Name",
+          birthYear: null,
+          deathYear: null,
+          primaryProfession: ["actor"],
+          knownForTitles: ["tt1234567"],
+        },
+      });
+    });
+
+    it("POST /names/ -> 409", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/names")
+        .send({
+          nconst: "nm1234567",
+          primaryName: "Test Name",
+          birthYear: null,
+          deathYear: null,
+          primaryProfession: ["actor"],
+          knownForTitles: ["tt1234567"],
+        } as NameCreateDto);
+
+      expect(response.status).toBe(409);
+      expect(response.body).toEqual({
+        message: "Duplicate key error: nconst=nm1234567",
+        statusCode: 409,
+        timestamp: expect.any(String),
+        requestCtx: {
+          method: "POST",
+          query: {},
+          params: {},
+          url: "/names",
+        },
+      });
+    });
+
+    it("POST /names (with missing nconst) -> 400", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/names")
+        .send({
+          primaryName: "Test Name",
+          birthYear: null,
+          deathYear: null,
+          primaryProfession: ["actor"],
+          knownForTitles: ["tt1234567"],
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        message: "nconst: Required\n",
+        statusCode: 400,
+        timestamp: expect.any(String),
+        requestCtx: {
+          method: "POST",
+          query: {},
+          params: {},
+          url: "/names",
+        },
+      });
+    });
+
+    it("POST /names (with empty string nconst) -> 400", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/names")
+        .send({
+          nconst: "",
+          primaryName: "Test Name",
+          birthYear: null,
+          deathYear: null,
+          primaryProfession: ["actor"],
+          knownForTitles: ["tt1234567"],
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        message: "nconst: must contain at least 1 non-whitespace character\n",
+        statusCode: 400,
+        timestamp: expect.any(String),
+        requestCtx: {
+          method: "POST",
+          query: {},
+          params: {},
+          url: "/names",
+        },
+      });
+    });
+
+    it("POST /names (with missing primary name) -> 400", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/names")
+        .send({
+          nconst: "nm1234567",
+          birthYear: null,
+          deathYear: null,
+          primaryProfession: ["actor"],
+          knownForTitles: ["tt1234567"],
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        message: "primaryName: Required\n",
+        statusCode: 400,
+        timestamp: expect.any(String),
+        requestCtx: {
+          method: "POST",
+          query: {},
+          params: {},
+          url: "/names",
+        },
+      });
+    });
+
+    it("POST /names (with empty primary name) -> 400", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/names")
+        .send({
+          nconst: "nm1234567",
+          primaryName: "",
+          birthYear: null,
+          deathYear: null,
+          primaryProfession: ["actor"],
+          knownForTitles: ["tt1234567"],
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        message:
+          "primaryName: must contain at least 1 non-whitespace character\n",
+        statusCode: 400,
+        timestamp: expect.any(String),
+        requestCtx: {
+          method: "POST",
+          query: {},
+          params: {},
+          url: "/names",
+        },
+      });
+    });
+
+    it("POST /names (with invalid birthYear) -> 400", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/names")
+        .send({
+          nconst: "nm1234567",
+          primaryName: "Test Name",
+          birthYear: "invalid",
+          deathYear: null,
+          primaryProfession: ["actor"],
+          knownForTitles: ["tt1234567"],
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        message: "birthYear: must be a valid year\n",
+        statusCode: 400,
+        timestamp: expect.any(String),
+        requestCtx: {
+          method: "POST",
+          query: {},
+          params: {},
+          url: "/names",
+        },
+      });
+    });
+
+    it("POST /names (with non-int birthYear) -> 400", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/names")
+        .send({
+          nconst: "nm1234567",
+          primaryName: "Test Name",
+          birthYear: 1999.09,
+          deathYear: null,
+          primaryProfession: ["actor"],
+          knownForTitles: ["tt1234567"],
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        message: "birthYear: must be an integer\n",
+        statusCode: 400,
+        timestamp: expect.any(String),
+        requestCtx: {
+          method: "POST",
+          query: {},
+          params: {},
+          url: "/names",
+        },
+      });
+    });
+
+    it("POST /names (with invalid deathYear) -> 400", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/names")
+        .send({
+          nconst: "nm1234567",
+          primaryName: "Test Name",
+          birthYear: 1990,
+          deathYear: "invalid",
+          primaryProfession: ["actor"],
+          knownForTitles: ["tt1234567"],
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        message: "deathYear: must be a valid year\n",
+        statusCode: 400,
+        timestamp: expect.any(String),
+        requestCtx: {
+          method: "POST",
+          query: {},
+          params: {},
+          url: "/names",
+        },
+      });
+    });
+
+    it("POST /names (with non-int deathYear) -> 400", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/names")
+        .send({
+          nconst: "nm1234567",
+          primaryName: "Test Name",
+          birthYear: 1990,
+          deathYear: 2020.5,
+          primaryProfession: ["actor"],
+          knownForTitles: ["tt1234567"],
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        message: "deathYear: must be an integer\n",
+        statusCode: 400,
+        timestamp: expect.any(String),
+        requestCtx: {
+          method: "POST",
+          query: {},
+          params: {},
+          url: "/names",
+        },
+      });
+    });
+
+    it("POST /names (with non-array primaryProfession) -> 400", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/names")
+        .send({
+          nconst: "nm1234567",
+          primaryName: "Test Name",
+          birthYear: 1990,
+          deathYear: null,
+          primaryProfession: "actor",
+          knownForTitles: ["tt1234567"],
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        message: "primaryProfession: must be an array of strings\n",
+        statusCode: 400,
+        timestamp: expect.any(String),
+        requestCtx: {
+          method: "POST",
+          query: {},
+          params: {},
+          url: "/names",
+        },
+      });
+    });
+
+    it("POST /names (with empty primaryProfession) -> 400", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/names")
+        .send({
+          nconst: "nm1234567",
+          primaryName: "Test Name",
+          birthYear: 1990,
+          deathYear: null,
+          primaryProfession: ["   "],
+          knownForTitles: ["tt1234567"],
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        message: "primaryProfession.0: must be a non-empty string\n",
+        statusCode: 400,
+        timestamp: expect.any(String),
+        requestCtx: {
+          method: "POST",
+          query: {},
+          params: {},
+          url: "/names",
+        },
+      });
+    });
+
+    it("POST /names (with more than 3 items in primaryProfession) -> 400", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/names")
+        .send({
+          nconst: "nm1234567",
+          primaryName: "Test Name",
+          birthYear: 1990,
+          deathYear: null,
+          primaryProfession: ["actor", "producer", "director", "writer"],
+          knownForTitles: ["tt1234567"],
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        message: "primaryProfession: can only store up to 3 items\n",
+        statusCode: 400,
+        timestamp: expect.any(String),
+        requestCtx: {
+          method: "POST",
+          query: {},
+          params: {},
+          url: "/names",
+        },
+      });
+    });
+
+    it("POST /names (with non-array titles) -> 400", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/names")
+        .send({
+          nconst: "nm1234567",
+          primaryName: "Test Name",
+          birthYear: 1990,
+          deathYear: null,
+          primaryProfession: ["actor"],
+          knownForTitles: "tt1234567",
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        message: "knownForTitles: must be an array of strings\n",
+        statusCode: 400,
+        timestamp: expect.any(String),
+        requestCtx: {
+          method: "POST",
+          query: {},
+          params: {},
+          url: "/names",
+        },
+      });
+    });
+
+    it("POST /names (with empty string in knownForTitles) -> 400", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/names")
+        .send({
+          nconst: "nm1234567",
+          primaryName: "Test Name",
+          birthYear: 1990,
+          deathYear: null,
+          primaryProfession: ["actor"],
+          knownForTitles: ["   "],
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        message: "knownForTitles.0: must be a non-empty string\n",
+        statusCode: 400,
+        timestamp: expect.any(String),
+        requestCtx: {
+          method: "POST",
+          query: {},
+          params: {},
+          url: "/names",
+        },
+      });
+    });
+
+    it("PUT /names/:nconst -> 200", async () => {
+      const response = await request(app.getHttpServer())
+        .put("/names/nm1234567")
+        .send({
+          nconst: "nm1234567",
+          primaryName: "Gianna Michaels",
+          birthYear: 1983,
+          deathYear: null,
+          primaryProfession: ["actress"],
+          knownForTitles: ["tt1468012"],
+        } as NameUpdateDto);
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        message: "Resource updated successfully",
+        statusCode: 200,
+        timestamp: expect.any(String),
+        data: {
+          _id: expect.any(String),
+          nconst: "nm1234567",
+          primaryName: "Gianna Michaels",
+          birthYear: 1983,
+          deathYear: null,
+          primaryProfession: ["actress"],
+          knownForTitles: ["tt1468012"],
+        },
+      });
+    });
+
+    it("PUT /names/:nconst -> 404", async () => {
+      const response = await request(app.getHttpServer())
+        .put("/names/nm9999999")
+        .send({
+          primaryName: "Non Existent Name",
+          birthYear: 1990,
+          deathYear: null,
+          primaryProfession: ["actor"],
+          knownForTitles: ["tt9999999"],
+        } as NameUpdateDto);
+
+      expect(response.status).toBe(404);
+      expect(response.body).toEqual({
+        message: "Name with nconst=nm9999999 not found",
+        statusCode: 404,
+        timestamp: expect.any(String),
+        requestCtx: {
+          method: "PUT",
+          query: {},
+          params: {
+            nconst: "nm9999999",
+          },
+          url: "/names/nm9999999",
+        },
+      });
+    });
+
+    it("DELETE /names/:nconst -> 204", async () => {
+      const response = await request(app.getHttpServer()).delete(
+        "/names/nm1234567",
+      );
+
+      expect(response.status).toBe(204);
+      expect(response.body).toEqual({});
+
+      expect(await nameModel.find().lean()).toHaveLength(11);
+    });
+
+    it("DELETE /names/:nconst -> 404", async () => {
+      const response = await request(app.getHttpServer()).delete(
+        "/names/nm1234567",
+      );
+
+      expect(response.status).toBe(404);
+      expect(response.body).toEqual({
+        message: "Name with nconst=nm1234567 not found",
+        statusCode: 404,
+        timestamp: expect.any(String),
+        requestCtx: {
+          method: "DELETE",
+          query: {},
+          params: {
+            nconst: "nm1234567",
+          },
+          url: "/names/nm1234567",
+        },
+      });
+    });
+
+    it("GET /names/search?q=jennifer -> 200", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/names/search?q=jennifer",
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body.message).toBe("Request successful");
+      expect(response.body.statusCode).toBe(200);
+      expect(response.body.timestamp).toEqual(expect.any(String));
+      expect(Array.isArray(response.body.data)).toBe(true);
+      expect(response.body.data).toHaveLength(3);
+
+      const expected = [
+        {
+          _id: expect.any(String),
+          nconst: "nm0000098",
+          primaryName: "Jennifer Aniston",
+          birthYear: 1969,
+          deathYear: null,
+          primaryProfession: ["actress", "producer", "director"],
+          knownForTitles: ["tt0108778", "tt3442006", "tt1723121", "tt0279113"],
+        },
+        {
+          _id: expect.any(String),
+          nconst: "nm0000124",
+          primaryName: "Jennifer Connelly",
+          birthYear: 1970,
+          deathYear: null,
+          primaryProfession: ["actress", "producer", "visual_effects"],
+          knownForTitles: ["tt0268978", "tt0315983", "tt0286716", "tt0180093"],
+        },
+        {
+          _id: expect.any(String),
+          nconst: "nm2225369",
+          primaryName: "Jennifer Lawrence",
+          birthYear: 1990,
+          deathYear: null,
+          primaryProfession: ["actress", "producer", "writer"],
+          knownForTitles: ["tt1392170", "tt1045658", "tt1800241", "tt1270798"],
+        },
+      ];
+
+      const sortByNconst = (a: any, b: any) => a.nconst.localeCompare(b.nconst);
+      const actualSorted = response.body.data.slice().sort(sortByNconst);
+      const expectedSorted = expected.slice().sort(sortByNconst);
+
+      expect(actualSorted).toEqual(expectedSorted);
+    });
+
+    it("GET /names/search?q=robert&limit=1 -> 200", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/names/search?q=robert&limit=1",
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        message: "Request successful",
+        statusCode: 200,
+        timestamp: expect.any(String),
+        data: [
+          {
+            _id: expect.any(String),
+            nconst: "nm9586104",
+            primaryName: "Robert Turner",
+            birthYear: 1920,
+            deathYear: 2012,
+            primaryProfession: ["composer"],
+            knownForTitles: ["tt0219242", "tt5656204", "tt28312418"],
+          },
+        ],
+      });
+    });
+
+    it("GET /names/search?q=robert&limit=something -> 400", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/names/search?q=robert&limit=something",
+      );
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        message: "limit: must be a valid integer\n",
+        statusCode: 400,
+        timestamp: expect.any(String),
+        requestCtx: {
+          method: "GET",
+          query: {
+            q: "robert",
+            limit: "something",
+          },
+          params: {},
+          url: "/names/search?q=robert&limit=something",
+        },
+      });
+    });
+
+    it("GET /names/search?q=robert&limit=0 -> 400", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/names/search?q=robert&limit=0",
+      );
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        message: "limit: must be at least 1\n",
+        statusCode: 400,
+        timestamp: expect.any(String),
+        requestCtx: {
+          method: "GET",
+          query: {
+            q: "robert",
+            limit: "0",
+          },
+          params: {},
+          url: "/names/search?q=robert&limit=0",
+        },
+      });
+    });
+
+    it("GET /names/search?q=robert&page=2&limit=1 -> 200", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/names/search?q=robert&page=2&limit=1",
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        message: "Request successful",
+        statusCode: 200,
+        timestamp: expect.any(String),
+        data: [
+          {
+            _id: expect.any(String),
+            nconst: "nm0000134",
+            primaryName: "Robert De Niro",
+            birthYear: 1943,
+            deathYear: null,
+            primaryProfession: ["actor", "producer", "director"],
+            knownForTitles: [
+              "tt0101540",
+              "tt0081398",
+              "tt1302006",
+              "tt0077416",
+            ],
+          },
+        ],
+      });
+    });
+
+    it("GET /names/search?q=robert&page=something&limit=1 -> 400", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/names/search?q=robert&page=something&limit=1",
+      );
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        message: "page: must be a valid integer\n",
+        timestamp: expect.any(String),
+        requestCtx: {
+          method: "GET",
+          query: {
+            q: "robert",
+            page: "something",
+            limit: "1",
+          },
+          params: {},
+          url: "/names/search?q=robert&page=something&limit=1",
+        },
+      });
+    });
+
+    it("GET /names/search?q=robert&page=0&limit=1 -> 400", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/names/search?q=robert&page=0&limit=1",
+      );
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        timestamp: expect.any(String),
+        message: "page: must be at least 1\n",
+        requestCtx: {
+          method: "GET",
+          query: {
+            q: "robert",
+            page: "0",
+            limit: "1",
+          },
+          params: {},
+          url: "/names/search?q=robert&page=0&limit=1",
+        },
+      });
+    });
+
+    it("GET /names/search?q=lisa&filter[profession]=writer -> 200", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/names/search?q=lisa&filter[profession]=writer",
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        message: "Request successful",
+        statusCode: 200,
+        timestamp: expect.any(String),
+        data: [
+          {
+            _id: expect.any(String),
+            nconst: "nm0001435",
+            primaryName: "Lisa Kudrow",
+            birthYear: 1963,
+            deathYear: null,
+            primaryProfession: ["actress", "producer", "writer"],
+            knownForTitles: [
+              "tt0108778",
+              "tt0434672",
+              "tt0120777",
+              "tt1282140",
+            ],
+          },
+        ],
+      });
+    });
+
+    it("GET /names/search?q=lisa&filter[profession]=director&filter[profession]=writer -> 200", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/names/search?q=lisa&filter[profession]=director&filter[profession]=writer",
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        message: "Request successful",
+        statusCode: 200,
+        timestamp: expect.any(String),
+        data: [
+          {
+            _id: expect.any(String),
+            nconst: "nm0030217",
+            primaryName: "Lisa Ann",
+            birthYear: 1972,
+            deathYear: null,
+            primaryProfession: ["actress", "producer", "director"],
+            knownForTitles: [
+              "tt1310622",
+              "tt3356664",
+              "tt3599774",
+              "tt1349010",
+            ],
+          },
+          {
+            _id: expect.any(String),
+            nconst: "nm0001435",
+            primaryName: "Lisa Kudrow",
+            birthYear: 1963,
+            deathYear: null,
+            primaryProfession: ["actress", "producer", "writer"],
+            knownForTitles: [
+              "tt0108778",
+              "tt0434672",
+              "tt0120777",
+              "tt1282140",
+            ],
+          },
+        ],
+      });
+    });
+
+    it("GET /names/search?q=lisa&filter[profession]= -> 400", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/names/search?q=lisa&filter[profession]=",
+      );
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        message: "filter.profession: Profession must be a non-empty string\n",
+        statusCode: 400,
+        timestamp: expect.any(String),
+        requestCtx: {
+          method: "GET",
+          query: {
+            q: "lisa",
+            filter: {
+              profession: "",
+            },
+          },
+          params: {},
+          url: "/names/search?q=lisa&filter[profession]=",
+        },
+      });
+    });
+
+    it("GET /names/search?q=lisa&filter[profession]=director&filter[profession]= -> 400", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/names/search?q=lisa&filter[profession]=director&filter[profession]=",
+      );
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        message: "filter.profession.1: Profession must be a non-empty string\n",
+        statusCode: 400,
+        timestamp: expect.any(String),
+        requestCtx: {
+          method: "GET",
+          query: {
+            q: "lisa",
+            filter: {
+              profession: ["director", ""],
+            },
+          },
+          params: {},
+          url: "/names/search?q=lisa&filter[profession]=director&filter[profession]=",
+        },
+      });
+    });
+
+    it("GET /names/search?q=lisa&filter[profession]=director&filter[profession]=writer&filter[profession]=actress&filter[profession]=actor -> 400", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/names/search?q=lisa&filter[profession]=director&filter[profession]=writer&filter[profession]=actress&filter[profession]=actor",
+      );
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        message: "filter.profession: Profession array contains up to 3 items\n",
+        statusCode: 400,
+        timestamp: expect.any(String),
+        requestCtx: {
+          method: "GET",
+          query: {
+            q: "lisa",
+            filter: {
+              profession: ["director", "writer", "actress", "actor"],
+            },
+          },
+          params: {},
+          url: "/names/search?q=lisa&filter[profession]=director&filter[profession]=writer&filter[profession]=actress&filter[profession]=actor",
+        },
+      });
+    });
+
+    it("GET /names/search?q=lisa&filter[appearInTitles]=tt1310622 -> 200", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/names/search?q=lisa&filter[appearInTitles]=tt1310622",
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        message: "Request successful",
+        statusCode: 200,
+        timestamp: expect.any(String),
+        data: [
+          {
+            _id: expect.any(String),
+            nconst: "nm0030217",
+            primaryName: "Lisa Ann",
+            birthYear: 1972,
+            deathYear: null,
+            primaryProfession: ["actress", "producer", "director"],
+            knownForTitles: [
+              "tt1310622",
+              "tt3356664",
+              "tt3599774",
+              "tt1349010",
+            ],
+          },
+        ],
+      });
+    });
+
+    it("GET /names/search?q=ann&filter[appearInTitles]=tt1310622&filter[appearInTitles]=tt1349010 -> 200", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/names/search?q=ann&filter[appearInTitles]=tt1310622&filter[appearInTitles]=tt1349010",
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        message: "Request successful",
+        statusCode: 200,
+        timestamp: expect.any(String),
+        data: [
+          {
+            _id: expect.any(String),
+            nconst: "nm0030217",
+            primaryName: "Lisa Ann",
+            birthYear: 1972,
+            deathYear: null,
+            primaryProfession: ["actress", "producer", "director"],
+            knownForTitles: [
+              "tt1310622",
+              "tt3356664",
+              "tt3599774",
+              "tt1349010",
+            ],
+          },
+          {
+            _id: expect.any(String),
+            nconst: "nm0030214",
+            primaryName: "Julia Ann Tavella",
+            birthYear: 1969,
+            deathYear: null,
+            primaryProfession: [
+              "actress",
+              "make_up_department",
+              "miscellaneous",
+            ],
+            knownForTitles: [
+              "tt0104415",
+              "tt0408558",
+              "tt0189184",
+              "tt1349010",
+            ],
+          },
+        ],
+      });
+    });
+
+    it("GET /names/search?q=ann&filter[appearInTitles]= -> 400", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/names/search?q=ann&filter[appearInTitles]=",
+      );
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        message: "filter.appearInTitles: Title must be a non-empty string\n",
+        statusCode: 400,
+        timestamp: expect.any(String),
+        requestCtx: {
+          method: "GET",
+          query: {
+            q: "ann",
+            filter: {
+              appearInTitles: "",
+            },
+          },
+          params: {},
+          url: "/names/search?q=ann&filter[appearInTitles]=",
+        },
+      });
+    });
+
+    it("GET /names/search?q=ann&filter[appearInTitles]=tt1349010&filter[appearInTitles]= -> 400", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/names/search?q=ann&filter[appearInTitles]=tt1349010&filter[appearInTitles]=",
+      );
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        message: "filter.appearInTitles.1: Title must be a non-empty string\n",
+        statusCode: 400,
+        timestamp: expect.any(String),
+        requestCtx: {
+          method: "GET",
+          query: {
+            q: "ann",
+            filter: {
+              appearInTitles: ["tt1349010", ""],
+            },
+          },
+          params: {},
+          url: "/names/search?q=ann&filter[appearInTitles]=tt1349010&filter[appearInTitles]=",
+        },
+      });
+    });
+
+    it("GET /names/search?q=robert&filter[alive]=true -> 200", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/names/search?q=robert&filter[alive]=true",
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        message: "Request successful",
+        statusCode: 200,
+        timestamp: expect.any(String),
+        data: [
+          {
+            _id: expect.any(String),
+            nconst: "nm0000134",
+            primaryName: "Robert De Niro",
+            birthYear: 1943,
+            deathYear: null,
+            primaryProfession: ["actor", "producer", "director"],
+            knownForTitles: [
+              "tt0101540",
+              "tt0081398",
+              "tt1302006",
+              "tt0077416",
+            ],
+          },
+          {
+            _id: expect.any(String),
+            nconst: "nm0000375",
+            primaryName: "Robert Downey Jr.",
+            birthYear: 1965,
+            deathYear: null,
+            primaryProfession: ["actor", "producer", "writer"],
+            knownForTitles: [
+              "tt0371746",
+              "tt1300854",
+              "tt0988045",
+              "tt4154796",
+            ],
+          },
+        ],
+      });
+    });
+
+    it("GET /names/search?q=robert&filter[alive]=1 -> 200", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/names/search?q=robert&filter[alive]=1",
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        message: "Request successful",
+        statusCode: 200,
+        timestamp: expect.any(String),
+        data: [
+          {
+            _id: expect.any(String),
+            nconst: "nm0000134",
+            primaryName: "Robert De Niro",
+            birthYear: 1943,
+            deathYear: null,
+            primaryProfession: ["actor", "producer", "director"],
+            knownForTitles: [
+              "tt0101540",
+              "tt0081398",
+              "tt1302006",
+              "tt0077416",
+            ],
+          },
+          {
+            _id: expect.any(String),
+            nconst: "nm0000375",
+            primaryName: "Robert Downey Jr.",
+            birthYear: 1965,
+            deathYear: null,
+            primaryProfession: ["actor", "producer", "writer"],
+            knownForTitles: [
+              "tt0371746",
+              "tt1300854",
+              "tt0988045",
+              "tt4154796",
+            ],
+          },
+        ],
+      });
+    });
+
+    it("GET /names/search?q=robert&filter[alive]=false -> 200", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/names/search?q=robert&filter[alive]=false",
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        message: "Request successful",
+        statusCode: 200,
+        timestamp: expect.any(String),
+        data: [
+          {
+            _id: expect.any(String),
+            nconst: "nm9586104",
+            primaryName: "Robert Turner",
+            birthYear: 1920,
+            deathYear: 2012,
+            primaryProfession: ["composer"],
+            knownForTitles: ["tt0219242", "tt5656204", "tt28312418"],
+          },
+        ],
+      });
+    });
+
+    it("GET /names/search?q=robert&filter[alive]=0 -> 200", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/names/search?q=robert&filter[alive]=0",
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        message: "Request successful",
+        statusCode: 200,
+        timestamp: expect.any(String),
+        data: [
+          {
+            _id: expect.any(String),
+            nconst: "nm9586104",
+            primaryName: "Robert Turner",
+            birthYear: 1920,
+            deathYear: 2012,
+            primaryProfession: ["composer"],
+            knownForTitles: ["tt0219242", "tt5656204", "tt28312418"],
+          },
+        ],
+      });
+    });
+
+    it("GET /names/search?q=robert&filter[alive]=something -> 400", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/names/search?q=robert&filter[alive]=something",
+      );
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        timestamp: expect.any(String),
+        message:
+          "filter.alive: must be a boolean-ish value ([true, false, 0, 1])\n",
+        requestCtx: {
+          params: {},
+          query: {
+            q: "robert",
+            filter: {
+              alive: "something",
+            },
+          },
+          method: "GET",
+          url: "/names/search?q=robert&filter[alive]=something",
+        },
+      });
+    });
+
+    it("GET /names/search?q=lisa&filter[from]=1960 -> 200", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/names/search?q=lisa&filter[from]=1960",
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        message: "Request successful",
+        statusCode: 200,
+        timestamp: expect.any(String),
+        data: [
+          {
+            _id: expect.any(String),
+            nconst: "nm0030217",
+            primaryName: "Lisa Ann",
+            birthYear: 1972,
+            deathYear: null,
+            primaryProfession: ["actress", "producer", "director"],
+            knownForTitles: [
+              "tt1310622",
+              "tt3356664",
+              "tt3599774",
+              "tt1349010",
+            ],
+          },
+          {
+            _id: expect.any(String),
+            nconst: "nm0001435",
+            primaryName: "Lisa Kudrow",
+            birthYear: 1963,
+            deathYear: null,
+            primaryProfession: ["actress", "producer", "writer"],
+            knownForTitles: [
+              "tt0108778",
+              "tt0434672",
+              "tt0120777",
+              "tt1282140",
+            ],
+          },
+        ],
+      });
+    });
+
+    it("GET /names/search?q=lisa&filter[from]=something -> 400", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/names/search?q=lisa&filter[from]=something",
+      );
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        timestamp: expect.any(String),
+        message: "filter.from: must be a valid integer\n",
+        requestCtx: {
+          params: {},
+          query: {
+            q: "lisa",
+            filter: {
+              from: "something",
+            },
+          },
+          method: "GET",
+          url: "/names/search?q=lisa&filter[from]=something",
+        },
+      });
+    });
+
+    it("GET /names/search?q=lisa&sort[birthYear]=asc -> 200", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/names/search?q=lisa&sort[birthYear]=asc",
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        statusCode: 200,
+        timestamp: expect.any(String),
+        message: "Request successful",
+        data: [
+          {
+            _id: expect.any(String),
+            nconst: "nm0672668",
+            primaryName: "Lisa Pera",
+            birthYear: 1940,
+            deathYear: 2013,
+            primaryProfession: ["actress", "miscellaneous", "sound_department"],
+            knownForTitles: [
+              "tt0372183",
+              "tt0108757",
+              "tt0120794",
+              "tt0116704",
+            ],
+          },
+          {
+            _id: expect.any(String),
+            nconst: "nm0001435",
+            primaryName: "Lisa Kudrow",
+            birthYear: 1963,
+            deathYear: null,
+            primaryProfession: ["actress", "producer", "writer"],
+            knownForTitles: [
+              "tt0108778",
+              "tt0434672",
+              "tt0120777",
+              "tt1282140",
+            ],
+          },
+          {
+            _id: expect.any(String),
+            nconst: "nm0030217",
+            primaryName: "Lisa Ann",
+            birthYear: 1972,
+            deathYear: null,
+            primaryProfession: ["actress", "producer", "director"],
+            knownForTitles: [
+              "tt1310622",
+              "tt3356664",
+              "tt3599774",
+              "tt1349010",
+            ],
+          },
+        ],
+      });
+    });
+
+    it("GET /names/search?q=lisa&sort[birthYear]=desc -> 200", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/names/search?q=lisa&sort[birthYear]=desc",
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        statusCode: 200,
+        timestamp: expect.any(String),
+        message: "Request successful",
+        data: [
+          {
+            _id: expect.any(String),
+            nconst: "nm0030217",
+            primaryName: "Lisa Ann",
+            birthYear: 1972,
+            deathYear: null,
+            primaryProfession: ["actress", "producer", "director"],
+            knownForTitles: [
+              "tt1310622",
+              "tt3356664",
+              "tt3599774",
+              "tt1349010",
+            ],
+          },
+          {
+            _id: expect.any(String),
+            nconst: "nm0001435",
+            primaryName: "Lisa Kudrow",
+            birthYear: 1963,
+            deathYear: null,
+            primaryProfession: ["actress", "producer", "writer"],
+            knownForTitles: [
+              "tt0108778",
+              "tt0434672",
+              "tt0120777",
+              "tt1282140",
+            ],
+          },
+          {
+            _id: expect.any(String),
+            nconst: "nm0672668",
+            primaryName: "Lisa Pera",
+            birthYear: 1940,
+            deathYear: 2013,
+            primaryProfession: ["actress", "miscellaneous", "sound_department"],
+            knownForTitles: [
+              "tt0372183",
+              "tt0108757",
+              "tt0120794",
+              "tt0116704",
+            ],
+          },
+        ],
+      });
+    });
+
+    it("GET /names/search?q=lisa&sort[birthYear]=something -> 400", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/names/search?q=lisa&sort[birthYear]=something",
+      );
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        timestamp: expect.any(String),
+        message:
+          "sort.birthYear: Invalid enum value. Expected 'asc' | 'desc', received 'something'\n",
+        requestCtx: {
+          method: "GET",
+          url: "/names/search?q=lisa&sort[birthYear]=something",
+          params: {},
+          query: {
+            q: "lisa",
+            sort: {
+              birthYear: "something",
+            },
+          },
+        },
+      });
+    });
+
+    it("GET /names/search&q=lisa&sort[birthYear]=something&limit=5&filter[alive]=something", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/names/search?q=lisa&sort[birthYear]=something&limit=5&filter[alive]=something",
+      );
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        timestamp: expect.any(String),
+        message:
+          "filter.alive: must be a boolean-ish value ([true, false, 0, 1])\n\
+sort.birthYear: Invalid enum value. Expected 'asc' | 'desc', received 'something'\n",
+        requestCtx: {
+          method: "GET",
+          url: "/names/search?q=lisa&sort[birthYear]=something&limit=5&filter[alive]=something",
+          params: {},
+          query: {
+            q: "lisa",
+            sort: {
+              birthYear: "something",
+            },
+            limit: "5",
+            filter: {
+              alive: "something",
+            },
+          },
+        },
+      });
+    });
+  });
 
   describe("Aka Routes (/basics/:id/akas/*)", () => {});
 

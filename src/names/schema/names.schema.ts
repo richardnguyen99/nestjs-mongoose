@@ -149,7 +149,7 @@ NamesSchema.pre("findOneAndUpdate", async function (next) {
   const doc = await this.model.findOne<NamesModel>(this.getQuery()).lean();
 
   if (!doc) {
-    return next(new NotFoundException("Document not found"));
+    return next(null);
   }
 
   let updated = { ...doc };

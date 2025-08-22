@@ -60,6 +60,7 @@ export class NamesService {
         {
           new: true,
           runValidators: true,
+          upsert: false,
         },
       )
       .lean()
@@ -89,7 +90,9 @@ export class NamesService {
           ? options.filter.appearInTitles
           : [options.filter.appearInTitles];
 
-        query = query.where("knownForTitles").in(titles);
+        query = query.where("knownForTitles", {
+          $in: titles,
+        });
       }
 
       if (typeof options.filter.alive !== "undefined") {
@@ -107,23 +110,27 @@ export class NamesService {
       }
     }
 
-    if (options.sort) {
-      if (options.sort.birthYear) {
-        query = query.sort({ birthYear: options.sort.birthYear });
-      }
+    const sort: Record<string, any> = {
+      score: { $meta: "textScore" },
+    };
 
-      if (options.sort.mostAppearance) {
-        query = query.sort({ mostAppearance: options.sort.mostAppearance });
-      }
+    if (options && options.sort) {
+      if (options.sort.birthYear) sort.birthYear = options.sort.birthYear;
     } else {
-      query = query.sort({ score: { $meta: "textScore" } });
+      sort.primaryName = 1;
     }
 
     const page = options.page;
     const limit = options.limit;
     const skip = (page - 1) * limit;
 
-    return query.skip(skip).limit(limit).lean().exec();
+    return query
+      .skip(skip)
+      .limit(limit)
+      .sort(sort)
+      .select("-score")
+      .lean()
+      .exec();
   }
 
   async findById(id: string): Promise<NamesModel | null> {

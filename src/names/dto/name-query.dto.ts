@@ -22,10 +22,10 @@ export const baseNameQuerySchema = z.object({
    */
   limit: z
     .string()
-    .transform(strictIntTransformer)
-    .pipe(z.number().int().min(1, "`limit` must be at least 1"))
     .optional()
-    .default("10"),
+    .default("10")
+    .transform(strictIntTransformer)
+    .pipe(z.number().min(1, "must be at least 1")),
 
   /**
    * Page number to return, starting from 1. Throws an error if:
@@ -40,7 +40,7 @@ export const baseNameQuerySchema = z.object({
     .optional()
     .default("1")
     .transform(strictIntTransformer)
-    .pipe(z.number().int().min(1, "`page` must be at least 1")),
+    .pipe(z.number().min(1, "must be at least 1")),
 
   /**
    * Sort options for query results
@@ -130,7 +130,9 @@ export const baseNameQuerySchema = z.object({
        * @example "filter[alive]=0" -> { alive: false }
        */
       alive: z
-        .enum(["true", "false", "0", "1"])
+        .enum(["true", "false", "0", "1"], {
+          message: "must be a boolean-ish value ([true, false, 0, 1])",
+        })
         .transform(booleanishTypeTransformer)
         .optional(),
 
