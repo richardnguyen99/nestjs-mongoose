@@ -10,7 +10,7 @@ export const baseAkaQueryDto = z.object({
    */
   region: z
     .string()
-    .refine(nonEmptyStringRefiner)
+    .refine(nonEmptyStringRefiner, "must be a non-empty string")
     .optional()
     .transform(
       /* istanbul ignore next */ (value) =>
@@ -22,21 +22,38 @@ export const baseAkaQueryDto = z.object({
    *
    * @example {"language": "en"} -> "en"
    */
-  language: z.string().refine(nonEmptyStringRefiner).optional(),
+  language: z
+    .string()
+    .refine(nonEmptyStringRefiner, "must be a non-empty string")
+    .optional(),
 
   /**
    * types that the titles are displayed as on different platforms
    *
    * @example {"types": ["imdbDisplay"]} -> "imdbDisplay"
    */
-  types: z.array(z.string().refine(nonEmptyStringRefiner)).optional(),
+  types: z
+    .union([
+      z.array(
+        z.string().refine(nonEmptyStringRefiner, "must be a non-empty string"),
+      ),
+      z.string().refine(nonEmptyStringRefiner, "must be a non-empty string"),
+    ])
+    .optional(),
 
   /**
    * extra information that the titles have
    *
    * @example {"attributes": ["short title"]} -> "short title"
    */
-  attributes: z.array(z.string().refine(nonEmptyStringRefiner)).optional(),
+  attributes: z
+    .union([
+      z.array(
+        z.string().refine(nonEmptyStringRefiner, "must be a non-empty string"),
+      ),
+      z.string().refine(nonEmptyStringRefiner, "must be a non-empty string"),
+    ])
+    .optional(),
 
   /**
    * the maximum number of results to return
@@ -48,7 +65,11 @@ export const baseAkaQueryDto = z.object({
     .optional()
     .default("10")
     .transform(strictIntTransformer)
-    .pipe(z.number().min(10).default(10)),
+    .pipe(
+      z.number().min(1, {
+        message: "must be at least 1",
+      }),
+    ),
 
   /**
    * the page number to return
@@ -60,7 +81,11 @@ export const baseAkaQueryDto = z.object({
     .optional()
     .default("1")
     .transform(strictIntTransformer)
-    .pipe(z.number().min(1).default(1)),
+    .pipe(
+      z.number().min(1, {
+        message: "must be at least 1",
+      }),
+    ),
 });
 
 export const akaQueryDto = baseAkaQueryDto.optional().default({});

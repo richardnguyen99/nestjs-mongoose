@@ -154,13 +154,21 @@ export class AkasService {
         aggregation = aggregation.match({ region: query.region });
       }
 
-      if (query.types && query.types.length > 0) {
-        aggregation = aggregation.match({ types: { $in: query.types } });
+      if (query.types) {
+        const types = Array.isArray(query.types) ? query.types : [query.types];
+
+        aggregation = aggregation.match({ types: { $in: types } });
       }
 
-      if (query.attributes && query.attributes.length > 0) {
+      if (query.attributes) {
+        const attributes = Array.isArray(query.attributes)
+          ? query.attributes
+          : [query.attributes];
+
+        console.log(attributes);
+
         aggregation = aggregation.match({
-          attributes: { $in: query.attributes },
+          attributes: { $in: attributes },
         });
       }
     }

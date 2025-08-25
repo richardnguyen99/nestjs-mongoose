@@ -22,6 +22,11 @@ import { BasicUpdateDto } from "src/basics/dto/basic-update.dto";
 import { NameCreateDto } from "src/names/dto/name-create.dto";
 import { NameUpdateDto } from "src/names/dto/name-update.dto";
 import { timestamp } from "rxjs";
+import { AkasModel } from "src/akas/schema/akas.schema";
+import { basicStub } from "./stubs/basic";
+import { nameStub } from "./stubs/name";
+import { akaStub } from "./stubs/aka";
+import { AkaCreateDto } from "src/akas/dto/aka-create.dto";
 
 describe("AppController (e2e)", () => {
   let app: INestApplication;
@@ -30,6 +35,7 @@ describe("AppController (e2e)", () => {
   let nameModel: Model<NamesModel>;
   let episodeModel: Model<EpisodesModel>;
   let crewModel: Model<CrewsModel>;
+  let akaModel: Model<AkasModel>;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -76,11 +82,17 @@ describe("AppController (e2e)", () => {
     crewModel = await moduleFixture.resolve<Model<CrewsModel>>(
       getModelToken(CrewsModel.name),
     );
+
+    akaModel = await moduleFixture.resolve<Model<AkasModel>>(
+      getModelToken(AkasModel.name),
+    );
   });
 
   afterAll(async () => {
     basicModel.deleteMany({});
     nameModel.deleteMany({});
+    akaModel.deleteMany({});
+
     await app.close();
   });
 
@@ -106,151 +118,7 @@ describe("AppController (e2e)", () => {
 
   describe("Basic Routes (/basics/*)", () => {
     beforeAll(async () => {
-      await basicModel.insertMany([
-        {
-          tconst: "tt0000022",
-          titleType: "short",
-          primaryTitle: "Blacksmith Scene",
-          originalTitle: "Les forgerons",
-          isAdult: false,
-          startYear: 1895,
-          endYear: null,
-          runtimeMinutes: 1,
-          genres: ["documentary", "short"],
-        },
-        {
-          tconst: "tt0067098",
-          titleType: "tvEpisode",
-          primaryTitle: "Willi Forst",
-          originalTitle: "Willi Forst",
-          isAdult: false,
-          startYear: null,
-          endYear: null,
-          runtimeMinutes: 55,
-          genres: [],
-        },
-        {
-          tconst: "tt0108778",
-          titleType: "tvSeries",
-          primaryTitle: "Friends",
-          originalTitle: "Friends",
-          isAdult: false,
-          startYear: 1994,
-          endYear: 2004,
-          runtimeMinutes: 22,
-          genres: ["comedy", "romance"],
-        },
-        {
-          tconst: "tt34808440",
-          titleType: "movie",
-          primaryTitle: "Between Friends",
-          originalTitle: "Between Friends",
-          isAdult: false,
-          startYear: 2024,
-          endYear: null,
-          runtimeMinutes: 90,
-          genres: ["thriller"],
-        },
-        {
-          tconst: "tt1349010",
-          titleType: "video",
-          primaryTitle: "Oil Overload 2",
-          originalTitle: "Oil Overload 2",
-          isAdult: true,
-          startYear: 2008,
-          endYear: null,
-          runtimeMinutes: null,
-          genres: ["adult"],
-        },
-        {
-          tconst: "tt1481346",
-          titleType: "video",
-          primaryTitle: "Big Butt Oil Orgy",
-          originalTitle: "Big Butt Oil Orgy",
-          isAdult: true,
-          startYear: 2009,
-          endYear: null,
-          runtimeMinutes: null,
-          genres: ["adult"],
-        },
-        {
-          tconst: "tt34740878",
-          titleType: "movie",
-          primaryTitle: "Taghiev: Oil",
-          originalTitle: "Taghiev: Oil",
-          isAdult: false,
-          startYear: 2024,
-          endYear: null,
-          runtimeMinutes: 120,
-          genres: ["biography", "history"],
-        },
-        {
-          tconst: "tt19843414",
-          titleType: "short",
-          primaryTitle: "Oil Oil Oil",
-          originalTitle: "Oil Oil Oil",
-          isAdult: false,
-          startYear: 2023,
-          endYear: null,
-          runtimeMinutes: 24,
-          genres: ["short"],
-        },
-        {
-          tconst: "tt5592584",
-          titleType: "short",
-          primaryTitle: "Avenge Myself",
-          originalTitle: "Avenge Myself",
-          isAdult: false,
-          startYear: 2016,
-          endYear: null,
-          runtimeMinutes: 6,
-          genres: ["short", "action"],
-        },
-        {
-          tconst: "tt0083602",
-          titleType: "movie",
-          primaryTitle: "The Avenging",
-          originalTitle: "The Avenging",
-          isAdult: false,
-          startYear: 1982,
-          endYear: null,
-          runtimeMinutes: 50,
-          genres: ["western"],
-        },
-        {
-          tconst: "tt4154796",
-          titleType: "movie",
-          primaryTitle: "Avengers: Endgame",
-          originalTitle: "Avengers: Endgame",
-          isAdult: false,
-          startYear: 2019,
-          endYear: null,
-          runtimeMinutes: 181,
-          genres: ["sci-fi", "adventure", "action"],
-        },
-        {
-          tconst: "tt16103750",
-          titleType: "movie",
-          primaryTitle: "Rifftrax: Avengers: Endgame",
-          originalTitle: "Avengers: Endgame",
-          isAdult: false,
-          startYear: 2020,
-          endYear: null,
-          runtimeMinutes: null,
-          genres: ["sci-fi", "comedy", "action"],
-        },
-        {
-          tconst: "tt4154756",
-          titleType: "movie",
-          primaryTitle: "Avengers: Infinity War",
-          originalTitle: "Avengers: Infinity War",
-          isAdult: false,
-          startYear: 2018,
-          endYear: null,
-          runtimeMinutes: 149,
-          genres: ["sci-fi", "adventure", "action"],
-        },
-      ]);
+      await basicModel.insertMany(basicStub());
     });
 
     it("GET /basics/:id -> 200", async () => {
@@ -1131,101 +999,7 @@ describe("AppController (e2e)", () => {
 
   describe("Names Routes (/names/*)", () => {
     beforeAll(() => {
-      nameModel.insertMany([
-        {
-          nconst: "nm0001435",
-          primaryName: "Lisa Kudrow",
-          birthYear: 1963,
-          deathYear: null,
-          primaryProfession: ["actress", "producer", "writer"],
-          knownForTitles: ["tt0108778", "tt0434672", "tt0120777", "tt1282140"],
-        },
-        {
-          nconst: "nm0030217",
-          primaryName: "Lisa Ann",
-          birthYear: 1972,
-          deathYear: null,
-          primaryProfession: ["actress", "producer", "director"],
-          knownForTitles: ["tt1310622", "tt3356664", "tt3599774", "tt1349010"],
-        },
-        {
-          nconst: "nm0030214",
-          primaryName: "Julia Ann Tavella",
-          birthYear: 1969,
-          deathYear: null,
-          primaryProfession: ["actress", "make_up_department", "miscellaneous"],
-          knownForTitles: ["tt0104415", "tt0408558", "tt0189184", "tt1349010"],
-        },
-        {
-          nconst: "nm0672668",
-          primaryName: "Lisa Pera",
-          birthYear: 1940,
-          deathYear: 2013,
-          primaryProfession: ["actress", "miscellaneous", "sound_department"],
-          knownForTitles: ["tt0372183", "tt0108757", "tt0120794", "tt0116704"],
-        },
-        {
-          nconst: "nm0000375",
-          primaryName: "Robert Downey Jr.",
-          birthYear: 1965,
-          deathYear: null,
-          primaryProfession: ["actor", "producer", "writer"],
-          knownForTitles: ["tt0371746", "tt1300854", "tt0988045", "tt4154796"],
-        },
-        {
-          nconst: "nm0000134",
-          primaryName: "Robert De Niro",
-          birthYear: 1943,
-          deathYear: null,
-          primaryProfession: ["actor", "producer", "director"],
-          knownForTitles: ["tt0101540", "tt0081398", "tt1302006", "tt0077416"],
-        },
-        {
-          nconst: "nm2225369",
-          primaryName: "Jennifer Lawrence",
-          birthYear: 1990,
-          deathYear: null,
-          primaryProfession: ["actress", "producer", "writer"],
-          knownForTitles: ["tt1392170", "tt1045658", "tt1800241", "tt1270798"],
-        },
-        {
-          nconst: "nm0000098",
-          primaryName: "Jennifer Aniston",
-          birthYear: 1969,
-          deathYear: null,
-          primaryProfession: ["actress", "producer", "director"],
-          knownForTitles: ["tt0108778", "tt3442006", "tt1723121", "tt0279113"],
-        },
-        {
-          nconst: "nm0000124",
-          primaryName: "Jennifer Connelly",
-          birthYear: 1970,
-          deathYear: null,
-          primaryProfession: ["actress", "producer", "visual_effects"],
-          knownForTitles: ["tt0268978", "tt0315983", "tt0286716", "tt0180093"],
-        },
-        {
-          nconst: "nm4911194",
-          primaryName: "Jenna Ortega",
-          birthYear: 2002,
-          deathYear: null,
-          primaryProfession: ["actress", "producer", "soundtrack"],
-          knownForTitles: [
-            "tt13443470",
-            "tt11245972",
-            "tt17663992",
-            "tt11847410",
-          ],
-        },
-        {
-          nconst: "nm9586104",
-          primaryName: "Robert Turner",
-          birthYear: 1920,
-          deathYear: 2012,
-          primaryProfession: ["composer"],
-          knownForTitles: ["tt0219242", "tt5656204", "tt28312418"],
-        },
-      ] as NamesModel[]);
+      nameModel.insertMany(nameStub());
     });
 
     it("GET /names/ -> 200", async () => {
@@ -2589,7 +2363,7 @@ describe("AppController (e2e)", () => {
       });
     });
 
-    it("GET /names/search&q=lisa&sort[birthYear]=something&limit=5&filter[alive]=something", async () => {
+    it("GET /names/search&q=lisa&sort[birthYear]=something&limit=5&filter[alive]=something -> 400", async () => {
       const response = await request(app.getHttpServer()).get(
         "/names/search?q=lisa&sort[birthYear]=something&limit=5&filter[alive]=something",
       );
@@ -2620,7 +2394,1619 @@ sort.birthYear: Invalid enum value. Expected 'asc' | 'desc', received 'something
     });
   });
 
-  describe("Aka Routes (/basics/:id/akas/*)", () => {});
+  describe("Aka Routes (/basics/:id/akas/*)", () => {
+    beforeAll(async () => {
+      await akaModel.insertMany(akaStub());
+    });
+
+    it("GET /basics/:id/akas -> 200", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/basics/tt4154796/akas",
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        statusCode: 200,
+        timestamp: expect.any(String),
+        message: "Request successful",
+        data: {
+          currentPage: 1,
+          perPage: 10,
+          totalCount: 5,
+          totalPages: 1,
+          results: [
+            {
+              _id: expect.any(String),
+              titleId: "tt4154796",
+              ordering: 1,
+              title: "Avengers: Endgame",
+              region: null,
+              language: null,
+              types: "original",
+              attributes: null,
+              isOriginalTitle: true,
+            },
+            {
+              _id: expect.any(String),
+              titleId: "tt4154796",
+              ordering: 2,
+              title: "Avengers: Endgame",
+              region: "AE",
+              language: null,
+              types: "imdbDisplay",
+              attributes: null,
+              isOriginalTitle: false,
+            },
+            {
+              _id: expect.any(String),
+              titleId: "tt4154796",
+              ordering: 3,
+              title: "Avengers: Endgame",
+              region: "AR",
+              language: null,
+              types: "imdbDisplay",
+              attributes: null,
+              isOriginalTitle: false,
+            },
+            {
+              _id: expect.any(String),
+              titleId: "tt4154796",
+              ordering: 4,
+              title: "Avengers: Phase finale",
+              region: "CA",
+              language: "fr",
+              types: "imdbDisplay",
+              attributes: null,
+              isOriginalTitle: false,
+            },
+            {
+              _id: expect.any(String),
+              titleId: "tt4154796",
+              ordering: 5,
+              title: "Мстители: Финал",
+              region: "KZ",
+              language: "ru",
+              types: "imdbDisplay",
+              attributes: null,
+              isOriginalTitle: false,
+            },
+          ],
+        },
+      });
+    });
+
+    it("GET /basics/:id/akas -> 404", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/basics/tt9999999/akas",
+      );
+
+      expect(response.status).toBe(404);
+      expect(response.body).toEqual({
+        statusCode: 404,
+        timestamp: expect.any(String),
+        message: "No akas found for tconst=tt9999999",
+        requestCtx: {
+          method: "GET",
+          url: "/basics/tt9999999/akas",
+          params: {
+            tconst: "tt9999999",
+          },
+          query: {},
+        },
+      });
+    });
+
+    it("GET /basics/:id/akas?limit=2 -> 200", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/basics/tt4154796/akas?limit=2",
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        statusCode: 200,
+        timestamp: expect.any(String),
+        message: "Request successful",
+        data: {
+          currentPage: 1,
+          perPage: 2,
+          totalCount: 5,
+          totalPages: 3,
+          results: [
+            {
+              _id: expect.any(String),
+              titleId: "tt4154796",
+              ordering: 1,
+              title: "Avengers: Endgame",
+              region: null,
+              language: null,
+              types: "original",
+              attributes: null,
+              isOriginalTitle: true,
+            },
+            {
+              _id: expect.any(String),
+              titleId: "tt4154796",
+              ordering: 2,
+              title: "Avengers: Endgame",
+              region: "AE",
+              language: null,
+              types: "imdbDisplay",
+              attributes: null,
+              isOriginalTitle: false,
+            },
+          ],
+        },
+      });
+    });
+
+    it("GET /basics/:id/akas?limit=10 -> 200", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/basics/tt4154796/akas?limit=10",
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        statusCode: 200,
+        timestamp: expect.any(String),
+        message: "Request successful",
+        data: {
+          currentPage: 1,
+          perPage: 10,
+          totalCount: 5,
+          totalPages: 1,
+          results: [
+            {
+              _id: expect.any(String),
+              titleId: "tt4154796",
+              ordering: 1,
+              title: "Avengers: Endgame",
+              region: null,
+              language: null,
+              types: "original",
+              attributes: null,
+              isOriginalTitle: true,
+            },
+            {
+              _id: expect.any(String),
+              titleId: "tt4154796",
+              ordering: 2,
+              title: "Avengers: Endgame",
+              region: "AE",
+              language: null,
+              types: "imdbDisplay",
+              attributes: null,
+              isOriginalTitle: false,
+            },
+            {
+              _id: expect.any(String),
+              titleId: "tt4154796",
+              ordering: 3,
+              title: "Avengers: Endgame",
+              region: "AR",
+              language: null,
+              types: "imdbDisplay",
+              attributes: null,
+              isOriginalTitle: false,
+            },
+            {
+              _id: expect.any(String),
+              titleId: "tt4154796",
+              ordering: 4,
+              title: "Avengers: Phase finale",
+              region: "CA",
+              language: "fr",
+              types: "imdbDisplay",
+              attributes: null,
+              isOriginalTitle: false,
+            },
+            {
+              _id: expect.any(String),
+              titleId: "tt4154796",
+              ordering: 5,
+              title: "Мстители: Финал",
+              region: "KZ",
+              language: "ru",
+              types: "imdbDisplay",
+              attributes: null,
+              isOriginalTitle: false,
+            },
+          ],
+        },
+      });
+    });
+
+    it("GET /basics/:id/akas?limit=0 -> 400", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/basics/tt4154796/akas?limit=0",
+      );
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        timestamp: expect.any(String),
+        message: "limit: must be at least 1\n",
+        requestCtx: {
+          method: "GET",
+          url: "/basics/tt4154796/akas?limit=0",
+          query: {
+            limit: "0",
+          },
+          params: {
+            tconst: "tt4154796",
+          },
+        },
+      });
+    });
+
+    it("GET /basics/:id/akas?limit=invalid -> 400", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/basics/tt4154796/akas?limit=invalid",
+      );
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        timestamp: expect.any(String),
+        message: "limit: must be a valid integer\n",
+        requestCtx: {
+          method: "GET",
+          url: "/basics/tt4154796/akas?limit=invalid",
+          query: {
+            limit: "invalid",
+          },
+          params: {
+            tconst: "tt4154796",
+          },
+        },
+      });
+    });
+
+    it("GET /basics/:id/akas?limit=3&page=2 -> 200", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/basics/tt4154796/akas?limit=3&page=2",
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        statusCode: 200,
+        timestamp: expect.any(String),
+        message: "Request successful",
+        data: {
+          currentPage: 2,
+          perPage: 3,
+          totalCount: 5,
+          totalPages: 2,
+          results: [
+            {
+              _id: expect.any(String),
+              titleId: "tt4154796",
+              ordering: 4,
+              title: "Avengers: Phase finale",
+              region: "CA",
+              language: "fr",
+              types: "imdbDisplay",
+              attributes: null,
+              isOriginalTitle: false,
+            },
+            {
+              _id: expect.any(String),
+              titleId: "tt4154796",
+              ordering: 5,
+              title: "Мстители: Финал",
+              region: "KZ",
+              language: "ru",
+              types: "imdbDisplay",
+              attributes: null,
+              isOriginalTitle: false,
+            },
+          ],
+        },
+      });
+    });
+
+    it("GET /basics/:id/akas?limit=10&page=1 -> 400", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/basics/tt4154796/akas?limit=10&page=2",
+      );
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        message: "Current page 2 exceeds total pages 1",
+        timestamp: expect.any(String),
+        requestCtx: {
+          method: "GET",
+          url: "/basics/tt4154796/akas?limit=10&page=2",
+          params: {
+            tconst: "tt4154796",
+          },
+          query: {
+            limit: "10",
+            page: "2",
+          },
+        },
+      });
+    });
+
+    it("GET /basics/:id/akas?page=0 -> 400", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/basics/tt4154796/akas?page=0",
+      );
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        message: "page: must be at least 1\n",
+        timestamp: expect.any(String),
+        requestCtx: {
+          method: "GET",
+          url: "/basics/tt4154796/akas?page=0",
+          params: {
+            tconst: "tt4154796",
+          },
+          query: {
+            page: "0",
+          },
+        },
+      });
+    });
+
+    it("GET /basics/:id/akas?page=invalid -> 400", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/basics/tt4154796/akas?page=invalid",
+      );
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        message: "page: must be a valid integer\n",
+        timestamp: expect.any(String),
+        requestCtx: {
+          method: "GET",
+          url: "/basics/tt4154796/akas?page=invalid",
+          params: {
+            tconst: "tt4154796",
+          },
+          query: {
+            page: "invalid",
+          },
+        },
+      });
+    });
+
+    it("GET /basics/:id/akas?region=CA -> 200", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/basics/tt4154796/akas?region=CA",
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        statusCode: 200,
+        timestamp: expect.any(String),
+        message: "Request successful",
+        data: {
+          currentPage: 1,
+          perPage: 10,
+          totalCount: 1,
+          totalPages: 1,
+          results: [
+            {
+              _id: expect.any(String),
+              titleId: "tt4154796",
+              ordering: 4,
+              title: "Avengers: Phase finale",
+              region: "CA",
+              language: "fr",
+              types: "imdbDisplay",
+              attributes: null,
+              isOriginalTitle: false,
+            },
+          ],
+        },
+      });
+    });
+
+    it("GET /basics/:id/akas?region= -> 400", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/basics/tt4154796/akas?region=",
+      );
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        message: "region: must be a non-empty string\n",
+        timestamp: expect.any(String),
+        requestCtx: {
+          method: "GET",
+          url: "/basics/tt4154796/akas?region=",
+          params: {
+            tconst: "tt4154796",
+          },
+          query: {
+            region: "",
+          },
+        },
+      });
+    });
+
+    it("GET /basics/:id/akas?language=ru -> 200", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/basics/tt4154796/akas?language=ru",
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        statusCode: 200,
+        timestamp: expect.any(String),
+        message: "Request successful",
+        data: {
+          currentPage: 1,
+          perPage: 10,
+          totalCount: 1,
+          totalPages: 1,
+          results: [
+            {
+              _id: expect.any(String),
+              titleId: "tt4154796",
+              ordering: 5,
+              title: "Мстители: Финал",
+              region: "KZ",
+              language: "ru",
+              types: "imdbDisplay",
+              attributes: null,
+              isOriginalTitle: false,
+            },
+          ],
+        },
+      });
+    });
+
+    it("GET /basics/:id/akas?language= -> 400", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/basics/tt4154796/akas?language=",
+      );
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        message: "language: must be a non-empty string\n",
+        timestamp: expect.any(String),
+        requestCtx: {
+          method: "GET",
+          url: "/basics/tt4154796/akas?language=",
+          params: {
+            tconst: "tt4154796",
+          },
+          query: {
+            language: "",
+          },
+        },
+      });
+    });
+
+    it("GET /basics/:id/akas?types=imdbDisplay -> 200", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/basics/tt4154796/akas?types=imdbDisplay",
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        statusCode: 200,
+        timestamp: expect.any(String),
+        message: "Request successful",
+        data: {
+          currentPage: 1,
+          perPage: 10,
+          totalCount: 4,
+          totalPages: 1,
+          results: [
+            {
+              _id: expect.any(String),
+              titleId: "tt4154796",
+              ordering: 2,
+              title: "Avengers: Endgame",
+              region: "AE",
+              language: null,
+              types: "imdbDisplay",
+              attributes: null,
+              isOriginalTitle: false,
+            },
+            {
+              _id: expect.any(String),
+              titleId: "tt4154796",
+              ordering: 3,
+              title: "Avengers: Endgame",
+              region: "AR",
+              language: null,
+              types: "imdbDisplay",
+              attributes: null,
+              isOriginalTitle: false,
+            },
+            {
+              _id: expect.any(String),
+              titleId: "tt4154796",
+              ordering: 4,
+              title: "Avengers: Phase finale",
+              region: "CA",
+              language: "fr",
+              types: "imdbDisplay",
+              attributes: null,
+              isOriginalTitle: false,
+            },
+            {
+              _id: expect.any(String),
+              titleId: "tt4154796",
+              ordering: 5,
+              title: "Мстители: Финал",
+              region: "KZ",
+              language: "ru",
+              types: "imdbDisplay",
+              attributes: null,
+              isOriginalTitle: false,
+            },
+          ],
+        },
+      });
+    });
+
+    it("GET /basics/:id/akas?types=original&types=imdbDisplay -> 200", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/basics/tt4154796/akas?types=original&types=imdbDisplay",
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        statusCode: 200,
+        timestamp: expect.any(String),
+        message: "Request successful",
+        data: {
+          currentPage: 1,
+          perPage: 10,
+          totalCount: 5,
+          totalPages: 1,
+          results: [
+            {
+              _id: expect.any(String),
+              titleId: "tt4154796",
+              ordering: 1,
+              title: "Avengers: Endgame",
+              region: null,
+              language: null,
+              types: "original",
+              attributes: null,
+              isOriginalTitle: true,
+            },
+            {
+              _id: expect.any(String),
+              titleId: "tt4154796",
+              ordering: 2,
+              title: "Avengers: Endgame",
+              region: "AE",
+              language: null,
+              types: "imdbDisplay",
+              attributes: null,
+              isOriginalTitle: false,
+            },
+            {
+              _id: expect.any(String),
+              titleId: "tt4154796",
+              ordering: 3,
+              title: "Avengers: Endgame",
+              region: "AR",
+              language: null,
+              types: "imdbDisplay",
+              attributes: null,
+              isOriginalTitle: false,
+            },
+            {
+              _id: expect.any(String),
+              titleId: "tt4154796",
+              ordering: 4,
+              title: "Avengers: Phase finale",
+              region: "CA",
+              language: "fr",
+              types: "imdbDisplay",
+              attributes: null,
+              isOriginalTitle: false,
+            },
+            {
+              _id: expect.any(String),
+              titleId: "tt4154796",
+              ordering: 5,
+              title: "Мстители: Финал",
+              region: "KZ",
+              language: "ru",
+              types: "imdbDisplay",
+              attributes: null,
+              isOriginalTitle: false,
+            },
+          ],
+        },
+      });
+    });
+
+    it("GET /basics/:id/akas?types= -> 400", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/basics/tt4154796/akas?types=",
+      );
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        timestamp: expect.any(String),
+        message: "types: must be a non-empty string\n",
+        requestCtx: {
+          method: "GET",
+          url: "/basics/tt4154796/akas?types=",
+          params: {
+            tconst: "tt4154796",
+          },
+          query: {
+            types: "",
+          },
+        },
+      });
+    });
+
+    it("GET /basics/:id/akas?types=original&types= -> 400", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/basics/tt4154796/akas?types=original&types=",
+      );
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        timestamp: expect.any(String),
+        message: "types.1: must be a non-empty string\n",
+        requestCtx: {
+          method: "GET",
+          url: "/basics/tt4154796/akas?types=original&types=",
+          params: {
+            tconst: "tt4154796",
+          },
+          query: {
+            types: ["original", ""],
+          },
+        },
+      });
+    });
+
+    it("GET /basics/:id/akas?attributes=short title -> 200", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/basics/tt4154756/akas?attributes=short title",
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        statusCode: 200,
+        timestamp: expect.any(String),
+        message: "Request successful",
+        data: {
+          currentPage: 1,
+          perPage: 10,
+          totalCount: 1,
+          totalPages: 1,
+          results: [
+            {
+              _id: expect.any(String),
+              titleId: "tt4154756",
+              ordering: 4,
+              title: "Avengers: Infinity War",
+              region: "UY",
+              language: null,
+              types: null,
+              attributes: "short title",
+              isOriginalTitle: false,
+            },
+          ],
+        },
+      });
+    });
+
+    it("GET /basics/:id/akas?attributes=translated title&attributes=original -> 200", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/basics/tt4154756/akas?attributes=translated title&attributes=short title",
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        statusCode: 200,
+        timestamp: expect.any(String),
+        message: "Request successful",
+        data: {
+          currentPage: 1,
+          perPage: 10,
+          totalCount: 2,
+          totalPages: 1,
+          results: [
+            {
+              _id: expect.any(String),
+              titleId: "tt4154756",
+              ordering: 4,
+              title: "Avengers: Infinity War",
+              region: "UY",
+              language: null,
+              types: null,
+              attributes: "short title",
+              isOriginalTitle: false,
+            },
+            {
+              _id: expect.any(String),
+              titleId: "tt4154756",
+              ordering: 5,
+              title: "Avengers: Cuộc Chiến Vô Cực",
+              region: "VN",
+              language: null,
+              types: "imdbDisplay",
+              attributes: "translated title",
+              isOriginalTitle: false,
+            },
+          ],
+        },
+      });
+    });
+
+    it("GET /basics/:id/akas?attributes= -> 400", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/basics/tt4154756/akas?attributes=",
+      );
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        timestamp: expect.any(String),
+        message: "attributes: must be a non-empty string\n",
+        requestCtx: {
+          method: "GET",
+          url: "/basics/tt4154756/akas?attributes=",
+          params: {
+            tconst: "tt4154756",
+          },
+          query: {
+            attributes: "",
+          },
+        },
+      });
+    });
+
+    it("GET /basics/:id/akas?attributes=short title&attributes= -> 400", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/basics/tt4154756/akas?attributes=short title&attributes=",
+      );
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        timestamp: expect.any(String),
+        message: "attributes.1: must be a non-empty string\n",
+        requestCtx: {
+          method: "GET",
+          url: "/basics/tt4154756/akas?attributes=short%20title&attributes=",
+          params: {
+            tconst: "tt4154756",
+          },
+          query: {
+            attributes: ["short title", ""],
+          },
+        },
+      });
+    });
+
+    it("POST /basics/:id/akas -> 201", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/basics/tt4154756/akas")
+        .send({
+          titleId: "tt4154756",
+          ordering: 14,
+          title: "Avengers: Infinity War",
+          region: "ID",
+          language: "en",
+          types: null,
+          attributes: null,
+          isOriginalTitle: false,
+        } as AkaCreateDto);
+
+      expect(response.status).toBe(201);
+      expect(response.body).toEqual({
+        timestamp: expect.any(String),
+        message: "Resource created successfully",
+        statusCode: 201,
+        data: {
+          _id: expect.any(String),
+          titleId: "tt4154756",
+          ordering: 6,
+          title: "Avengers: Infinity War",
+          region: "ID",
+          language: "en",
+          types: null,
+          attributes: null,
+          isOriginalTitle: false,
+        },
+      });
+    });
+
+    it("POST /basics/:id/akas (with multiple types and attributes) -> 201", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/basics/tt4154756/akas")
+        .send({
+          titleId: "tt4154756",
+          ordering: 7,
+          title: "Avengers: Infinity War",
+          region: "ID",
+          language: "en",
+          types: ["imdbDisplay", "alternative"],
+          attributes: ["short title", "informal"],
+          isOriginalTitle: false,
+        });
+
+      expect(response.status).toBe(201);
+      expect(response.body).toEqual({
+        timestamp: expect.any(String),
+        message: "Resource created successfully",
+        statusCode: 201,
+        data: {
+          _id: expect.any(String),
+          titleId: "tt4154756",
+          ordering: 7,
+          title: "Avengers: Infinity War",
+          region: "ID",
+          language: "en",
+          types: "imdbDisplay,alternative",
+          attributes: "short title,informal",
+          isOriginalTitle: false,
+        },
+      });
+    });
+
+    it("POST /basics/:id/akas (with null fields) -> 201", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/basics/tt4154756/akas")
+        .send({
+          titleId: "tt4154756",
+          title: "Avengers: Infinity War - Part I",
+          region: null,
+          language: null,
+          types: null,
+          attributes: null,
+          isOriginalTitle: false,
+        });
+
+      expect(response.status).toBe(201);
+      expect(response.body).toEqual({
+        timestamp: expect.any(String),
+        message: "Resource created successfully",
+        statusCode: 201,
+        data: {
+          _id: expect.any(String),
+          titleId: "tt4154756",
+          title: "Avengers: Infinity War - Part I",
+          region: null,
+          language: null,
+          types: null,
+          attributes: null,
+          isOriginalTitle: false,
+          ordering: 8,
+        },
+      });
+    });
+
+    it("POST /basics/:id/akas (with missing title field) -> 400", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/basics/tt4154756/akas")
+        .send({
+          region: null,
+          language: null,
+          types: null,
+          attributes: null,
+          isOriginalTitle: false,
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        message: "title: must be provided\n",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "tt4154756",
+          },
+          query: {},
+          method: "POST",
+          url: "/basics/tt4154756/akas",
+        },
+      });
+    });
+
+    it("POST /basics/:id/akas (with invalid title field) -> 400", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/basics/tt4154756/akas")
+        .send({
+          title: 999,
+          region: "AT",
+          language: null,
+          types: ["imdbDisplay"],
+          attributes: null,
+          isOriginalTitle: false,
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        message: "title: must be a string type\n",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "tt4154756",
+          },
+          query: {},
+          method: "POST",
+          url: "/basics/tt4154756/akas",
+        },
+      });
+    });
+
+    it("POST /basics/:id/akas (with blank string title field) -> 400", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/basics/tt4154756/akas")
+        .send({
+          titleId: "tt4154756",
+          ordering: 35,
+          title: "   ",
+          region: "AT",
+          language: null,
+          types: ["imdbDisplay"],
+          attributes: null,
+          isOriginalTitle: false,
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        message: "title: must be a non-empty string\n",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "tt4154756",
+          },
+          query: {},
+          method: "POST",
+          url: "/basics/tt4154756/akas",
+        },
+      });
+    });
+
+    it("POST /basics/:id/akas (with missing region field) -> 400", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/basics/tt4154756/akas")
+        .send({
+          titleId: "tt4154756",
+          title: "Avengers: Infinity War - Part I",
+          language: null,
+          types: ["imdbDisplay"],
+          attributes: null,
+          isOriginalTitle: false,
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        message: "region: must be provided\n",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "tt4154756",
+          },
+          query: {},
+          method: "POST",
+          url: "/basics/tt4154756/akas",
+        },
+      });
+    });
+
+    it("POST /basics/:id/akas (with invalid region field) -> 400", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/basics/tt4154756/akas")
+        .send({
+          titleId: "tt4154756",
+          region: 3333,
+          title: "Avengers: Infinity War - Part I",
+          language: null,
+          types: ["imdbDisplay"],
+          attributes: null,
+          isOriginalTitle: false,
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        message: "region: must be a string or null type\n",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "tt4154756",
+          },
+          query: {},
+          method: "POST",
+          url: "/basics/tt4154756/akas",
+        },
+      });
+    });
+
+    it("POST /basics/:id/akas (with blank region field) -> 400", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/basics/tt4154756/akas")
+        .send({
+          titleId: "tt4154756",
+          region: "        ",
+          title: "Avengers: Infinity War - Part I",
+          language: null,
+          types: ["imdbDisplay"],
+          attributes: null,
+          isOriginalTitle: false,
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        message: "region: must be a non-empty string\n",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "tt4154756",
+          },
+          query: {},
+          method: "POST",
+          url: "/basics/tt4154756/akas",
+        },
+      });
+    });
+
+    it("POST /basics/:id/akas (with missing language field) -> 400", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/basics/tt4154756/akas")
+        .send({
+          titleId: "tt4154756",
+          region: null,
+          title: "Avengers: Infinity War - Part I",
+          types: ["imdbDisplay"],
+          attributes: null,
+          isOriginalTitle: false,
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        message: "language: must be provided\n",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "tt4154756",
+          },
+          query: {},
+          method: "POST",
+          url: "/basics/tt4154756/akas",
+        },
+      });
+    });
+
+    it("POST /basics/:id/akas (with invalid language field) -> 400", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/basics/tt4154756/akas")
+        .send({
+          titleId: "tt4154756",
+          region: null,
+          language: 9999,
+          title: "Avengers: Infinity War - Part I",
+          types: ["imdbDisplay"],
+          attributes: null,
+          isOriginalTitle: false,
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        message: "language: must be a string or null type\n",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "tt4154756",
+          },
+          query: {},
+          method: "POST",
+          url: "/basics/tt4154756/akas",
+        },
+      });
+    });
+
+    it("POST /basics/:id/akas (with blank language field) -> 400", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/basics/tt4154756/akas")
+        .send({
+          titleId: "tt4154756",
+          region: null,
+          language: "      ",
+          title: "Avengers: Infinity War - Part I",
+          types: ["imdbDisplay"],
+          attributes: null,
+          isOriginalTitle: false,
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        message: "language: must be a non-empty string\n",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "tt4154756",
+          },
+          query: {},
+          method: "POST",
+          url: "/basics/tt4154756/akas",
+        },
+      });
+    });
+
+    it("POST /basics/:id/akas (with blank language field) -> 400", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/basics/tt4154756/akas")
+        .send({
+          titleId: "tt4154756",
+          region: null,
+          language: "      ",
+          title: "Avengers: Infinity War - Part I",
+          types: ["imdbDisplay"],
+          attributes: null,
+          isOriginalTitle: false,
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        message: "language: must be a non-empty string\n",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "tt4154756",
+          },
+          query: {},
+          method: "POST",
+          url: "/basics/tt4154756/akas",
+        },
+      });
+    });
+
+    it("POST /basics/:id/akas (with missing types field) -> 400", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/basics/tt4154756/akas")
+        .send({
+          titleId: "tt4154756",
+          region: "US",
+          language: "en",
+          title: "Avengers: Infinity War - Part I",
+          attributes: null,
+          isOriginalTitle: false,
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        message: "types: must be provided\n",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "tt4154756",
+          },
+          query: {},
+          method: "POST",
+          url: "/basics/tt4154756/akas",
+        },
+      });
+    });
+
+    it("POST /basics/:id/akas (with invalid types field) -> 400", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/basics/tt4154756/akas")
+        .send({
+          titleId: "tt4154756",
+          region: "US",
+          language: "en",
+          title: "Avengers: Infinity War - Part I",
+          types: "something",
+          attributes: null,
+          isOriginalTitle: false,
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        message: "types: must be an array of strings or null type\n",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "tt4154756",
+          },
+          query: {},
+          method: "POST",
+          url: "/basics/tt4154756/akas",
+        },
+      });
+    });
+
+    it("POST /basics/:id/akas (with invalid items in types field) -> 400", async () => {
+      const response1 = await request(app.getHttpServer())
+        .post("/basics/tt4154756/akas")
+        .send({
+          titleId: "tt4154756",
+          region: "US",
+          language: "en",
+          title: "Avengers: Infinity War - Part I",
+          types: ["something", 1],
+          attributes: null,
+          isOriginalTitle: false,
+        });
+
+      const response2 = await request(app.getHttpServer())
+        .post("/basics/tt4154756/akas")
+        .send({
+          titleId: "tt4154756",
+          region: "US",
+          language: "en",
+          title: "Avengers: Infinity War - Part I",
+          types: ["something", null],
+          attributes: null,
+          isOriginalTitle: false,
+        });
+
+      expect(response1.status).toBe(400);
+      expect(response1.body).toEqual({
+        statusCode: 400,
+        message: "types.1: must be a string\n",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "tt4154756",
+          },
+          query: {},
+          method: "POST",
+          url: "/basics/tt4154756/akas",
+        },
+      });
+      expect(response2.status).toBe(400);
+      expect(response2.body).toEqual({
+        statusCode: 400,
+        message: "types.1: must be a string\n",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "tt4154756",
+          },
+          query: {},
+          method: "POST",
+          url: "/basics/tt4154756/akas",
+        },
+      });
+    });
+
+    it("POST /basics/:id/akas (with blank items in types field) -> 400", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/basics/tt4154756/akas")
+        .send({
+          titleId: "tt4154756",
+          region: "US",
+          language: "en",
+          title: "Avengers: Infinity War - Part I",
+          types: ["something", "    "],
+          attributes: null,
+          isOriginalTitle: false,
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        message: "types.1: must be a non-empty string\n",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "tt4154756",
+          },
+          query: {},
+          method: "POST",
+          url: "/basics/tt4154756/akas",
+        },
+      });
+    });
+
+    it("POST /basics/:id/akas (with missing attributes field) -> 400", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/basics/tt4154756/akas")
+        .send({
+          titleId: "tt4154756",
+          region: "US",
+          language: "en",
+          title: "Avengers: Infinity War - Part I",
+          types: ["something"],
+          isOriginalTitle: false,
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        message: "attributes: must be provided\n",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "tt4154756",
+          },
+          query: {},
+          method: "POST",
+          url: "/basics/tt4154756/akas",
+        },
+      });
+    });
+
+    it("POST /basics/:id/akas (with invalid attributes field) -> 400", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/basics/tt4154756/akas")
+        .send({
+          titleId: "tt4154756",
+          region: "US",
+          language: "en",
+          title: "Avengers: Infinity War - Part I",
+          types: ["something"],
+          attributes: 39999,
+          isOriginalTitle: false,
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        message: "attributes: must be an array of strings or null type\n",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "tt4154756",
+          },
+          query: {},
+          method: "POST",
+          url: "/basics/tt4154756/akas",
+        },
+      });
+    });
+
+    it("POST /basics/:id/akas (with invalid items in attributes field) -> 400", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/basics/tt4154756/akas")
+        .send({
+          titleId: "tt4154756",
+          region: "US",
+          language: "en",
+          title: "Avengers: Infinity War - Part I",
+          types: ["something"],
+          attributes: ["short title", 1],
+          isOriginalTitle: false,
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        message: "attributes.1: must be a string\n",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "tt4154756",
+          },
+          query: {},
+          method: "POST",
+          url: "/basics/tt4154756/akas",
+        },
+      });
+    });
+
+    it("POST /basics/:id/akas (with blank items in attributes field) -> 400", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/basics/tt4154756/akas")
+        .send({
+          titleId: "tt4154756",
+          region: "US",
+          language: "en",
+          title: "Avengers: Infinity War - Part I",
+          types: ["something"],
+          attributes: ["short title", "     "],
+          isOriginalTitle: false,
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        message: "attributes.1: must be a non-empty string\n",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "tt4154756",
+          },
+          query: {},
+          method: "POST",
+          url: "/basics/tt4154756/akas",
+        },
+      });
+    });
+
+    it("POST /basics/:id/akas (with missing isOriginalTitle field) -> 400", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/basics/tt4154756/akas")
+        .send({
+          titleId: "tt4154756",
+          region: "US",
+          language: "en",
+          title: "Avengers: Infinity War - Part I",
+          types: ["something"],
+          attributes: null,
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        message: "isOriginalTitle: must be provided\n",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "tt4154756",
+          },
+          query: {},
+          method: "POST",
+          url: "/basics/tt4154756/akas",
+        },
+      });
+    });
+
+    it("POST /basics/:id/akas (with invalid type isOriginalTitle field) -> 400", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/basics/tt4154756/akas")
+        .send({
+          titleId: "tt4154756",
+          region: "US",
+          language: "en",
+          title: "Avengers: Infinity War - Part I",
+          types: ["something"],
+          attributes: null,
+          isOriginalTitle: "not a boolean",
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        message: "isOriginalTitle: must be a boolean\n",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "tt4154756",
+          },
+          query: {},
+          method: "POST",
+          url: "/basics/tt4154756/akas",
+        },
+      });
+    });
+
+    it("PUT /basics/:id/akas/:ordering -> 200", async () => {
+      const response = await request(app.getHttpServer())
+        .put("/basics/tt4154756/akas/8")
+        .send({
+          region: "UK",
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        statusCode: 200,
+        timestamp: expect.any(String),
+        message: "Resource updated successfully",
+        data: {
+          _id: expect.any(String),
+          titleId: "tt4154756",
+          ordering: 8,
+          title: "Avengers: Infinity War - Part I",
+          region: "UK",
+          language: null,
+          types: null,
+          attributes: null,
+          isOriginalTitle: false,
+        },
+      });
+    });
+
+    it("PUT /basics/:id/akas/:ordering (with multiple fields) -> 200", async () => {
+      const response = await request(app.getHttpServer())
+        .put("/basics/tt4154756/akas/8")
+        .send({
+          region: null,
+          language: "en",
+          attributes: ["short title", "alternative"],
+          types: ["imdbDisplay"],
+          isOriginalTitle: false,
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        statusCode: 200,
+        timestamp: expect.any(String),
+        message: "Resource updated successfully",
+        data: {
+          _id: expect.any(String),
+          titleId: "tt4154756",
+          ordering: 8,
+          title: "Avengers: Infinity War - Part I",
+          region: null,
+          language: "en",
+          types: "imdbDisplay",
+          attributes: "short title,alternative",
+          isOriginalTitle: false,
+        },
+      });
+    });
+
+    it("PUT /basics/:id/akas/:ordering -> 404", async () => {
+      const response = await request(app.getHttpServer())
+        .put("/basics/tt4154756/akas/999")
+        .send({
+          region: null,
+          language: "en",
+          attributes: ["short title", "alternative"],
+          types: ["imdbDisplay"],
+          isOriginalTitle: false,
+        });
+
+      expect(response.status).toBe(404);
+      expect(response.body).toEqual({
+        statusCode: 404,
+        timestamp: expect.any(String),
+        message: "No aka found for tconst=tt4154756 and ordering=999",
+        requestCtx: {
+          params: {
+            tconst: "tt4154756",
+            ordering: "999",
+          },
+          query: {},
+          method: "PUT",
+          url: "/basics/tt4154756/akas/999",
+        },
+      });
+    });
+
+    it("DELETE /basics/:id/akas/:ordering -> 204", async () => {
+      const response = await request(app.getHttpServer()).delete(
+        "/basics/tt4154756/akas/8",
+      );
+
+      expect(response.status).toBe(204);
+      expect(response.body).toEqual({});
+
+      const totalAkas = await akaModel.countDocuments({ titleId: "tt4154756" });
+      expect(totalAkas).toBe(7);
+    });
+
+    it("DELETE /basics/:id/akas/:ordering -> 404", async () => {
+      const response = await request(app.getHttpServer()).delete(
+        "/basics/tt4154756/akas/8",
+      );
+
+      expect(response.status).toBe(404);
+      expect(response.body).toEqual({
+        statusCode: 404,
+        timestamp: expect.any(String),
+        message: "No aka found for tconst=tt4154756 and ordering=8",
+        requestCtx: {
+          params: {
+            tconst: "tt4154756",
+            ordering: "8",
+          },
+          query: {},
+          method: "DELETE",
+          url: "/basics/tt4154756/akas/8",
+        },
+      });
+    });
+  });
 
   describe("Episode Routes (/basics/:id/episodes/*)", () => {});
 

@@ -7,42 +7,86 @@ export const baseAkaCreateDto = z.object({
    *
    * @example {"title": "Some Title"} -> "Some Title"
    */
-  title: z.string(),
+  title: z
+    .string({
+      required_error: "must be provided",
+      invalid_type_error: "must be a string type",
+    })
+    .refine(nonEmptyStringRefiner, "must be a non-empty string"),
 
   /**
    * The region for this AKA. null if not applicable.
    *
    * @example {"region": "US"} -> "US"
    */
-  region: z.string().nullable(),
+  region: z
+    .string({
+      required_error: "must be provided",
+      invalid_type_error: "must be a string or null type",
+    })
+    .refine(nonEmptyStringRefiner, "must be a non-empty string")
+    .nullable(),
 
   /**
    * The language that the AKA is written in. null if not applicable.
    *
    * @example {"language": "en"} -> "en"
    */
-  language: z.string().nullable(),
+  language: z
+    .string({
+      required_error: "must be provided",
+      invalid_type_error: "must be a string or null type",
+    })
+    .refine(nonEmptyStringRefiner, "must be a non-empty string")
+    .nullable(),
 
   /**
    * The types that the AKA is displayed as on different platforms.
    *
    * @example {"types": ["imdbDisplay"]} -> ["imdbDisplay"]
    */
-  types: z.array(z.string()).optional().nullable().default([]),
+  types: z
+    .array(
+      z
+        .string({
+          invalid_type_error: "must be a string",
+        })
+        .refine(nonEmptyStringRefiner, "must be a non-empty string"),
+      {
+        required_error: "must be provided",
+        invalid_type_error: "must be an array of strings or null type",
+      },
+    )
+    .nullable(),
 
   /**
    * Extra information that the AKA has, such as "short title".
    *
    * @example {"attributes": ["short title"]} -> ["short title"]
    */
-  attributes: z.array(z.string()).optional().nullable().default([]),
+  attributes: z
+    .array(
+      z
+        .string({
+          invalid_type_error: "must be a string",
+        })
+        .refine(nonEmptyStringRefiner, "must be a non-empty string"),
+      {
+        required_error: "must be provided",
+        invalid_type_error: "must be an array of strings or null type",
+      },
+    )
+    .nullable(),
 
   /**
    * Indicates if this AKA is the original title for the title.
    *
    * @example {"isOriginalTitle": true} -> true
    */
-  isOriginalTitle: z.boolean(),
+  isOriginalTitle: z.boolean({
+    required_error: "must be provided",
+    invalid_type_error: "must be a boolean",
+  }),
 });
 
 export const akaCreateDto = baseAkaCreateDto.extend({
