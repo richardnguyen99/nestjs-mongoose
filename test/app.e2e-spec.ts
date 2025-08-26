@@ -21,12 +21,12 @@ import { BasicCreateDto } from "src/basics/dto/basic-create.dto";
 import { BasicUpdateDto } from "src/basics/dto/basic-update.dto";
 import { NameCreateDto } from "src/names/dto/name-create.dto";
 import { NameUpdateDto } from "src/names/dto/name-update.dto";
-import { timestamp } from "rxjs";
 import { AkasModel } from "src/akas/schema/akas.schema";
 import { basicStub } from "./stubs/basic";
 import { nameStub } from "./stubs/name";
 import { akaStub } from "./stubs/aka";
 import { AkaCreateDto } from "src/akas/dto/aka-create.dto";
+import { episodeStub } from "./stubs/episode";
 
 describe("AppController (e2e)", () => {
   let app: INestApplication;
@@ -92,6 +92,7 @@ describe("AppController (e2e)", () => {
     basicModel.deleteMany({});
     nameModel.deleteMany({});
     akaModel.deleteMany({});
+    episodeModel.deleteMany({});
 
     await app.close();
   });
@@ -210,7 +211,7 @@ describe("AppController (e2e)", () => {
         timestamp: expect.any(String),
       });
 
-      expect(await basicModel.find().lean()).toHaveLength(14);
+      expect(await basicModel.find().lean()).toHaveLength(22);
     });
 
     it("POST /basics/ -> 400", async () => {
@@ -970,7 +971,7 @@ describe("AppController (e2e)", () => {
       expect(response.status).toBe(204);
       expect(response.body).toEqual({});
 
-      expect(await basicModel.find().lean()).toHaveLength(13);
+      expect(await basicModel.find().lean()).toHaveLength(21);
     });
 
     it("DELETE /basics/:id -> 404", async () => {
@@ -993,7 +994,7 @@ describe("AppController (e2e)", () => {
         },
       });
 
-      expect(await basicModel.find().lean()).toHaveLength(13);
+      expect(await basicModel.find().lean()).toHaveLength(21);
     });
   });
 
@@ -4008,7 +4009,905 @@ sort.birthYear: Invalid enum value. Expected 'asc' | 'desc', received 'something
     });
   });
 
-  describe("Episode Routes (/basics/:id/episodes/*)", () => {});
+  describe("Episode Routes (/basics/:id/episodes/*)", () => {
+    beforeAll(async () => {
+      await episodeModel.insertMany(episodeStub());
+    });
+
+    it("GET /basics/:id/episodes -> 200", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/basics/tt0108778/episodes",
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        statusCode: 200,
+        message: "Request successful",
+        timestamp: expect.any(String),
+        data: {
+          _id: expect.any(String),
+          tconst: "tt0108778",
+          title: "Friends",
+          titleType: "tvSeries",
+          totalEpisodes: 5,
+          totalSeasons: 2,
+          seasons: [
+            {
+              season: 1,
+              episodes: [
+                {
+                  tconst: "tt0583459",
+                  titleType: "tvEpisode",
+                  primaryTitle: "The One Where Monica Gets a Roommate",
+                  originalTitle: "The One Where Monica Gets a Roommate",
+                  isAdult: false,
+                  startYear: 1994,
+                  endYear: null,
+                  runtimeMinutes: 22,
+                  genres: ["comedy", "romance"],
+                  imdbUrl:
+                    "https://www.imdb.com/title/tt0583459/?ref_=fn_al_tt_1",
+                  episodeNumber: 1,
+                },
+                {
+                  tconst: "tt0583647",
+                  titleType: "tvEpisode",
+                  primaryTitle: "The One with the Sonogram at the End",
+                  originalTitle: "The One with the Sonogram at the End",
+                  isAdult: false,
+                  startYear: 1994,
+                  endYear: null,
+                  runtimeMinutes: 22,
+                  genres: ["comedy", "romance"],
+                  imdbUrl:
+                    "https://www.imdb.com/title/tt0583647/?ref_=fn_al_tt_1",
+                  episodeNumber: 2,
+                },
+                {
+                  tconst: "tt0583653",
+                  titleType: "tvEpisode",
+                  primaryTitle: "The One with the Thumb",
+                  originalTitle: "The One with the Thumb",
+                  isAdult: false,
+                  startYear: 1994,
+                  endYear: null,
+                  runtimeMinutes: 22,
+                  genres: ["comedy", "romance"],
+                  imdbUrl:
+                    "https://www.imdb.com/title/tt0583653/?ref_=fn_al_tt_1",
+                  episodeNumber: 3,
+                },
+                {
+                  tconst: "tt0583521",
+                  titleType: "tvEpisode",
+                  primaryTitle: "The One with George Stephanopoulos",
+                  originalTitle: "The One with George Stephanopoulos",
+                  isAdult: false,
+                  startYear: 1994,
+                  endYear: null,
+                  runtimeMinutes: 22,
+                  genres: ["comedy", "romance"],
+                  imdbUrl:
+                    "https://www.imdb.com/title/tt0583521/?ref_=fn_al_tt_1",
+                  episodeNumber: 4,
+                },
+              ],
+            },
+            {
+              season: 2,
+              episodes: [
+                {
+                  tconst: "tt0583562",
+                  titleType: "tvEpisode",
+                  primaryTitle: "The One with Ross's New Girlfriend",
+                  originalTitle: "The One with Ross's New Girlfriend",
+                  isAdult: false,
+                  startYear: 1995,
+                  endYear: null,
+                  runtimeMinutes: 22,
+                  genres: ["comedy", "romance"],
+                  episodeNumber: 1,
+                  imdbUrl:
+                    "https://www.imdb.com/title/tt0583562/?ref_=fn_al_tt_1",
+                },
+              ],
+            },
+          ],
+        },
+      });
+    });
+
+    it("GET /basics/:id/episodes (with no episodes) -> 200", async () => {
+      const response = await request(app.getHttpServer()).get(
+        `/basics/tt7418356/episodes`,
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        statusCode: 200,
+        message: "Request successful",
+        timestamp: expect.any(String),
+        data: {
+          _id: expect.any(String),
+          title: "Ass Parade",
+          titleType: "tvSeries",
+          seasons: [],
+          tconst: "tt7418356",
+          totalEpisodes: 0,
+          totalSeasons: 0,
+        },
+      });
+    });
+
+    it("GET /basics/:id/episodes (with invalid title id) -> 404", async () => {
+      const response = await request(app.getHttpServer()).get(
+        `/basics/invalid_id/episodes`,
+      );
+
+      expect(response.status).toBe(404);
+      expect(response.body).toEqual({
+        statusCode: 404,
+        message: "No title found for tconst=invalid_id",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "invalid_id",
+          },
+          query: {},
+          method: "GET",
+          url: "/basics/invalid_id/episodes",
+        },
+      });
+    });
+
+    it("GET /basics/:id/episodes (with invalid title type) -> 400", async () => {
+      const response = await request(app.getHttpServer()).get(
+        `/basics/tt4154756/episodes`,
+      );
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        message: "Only 'tvSeries' or 'tvMiniseries' has episodes. Got 'movie'",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "tt4154756",
+          },
+          query: {},
+          method: "GET",
+          url: "/basics/tt4154756/episodes",
+        },
+      });
+    });
+
+    it("POST /basics/:id/episodes -> 201", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/basics/tt7418356/episodes")
+        .send({
+          tconst: "tt7468086",
+          seasonNumber: 1,
+          episodeNumber: 1,
+        });
+
+      expect(response.status).toBe(201);
+      expect(response.body).toEqual({
+        statusCode: 201,
+        message: "Resource created successfully",
+        timestamp: expect.any(String),
+        data: {
+          _id: expect.any(String),
+          parentTconst: "tt7418356",
+          tconst: "tt7468086",
+          seasonNumber: 1,
+          episodeNumber: 1,
+        },
+      });
+    });
+
+    it("POST /basics/:id/episodes (with non-existing parentTconst) -> 404", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/basics/invalid_id/episodes")
+        .send({
+          tconst: "tt7468086",
+          seasonNumber: 1,
+          episodeNumber: 1,
+        });
+
+      expect(response.status).toBe(404);
+      expect(response.body).toEqual({
+        statusCode: 404,
+        message: "No title found for parentTconst=invalid_id",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "invalid_id",
+          },
+          query: {},
+          method: "POST",
+          url: "/basics/invalid_id/episodes",
+        },
+      });
+    });
+
+    it("POST /basics/:id/episodes (with non-existing episode title) -> 404", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/basics/tt7418356/episodes")
+        .send({
+          tconst: "invalid_id",
+          seasonNumber: 1,
+          episodeNumber: 1,
+        });
+
+      expect(response.status).toBe(404);
+      expect(response.body).toEqual({
+        statusCode: 404,
+        message: "No episode title found for tconst=invalid_id",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "tt7418356",
+          },
+          query: {},
+          method: "POST",
+          url: "/basics/tt7418356/episodes",
+        },
+      });
+    });
+
+    it("POST /basics/:id/episodes (with duplicate episode) -> 409", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/basics/tt7418356/episodes")
+        .send({
+          tconst: "tt7468086",
+          seasonNumber: 1,
+          episodeNumber: 1,
+        });
+
+      expect(response.status).toBe(409);
+      expect(response.body).toEqual({
+        statusCode: 409,
+        message:
+          "Episode already exists for tconst=tt7468086 and parentTconst=tt7418356",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "tt7418356",
+          },
+          query: {},
+          method: "POST",
+          url: "/basics/tt7418356/episodes",
+        },
+      });
+    });
+
+    it("POST /basics/:id/episodes (with missing tconst field) -> 400", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/basics/tt7418356/episodes")
+        .send({
+          seasonNumber: 1,
+          episodeNumber: 1,
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        message: "tconst: must be provided\n",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "tt7418356",
+          },
+          query: {},
+          method: "POST",
+          url: "/basics/tt7418356/episodes",
+        },
+      });
+    });
+
+    it("POST /basics/:id/episodes (with invalid type tconst field) -> 400", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/basics/tt7418356/episodes")
+        .send({
+          tconst: null,
+          seasonNumber: 1,
+          episodeNumber: 1,
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        message: "tconst: must be a string\n",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "tt7418356",
+          },
+          query: {},
+          method: "POST",
+          url: "/basics/tt7418356/episodes",
+        },
+      });
+    });
+
+    it("POST /basics/:id/episodes (with blank tconst field) -> 400", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/basics/tt7418356/episodes")
+        .send({
+          tconst: "    ",
+          seasonNumber: 1,
+          episodeNumber: 1,
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        message: "tconst: must be a non-empty string\n",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "tt7418356",
+          },
+          query: {},
+          method: "POST",
+          url: "/basics/tt7418356/episodes",
+        },
+      });
+    });
+
+    it("POST /basics/:id/episodes (with missing seasonNumber field) -> 400", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/basics/tt7418356/episodes")
+        .send({
+          tconst: "tt7468088",
+          episodeNumber: 1,
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        message: "seasonNumber: must be provided\n",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "tt7418356",
+          },
+          query: {},
+          method: "POST",
+          url: "/basics/tt7418356/episodes",
+        },
+      });
+    });
+
+    it("POST /basics/:id/episodes (with invalid type seasonNumber field) -> 400", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/basics/tt7418356/episodes")
+        .send({
+          tconst: "tt7468088",
+          seasonNumber: "invalid",
+          episodeNumber: 1,
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        message: "seasonNumber: must be an integer or a null type\n",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "tt7418356",
+          },
+          query: {},
+          method: "POST",
+          url: "/basics/tt7418356/episodes",
+        },
+      });
+    });
+
+    it("POST /basics/:id/episodes (with non-int seasonNumber field) -> 400", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/basics/tt7418356/episodes")
+        .send({
+          tconst: "tt7468088",
+          seasonNumber: 1.0555,
+          episodeNumber: 1,
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        message: "seasonNumber: must be an integer or a null type\n",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "tt7418356",
+          },
+          query: {},
+          method: "POST",
+          url: "/basics/tt7418356/episodes",
+        },
+      });
+    });
+
+    it("POST /basics/:id/episodes (with missing episodeNumber field) -> 400", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/basics/tt7418356/episodes")
+        .send({
+          tconst: "tt7468088",
+          seasonNumber: 1,
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        message: "episodeNumber: must be provided\n",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "tt7418356",
+          },
+          query: {},
+          method: "POST",
+          url: "/basics/tt7418356/episodes",
+        },
+      });
+    });
+
+    it("POST /basics/:id/episodes (with invalid type episodeNumber field) -> 400", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/basics/tt7418356/episodes")
+        .send({
+          tconst: "tt7468088",
+          seasonNumber: 1,
+          episodeNumber: "invalid",
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        message: "episodeNumber: must be an integer or a null type\n",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "tt7418356",
+          },
+          query: {},
+          method: "POST",
+          url: "/basics/tt7418356/episodes",
+        },
+      });
+    });
+
+    it("POST /basics/:id/episodes (with non-int episodeNumber field) -> 400", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/basics/tt7418356/episodes")
+        .send({
+          tconst: "tt7468088",
+          seasonNumber: 1,
+          episodeNumber: 1.0555,
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        message: "episodeNumber: must be an integer or a null type\n",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "tt7418356",
+          },
+          query: {},
+          method: "POST",
+          url: "/basics/tt7418356/episodes",
+        },
+      });
+    });
+
+    it("POST /basics/:id/episodes (with null episode and season number) -> 201", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/basics/tt7418356/episodes")
+        .send({
+          tconst: "tt7468088",
+          seasonNumber: null,
+          episodeNumber: null,
+        });
+
+      expect(response.status).toBe(201);
+      expect(response.body).toEqual({
+        statusCode: 201,
+        message: "Resource created successfully",
+        timestamp: expect.any(String),
+        data: {
+          _id: expect.any(String),
+          tconst: "tt7468088",
+          seasonNumber: null,
+          episodeNumber: null,
+          parentTconst: "tt7418356",
+        },
+      });
+    });
+
+    it("PUT /basics/:parentTconst/episodes/:tconst -> 200", async () => {
+      const response = await request(app.getHttpServer())
+        .put("/basics/tt7418356/episodes/tt7468088")
+        .send({
+          seasonNumber: 1,
+          episodeNumber: 2,
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        statusCode: 200,
+        message: "Resource updated successfully",
+        timestamp: expect.any(String),
+        data: {
+          _id: expect.any(String),
+          tconst: "tt7468088",
+          seasonNumber: 1,
+          episodeNumber: 2,
+          parentTconst: "tt7418356",
+        },
+      });
+    });
+
+    it("PUT /basics/:parentTconst/episodes/:tconst (with null episode and season number) -> 200", async () => {
+      const response1 = await request(app.getHttpServer())
+        .put("/basics/tt7418356/episodes/tt7468088")
+        .send({
+          seasonNumber: null,
+          episodeNumber: null,
+        });
+
+      expect(response1.status).toBe(200);
+      expect(response1.body).toEqual({
+        statusCode: 200,
+        message: "Resource updated successfully",
+        timestamp: expect.any(String),
+        data: {
+          _id: expect.any(String),
+          tconst: "tt7468088",
+          seasonNumber: null,
+          episodeNumber: null,
+          parentTconst: "tt7418356",
+        },
+      });
+
+      const response2 = await request(app.getHttpServer())
+        .put("/basics/tt7418356/episodes/tt7468088")
+        .send({
+          seasonNumber: 1,
+          episodeNumber: 2,
+        });
+
+      expect(response2.status).toBe(200);
+      expect(response2.body).toEqual({
+        statusCode: 200,
+        message: "Resource updated successfully",
+        timestamp: expect.any(String),
+        data: {
+          _id: expect.any(String),
+          tconst: "tt7468088",
+          seasonNumber: 1,
+          episodeNumber: 2,
+          parentTconst: "tt7418356",
+        },
+      });
+    });
+
+    it("PUT /basics/:parentTconst/episodes/:tconst (with non-existing parentTconst) -> 404", async () => {
+      const response = await request(app.getHttpServer())
+        .put("/basics/invalid/episodes/tt7468088")
+        .send({
+          seasonNumber: null,
+          episodeNumber: null,
+        });
+
+      expect(response.status).toBe(404);
+      expect(response.body).toEqual({
+        statusCode: 404,
+        message:
+          "No episode found for parentTconst=invalid and tconst=tt7468088",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            parentTconst: "invalid",
+            tconst: "tt7468088",
+          },
+          query: {},
+          method: "PUT",
+          url: "/basics/invalid/episodes/tt7468088",
+        },
+      });
+    });
+
+    it("PUT /basics/:parentTconst/episodes/:tconst (with non-existing tconst) -> 404", async () => {
+      const response = await request(app.getHttpServer())
+        .put("/basics/tt7418356/episodes/invalid")
+        .send({
+          seasonNumber: null,
+          episodeNumber: null,
+        });
+
+      expect(response.status).toBe(404);
+      expect(response.body).toEqual({
+        statusCode: 404,
+        message:
+          "No episode found for parentTconst=tt7418356 and tconst=invalid",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            parentTconst: "tt7418356",
+            tconst: "invalid",
+          },
+          query: {},
+          method: "PUT",
+          url: "/basics/tt7418356/episodes/invalid",
+        },
+      });
+    });
+
+    it("PUT /basics/:parentTconst/episodes/:tconst (with duplicate episode) -> 409", async () => {
+      const response = await request(app.getHttpServer())
+        .put("/basics/tt7418356/episodes/tt7468088")
+        .send({
+          seasonNumber: 1,
+          episodeNumber: 1,
+        });
+
+      expect(response.status).toBe(409);
+      expect(response.body).toEqual({
+        statusCode: 409,
+        message:
+          "Episode with seasonNumber=1 and episodeNumber=1 already exists in title tt7418356",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            parentTconst: "tt7418356",
+            tconst: "tt7468088",
+          },
+          query: {},
+          method: "PUT",
+          url: "/basics/tt7418356/episodes/tt7468088",
+        },
+      });
+    });
+
+    it("GET /basics/:parentTconst/episodes/:tconst -> 200", async () => {
+      const response = await request(app.getHttpServer()).get(
+        `/basics/tt7418356/episodes/tt7468088`,
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        statusCode: 200,
+        message: "Request successful",
+        timestamp: expect.any(String),
+        data: {
+          tconst: "tt7468088",
+          seasonNumber: 1,
+          episodeNumber: 2,
+          parentTconst: "tt7418356",
+          titleType: "tvEpisode",
+          primaryTitle: "Demi",
+          originalTitle: "Demi",
+          isAdult: false,
+          startYear: 2004,
+          endYear: null,
+          runtimeMinutes: 50,
+          genres: ["adult"],
+          imdbUrl: "https://www.imdb.com/title/tt7468088/?ref_=fn_al_tt_1",
+        },
+      });
+    });
+
+    it("GET /basics/:parentTconst/episodes/:tconst -> 200", async () => {
+      const response = await request(app.getHttpServer()).get(
+        `/basics/tt7418356/episodes/tt7468088`,
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        statusCode: 200,
+        message: "Request successful",
+        timestamp: expect.any(String),
+        data: {
+          tconst: "tt7468088",
+          seasonNumber: 1,
+          episodeNumber: 2,
+          parentTconst: "tt7418356",
+          titleType: "tvEpisode",
+          primaryTitle: "Demi",
+          originalTitle: "Demi",
+          isAdult: false,
+          startYear: 2004,
+          endYear: null,
+          runtimeMinutes: 50,
+          genres: ["adult"],
+          imdbUrl: "https://www.imdb.com/title/tt7468088/?ref_=fn_al_tt_1",
+        },
+      });
+    });
+
+    it("GET /basics/:parentTconst/episodes/:tconst (with non-existing parentTconst) -> 404", async () => {
+      const response = await request(app.getHttpServer()).get(
+        `/basics/invalid/episodes/tt7468088`,
+      );
+
+      expect(response.status).toBe(404);
+      expect(response.body).toEqual({
+        statusCode: 404,
+        message:
+          "No episode found for parentTconst=invalid and tconst=tt7468088",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            parentTconst: "invalid",
+            tconst: "tt7468088",
+          },
+          query: {},
+          method: "GET",
+          url: `/basics/invalid/episodes/tt7468088`,
+        },
+      });
+    });
+
+    it("GET /basics/:parentTconst/episodes/:tconst (with non-existing tconst) -> 404", async () => {
+      const response = await request(app.getHttpServer()).get(
+        `/basics/tt7418356/episodes/invalid`,
+      );
+
+      expect(response.status).toBe(404);
+      expect(response.body).toEqual({
+        statusCode: 404,
+        message:
+          "No episode found for parentTconst=tt7418356 and tconst=invalid",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            parentTconst: "tt7418356",
+            tconst: "invalid",
+          },
+          query: {},
+          method: "GET",
+          url: `/basics/tt7418356/episodes/invalid`,
+        },
+      });
+    });
+
+    it("GET /basics/:parentTconst/episodes/:tconst (with non-series parentTconst) -> 404", async () => {
+      const response = await request(app.getHttpServer()).get(
+        `/basics/tt34808440/episodes/no-matter`,
+      );
+
+      expect(response.status).toBe(404);
+      expect(response.body).toEqual({
+        statusCode: 404,
+        message:
+          "No episode found for parentTconst=tt34808440 and tconst=no-matter",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            parentTconst: "tt34808440",
+            tconst: "no-matter",
+          },
+          query: {},
+          method: "GET",
+          url: `/basics/tt34808440/episodes/no-matter`,
+        },
+      });
+    });
+
+    it("DELETE /basics/:parentTconst/episodes/:tconst -> 204", async () => {
+      const response = await request(app.getHttpServer()).delete(
+        `/basics/tt7418356/episodes/tt7468088`,
+      );
+
+      expect(response.status).toBe(204);
+      expect(response.body).toEqual({});
+
+      const totalEpisodes = await episodeModel.countDocuments({
+        parentTconst: "tt7418356",
+      });
+      expect(totalEpisodes).toBe(1);
+    });
+
+    it("DELETE /basics/:parentTconst/episodes/:tconst (with non-existing episode) -> 404", async () => {
+      const response = await request(app.getHttpServer()).delete(
+        `/basics/tt7418356/episodes/tt7468088`,
+      );
+
+      expect(response.status).toBe(404);
+      expect(response.body).toEqual({
+        statusCode: 404,
+        message:
+          "No episode found for parentTconst=tt7418356 and tconst=tt7468088",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            parentTconst: "tt7418356",
+            tconst: "tt7468088",
+          },
+          query: {},
+          method: "DELETE",
+          url: `/basics/tt7418356/episodes/tt7468088`,
+        },
+      });
+
+      const totalEpisodes = await episodeModel.countDocuments({
+        parentTconst: "tt7418356",
+      });
+      expect(totalEpisodes).toBe(1);
+    });
+
+    it("DELETE /basics/:parentTconst/episodes/:tconst (with non-existing parentTconst) -> 404", async () => {
+      const response = await request(app.getHttpServer()).delete(
+        `/basics/invalid/episodes/tt7468088`,
+      );
+
+      expect(response.status).toBe(404);
+      expect(response.body).toEqual({
+        statusCode: 404,
+        message:
+          "No episode found for parentTconst=invalid and tconst=tt7468088",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            parentTconst: "invalid",
+            tconst: "tt7468088",
+          },
+          query: {},
+          method: "DELETE",
+          url: `/basics/invalid/episodes/tt7468088`,
+        },
+      });
+    });
+
+    it("DELETE /basics/:parentTconst/episodes/:tconst (with non-existing parentTconst) -> 404", async () => {
+      const response = await request(app.getHttpServer()).delete(
+        `/basics/invalid/episodes/tt7468088`,
+      );
+
+      expect(response.status).toBe(404);
+      expect(response.body).toEqual({
+        statusCode: 404,
+        message:
+          "No episode found for parentTconst=invalid and tconst=tt7468088",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            parentTconst: "invalid",
+            tconst: "tt7468088",
+          },
+          query: {},
+          method: "DELETE",
+          url: `/basics/invalid/episodes/tt7468088`,
+        },
+      });
+    });
+
+    it("DELETE /basics/:parentTconst/episodes/:tconst (with non-existing parentTconst) -> 404", async () => {
+      const response = await request(app.getHttpServer()).delete(
+        `/basics/invalid/episodes/tt7468088`,
+      );
+
+      expect(response.status).toBe(404);
+      expect(response.body).toEqual({
+        statusCode: 404,
+        message:
+          "No episode found for parentTconst=invalid and tconst=tt7468088",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            parentTconst: "invalid",
+            tconst: "tt7468088",
+          },
+          query: {},
+          method: "DELETE",
+          url: `/basics/invalid/episodes/tt7468088`,
+        },
+      });
+    });
+  });
 
   describe("Crew Routes (/basics/:id/crew/*)", () => {});
 

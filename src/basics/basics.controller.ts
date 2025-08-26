@@ -483,7 +483,16 @@ export class BasicsController {
     this.logger.log(episodeResult);
 
     if (!episodeResult) {
-      throw new NotFoundException(`No episodes found for tconst=${tconst}`);
+      throw new NotFoundException(`No title found for tconst=${tconst}`);
+    }
+
+    if (
+      episodeResult.titleType !== "tvSeries" &&
+      episodeResult.titleType !== "tvMiniseries"
+    ) {
+      throw new BadRequestException(
+        `Only 'tvSeries' or 'tvMiniseries' has episodes. Got 'movie'`,
+      );
     }
 
     return episodeResult;

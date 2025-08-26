@@ -5,17 +5,38 @@ export const baseEpisodeCreateSchema = z.object({
   /**
    * season that the episode belongs to. Can be null if not applicable
    */
-  seasonNumber: z.number().int().nullable(),
+  seasonNumber: z
+    .number({
+      required_error: "must be provided",
+      invalid_type_error: "must be an integer or a null type",
+    })
+    .int({
+      message: "must be an integer or a null type",
+    })
+    .nullable(),
 
   /**
    * episode number of the tconst in the TV series. Can be null if not applicable
    */
-  episodeNumber: z.number().int().nullable(),
+  episodeNumber: z
+    .number({
+      required_error: "must be provided",
+      invalid_type_error: "must be an integer or a null type",
+    })
+    .int({
+      message: "must be an integer or a null type",
+    })
+    .nullable(),
 
   /**
    * alphanumeric identifier of episode
    */
-  tconst: z.string().refine(nonEmptyStringRefiner),
+  tconst: z
+    .string({
+      required_error: "must be provided",
+      invalid_type_error: "must be a string",
+    })
+    .refine(nonEmptyStringRefiner, "must be a non-empty string"),
 });
 
 export const episodeCreateSchema = baseEpisodeCreateSchema

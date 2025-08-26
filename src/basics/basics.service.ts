@@ -2,6 +2,7 @@ import { Model } from "mongoose";
 import {
   BadRequestException,
   Injectable,
+  InternalServerErrorException,
   Logger,
   NotFoundException,
 } from "@nestjs/common";
@@ -446,10 +447,7 @@ export class BasicsService {
   async getEpisodesByTconst(tconst: string) {
     const basics = await this.findByTconst(tconst);
 
-    if (
-      !basics ||
-      (basics.titleType !== "tvSeries" && basics.titleType !== "tvMiniseries")
-    ) {
+    if (!basics) {
       return null;
     }
 

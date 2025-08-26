@@ -165,8 +165,6 @@ export class AkasService {
           ? query.attributes
           : [query.attributes];
 
-        console.log(attributes);
-
         aggregation = aggregation.match({
           attributes: { $in: attributes },
         });

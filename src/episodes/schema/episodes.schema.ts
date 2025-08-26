@@ -1,10 +1,14 @@
 /* istanbul ignore file */
 
-import { NotFoundException } from "@nestjs/common";
+import { ConflictException, NotFoundException } from "@nestjs/common";
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import mongoose, { Model } from "mongoose";
 
 import { BasicsModel } from "src/basics/schema/basics.schema";
+import {
+  BaseEpisodeUpdateDto,
+  EpisodeUpdateDto,
+} from "../dto/episode-update.dto";
 
 @Schema({
   versionKey: false,
@@ -79,7 +83,11 @@ EpisodesSchema.pre("save", async function (next) {
     });
 
     if (!parentTconst) {
-      return next(new NotFoundException("Parent TV Series not found"));
+      return next(
+        new NotFoundException(
+          `No title found for parentTconst=${this.parentTconst}`,
+        ),
+      );
     }
 
     const tconst = await basicsModel.findOne({
@@ -87,7 +95,53 @@ EpisodesSchema.pre("save", async function (next) {
     });
 
     if (!tconst) {
-      return next(new NotFoundException("Episode not found"));
+      return next(
+        new NotFoundException(
+          `No episode title found for tconst=${this.tconst}`,
+        ),
+      );
+    }
+
+    const existingEpisode = await this.model<Model<EpisodesModel>>(
+      "EpisodesModel",
+    ).findOne({
+      parentTconst: this.parentTconst,
+      seasonNumber: this.seasonNumber,
+      episodeNumber: this.episodeNumber,
+    });
+
+    if (
+      existingEpisode &&
+      (existingEpisode.seasonNumber !== null ||
+        existingEpisode.episodeNumber !== null)
+    ) {
+      return next(
+        new ConflictException(
+          `Episode already exists for tconst=${this.tconst} and parentTconst=${this.parentTconst}`,
+        ),
+      );
+    }
+  }
+
+  next();
+});
+
+EpisodesSchema.pre("findOneAndUpdate", async function (next) {
+  const query = this.getFilter();
+  const update = this.getUpdate() as BaseEpisodeUpdateDto;
+
+  if (update.seasonNumber !== null || update.episodeNumber !== null) {
+    const existingEpisode = await this.model.findOne({
+      parentTconst: query.parentTconst,
+      ...update,
+    });
+
+    if (existingEpisode) {
+      return next(
+        new ConflictException(
+          `Episode with seasonNumber=${update.seasonNumber} and episodeNumber=${update.episodeNumber} already exists in title ${query.parentTconst}`,
+        ),
+      );
     }
   }
 
