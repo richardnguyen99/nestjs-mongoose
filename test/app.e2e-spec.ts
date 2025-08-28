@@ -27,6 +27,8 @@ import { nameStub } from "./stubs/name";
 import { akaStub } from "./stubs/aka";
 import { AkaCreateDto } from "src/akas/dto/aka-create.dto";
 import { episodeStub } from "./stubs/episode";
+import { principalStub } from "./stubs/principals";
+import { APP_GUARD } from "@nestjs/core";
 
 describe("AppController (e2e)", () => {
   let app: INestApplication;
@@ -93,6 +95,7 @@ describe("AppController (e2e)", () => {
     nameModel.deleteMany({});
     akaModel.deleteMany({});
     episodeModel.deleteMany({});
+    principalModel.deleteMany({});
 
     await app.close();
   });
@@ -1515,7 +1518,7 @@ describe("AppController (e2e)", () => {
       expect(response.status).toBe(204);
       expect(response.body).toEqual({});
 
-      expect(await nameModel.find().lean()).toHaveLength(11);
+      expect(await nameModel.find().lean()).toHaveLength(27);
     });
 
     it("DELETE /names/:nconst -> 404", async () => {
@@ -4909,7 +4912,1571 @@ sort.birthYear: Invalid enum value. Expected 'asc' | 'desc', received 'something
     });
   });
 
-  describe("Crew Routes (/basics/:id/crew/*)", () => {});
+  describe("Crew Routes (/basics/:id/crew/*)", () => {
+    beforeAll(async () => {
+      await principalModel.insertMany(principalStub());
+    });
+
+    it("GET /basics/:tconst/cast -> 200", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/basics/tt1349010/cast",
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        statusCode: 200,
+        message: "Request successful",
+        timestamp: expect.any(String),
+        data: {
+          totalPages: 1,
+          totalCount: 10,
+          currentPage: 1,
+          perPage: 10,
+          titleUrl: "https://www.imdb.com/title/tt1349010",
+          tconst: "tt1349010",
+          results: [
+            {
+              tconst: "tt1349010",
+              primaryName: "Julia Ann Tavella",
+              ordering: [1],
+              nconst: "nm0030214",
+              category: "actress",
+              characters: [],
+            },
+            {
+              tconst: "tt1349010",
+              primaryName: "Lisa Ann",
+              ordering: [2],
+              nconst: "nm0030217",
+              category: "actress",
+              characters: [],
+            },
+            {
+              category: "actress",
+              characters: [],
+              nconst: "nm2854970",
+              ordering: [3],
+              primaryName: "Phoenix Marie",
+              tconst: "tt1349010",
+            },
+            {
+              category: "actress",
+              characters: [],
+              nconst: "nm2744985",
+              ordering: [4],
+              primaryName: "Kristina Rose",
+              tconst: "tt1349010",
+            },
+            {
+              category: "actress",
+              characters: [],
+              nconst: "nm2756968",
+              ordering: [5],
+              primaryName: "Kelly Divine",
+              tconst: "tt1349010",
+            },
+            {
+              category: "actress",
+              characters: [],
+              nconst: "nm2108844",
+              ordering: [6],
+              primaryName: "Adrianna Nicole",
+              tconst: "tt1349010",
+            },
+            {
+              category: "actress",
+              characters: [],
+              nconst: "nm3137625",
+              ordering: [7],
+              primaryName: "Capri Cavanni",
+              tconst: "tt1349010",
+            },
+            {
+              category: "actress",
+              characters: [],
+              nconst: "nm3256909",
+              ordering: [8],
+              primaryName: "Codi Carmichael",
+              tconst: "tt1349010",
+            },
+            {
+              category: "actress",
+              characters: [],
+              nconst: "nm2558915",
+              ordering: [9],
+              primaryName: "Jayden Jaymes",
+              tconst: "tt1349010",
+            },
+            {
+              category: "actress",
+              characters: [],
+              nconst: "nm2385645",
+              ordering: [10],
+              primaryName: "Ricky White",
+              tconst: "tt1349010",
+            },
+          ],
+        },
+      });
+    });
+
+    it("GET /basics/:tconst/cast (with multiple character nconst) -> 200", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/basics/tt4154796/cast",
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        statusCode: 200,
+        message: "Request successful",
+        timestamp: expect.any(String),
+        data: {
+          totalPages: 1,
+          totalCount: 3,
+          currentPage: 1,
+          perPage: 10,
+          titleUrl: "https://www.imdb.com/title/tt4154796",
+          tconst: "tt4154796",
+          results: [
+            {
+              tconst: "tt4154796",
+              ordering: [1, 2],
+              nconst: "nm0000375",
+              category: "actor",
+              characters: ["Tony Stark", "Iron Man"],
+              primaryName: "Robert Downey Jr.",
+            },
+            {
+              tconst: "tt4154796",
+              ordering: [3, 4],
+              nconst: "nm0262635",
+              category: "actor",
+              primaryName: "Chris Evans",
+              characters: ["Steve Rogers", "Captain America"],
+            },
+            {
+              tconst: "tt4154796",
+              ordering: [5, 6],
+              nconst: "nm0424060",
+              category: "actress",
+              characters: ["Natasha Romanoff", "Black Widow"],
+              primaryName: "Scarlett Johansson",
+            },
+          ],
+        },
+      });
+    });
+
+    it("GET /basics/:tconst/cast&limit=3 -> 200", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/basics/tt1349010/cast?limit=3",
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        statusCode: 200,
+        message: "Request successful",
+        timestamp: expect.any(String),
+        data: {
+          totalPages: 4,
+          totalCount: 10,
+          currentPage: 1,
+          perPage: 3,
+          titleUrl: "https://www.imdb.com/title/tt1349010",
+          tconst: "tt1349010",
+          results: [
+            {
+              tconst: "tt1349010",
+              ordering: [1],
+              nconst: "nm0030214",
+              category: "actress",
+              characters: [],
+              primaryName: "Julia Ann Tavella",
+            },
+            {
+              tconst: "tt1349010",
+              ordering: [2],
+              nconst: "nm0030217",
+              category: "actress",
+              characters: [],
+              primaryName: "Lisa Ann",
+            },
+            {
+              tconst: "tt1349010",
+              ordering: [3],
+              nconst: "nm2854970",
+              category: "actress",
+              characters: [],
+              primaryName: "Phoenix Marie",
+            },
+          ],
+        },
+      });
+    });
+
+    it("GET /basics/:tconst/cast?limit=3&page=2 -> 200", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/basics/tt1349010/cast?limit=3&page=2",
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        statusCode: 200,
+        message: "Request successful",
+        timestamp: expect.any(String),
+        data: {
+          totalPages: 4,
+          totalCount: 10,
+          currentPage: 2,
+          perPage: 3,
+          titleUrl: "https://www.imdb.com/title/tt1349010",
+          tconst: "tt1349010",
+          results: [
+            {
+              category: "actress",
+              characters: [],
+              nconst: "nm2744985",
+              ordering: [4],
+              primaryName: "Kristina Rose",
+              tconst: "tt1349010",
+            },
+            {
+              category: "actress",
+              characters: [],
+              nconst: "nm2756968",
+              ordering: [5],
+              primaryName: "Kelly Divine",
+              tconst: "tt1349010",
+            },
+            {
+              category: "actress",
+              characters: [],
+              nconst: "nm2108844",
+              ordering: [6],
+              primaryName: "Adrianna Nicole",
+              tconst: "tt1349010",
+            },
+          ],
+        },
+      });
+    });
+
+    it("GET /basics/:tconst/cast (with non-existing tconst) -> 404", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/basics/invalid_tconst/cast",
+      );
+
+      expect(response.status).toBe(404);
+      expect(response.body).toEqual({
+        statusCode: 404,
+        message: "No cast found for tconst=invalid_tconst",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "invalid_tconst",
+          },
+          query: {},
+          method: "GET",
+          url: "/basics/invalid_tconst/cast",
+        },
+      });
+    });
+
+    it("GET /basics/:tconst/cast?limit=3&page=something -> 400", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/basics/tt1349010/cast?limit=3&page=something",
+      );
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        message: "page: must be a valid integer\n",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "tt1349010",
+          },
+          query: {
+            limit: "3",
+            page: "something",
+          },
+          method: "GET",
+          url: "/basics/tt1349010/cast?limit=3&page=something",
+        },
+      });
+    });
+
+    it("GET /basics/:tconst/cast?limit=3&page=0-> 400", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/basics/tt1349010/cast?limit=3&page=0",
+      );
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        message: "page: must be at least 1\n",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "tt1349010",
+          },
+          query: {
+            limit: "3",
+            page: "0",
+          },
+          method: "GET",
+          url: "/basics/tt1349010/cast?limit=3&page=0",
+        },
+      });
+    });
+
+    it("GET /basics/:tconst/cast?limit=3&page=5 -> 400", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/basics/tt1349010/cast?limit=3&page=5",
+      );
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        message: "Page exceeds. totalPages=4, currentPage=5",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "tt1349010",
+          },
+          query: {
+            limit: "3",
+            page: "5",
+          },
+          method: "GET",
+          url: "/basics/tt1349010/cast?limit=3&page=5",
+        },
+      });
+    });
+
+    it("GET /basics/:tconst/cast?limit=something&page=1 -> 400", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/basics/tt1349010/cast?limit=something&page=1",
+      );
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        message: "limit: must be a valid integer\n",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "tt1349010",
+          },
+          query: {
+            limit: "something",
+            page: "1",
+          },
+          method: "GET",
+          url: "/basics/tt1349010/cast?limit=something&page=1",
+        },
+      });
+    });
+
+    it("GET /basics/:tconst/cast?limit=0&page=1 -> 400", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/basics/tt1349010/cast?limit=0&page=1",
+      );
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        message: "limit: must be at least 1\n",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "tt1349010",
+          },
+          query: {
+            limit: "0",
+            page: "1",
+          },
+          method: "GET",
+          url: "/basics/tt1349010/cast?limit=0&page=1",
+        },
+      });
+    });
+
+    it("GET /basics/:tconst/cast?limit=1000&page=1 -> 200", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/basics/tt1349010/cast?limit=1000&page=1",
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        statusCode: 200,
+        message: "Request successful",
+        timestamp: expect.any(String),
+        data: {
+          totalPages: 1,
+          totalCount: 10,
+          currentPage: 1,
+          perPage: 1000,
+          titleUrl: "https://www.imdb.com/title/tt1349010",
+          tconst: "tt1349010",
+          results: [
+            {
+              tconst: "tt1349010",
+              primaryName: "Julia Ann Tavella",
+              ordering: [1],
+              nconst: "nm0030214",
+              category: "actress",
+              characters: [],
+            },
+            {
+              tconst: "tt1349010",
+              primaryName: "Lisa Ann",
+              ordering: [2],
+              nconst: "nm0030217",
+              category: "actress",
+              characters: [],
+            },
+            {
+              category: "actress",
+              characters: [],
+              nconst: "nm2854970",
+              ordering: [3],
+              primaryName: "Phoenix Marie",
+              tconst: "tt1349010",
+            },
+            {
+              category: "actress",
+              characters: [],
+              nconst: "nm2744985",
+              ordering: [4],
+              primaryName: "Kristina Rose",
+              tconst: "tt1349010",
+            },
+            {
+              category: "actress",
+              characters: [],
+              nconst: "nm2756968",
+              ordering: [5],
+              primaryName: "Kelly Divine",
+              tconst: "tt1349010",
+            },
+            {
+              category: "actress",
+              characters: [],
+              nconst: "nm2108844",
+              ordering: [6],
+              primaryName: "Adrianna Nicole",
+              tconst: "tt1349010",
+            },
+            {
+              category: "actress",
+              characters: [],
+              nconst: "nm3137625",
+              ordering: [7],
+              primaryName: "Capri Cavanni",
+              tconst: "tt1349010",
+            },
+            {
+              category: "actress",
+              characters: [],
+              nconst: "nm3256909",
+              ordering: [8],
+              primaryName: "Codi Carmichael",
+              tconst: "tt1349010",
+            },
+            {
+              category: "actress",
+              characters: [],
+              nconst: "nm2558915",
+              ordering: [9],
+              primaryName: "Jayden Jaymes",
+              tconst: "tt1349010",
+            },
+            {
+              category: "actress",
+              characters: [],
+              nconst: "nm2385645",
+              ordering: [10],
+              primaryName: "Ricky White",
+              tconst: "tt1349010",
+            },
+          ],
+        },
+      });
+    });
+
+    it("POST /basics/:tconst/cast (with empty characters=[]) -> 201", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/basics/tt1481346/cast")
+        .send({
+          ordering: 1,
+          nconst: "nm0030217",
+          category: "actress",
+          job: null,
+          characters: [],
+        });
+
+      expect(response.status).toBe(201);
+      expect(response.body).toEqual({
+        statusCode: 201,
+        message: "Resource created successfully",
+        timestamp: expect.any(String),
+        data: {
+          _id: expect.any(String),
+          tconst: "tt1481346",
+          ordering: 1,
+          nconst: "nm0030217",
+          category: "actress",
+          job: null,
+          characters: [],
+        },
+      });
+    });
+
+    it('POST /basics/:tconst/cast (with different character=["self"]) -> 201', async () => {
+      const response = await request(app.getHttpServer())
+        .post("/basics/tt1481346/cast")
+        .send({
+          nconst: "nm0030217",
+          category: "actress",
+          job: null,
+          characters: ["self"],
+        });
+
+      expect(response.status).toBe(201);
+      expect(response.body).toEqual({
+        statusCode: 201,
+        message: "Resource created successfully",
+        timestamp: expect.any(String),
+        data: {
+          _id: expect.any(String),
+          tconst: "tt1481346",
+          ordering: 2,
+          nconst: "nm0030217",
+          category: "actress",
+          job: null,
+          characters: ["self"],
+        },
+      });
+    });
+
+    it("POST /basics/:tconst/cast (with unprovided job field) -> 201", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/basics/tt1481346/cast")
+        .send({
+          nconst: "nm1942808",
+          category: "actress",
+          characters: [],
+        });
+
+      expect(response.status).toBe(201);
+      expect(response.body).toEqual({
+        statusCode: 201,
+        message: "Resource created successfully",
+        timestamp: expect.any(String),
+        data: {
+          _id: expect.any(String),
+          tconst: "tt1481346",
+          ordering: 3,
+          nconst: "nm1942808",
+          category: "actress",
+          job: null,
+          characters: [],
+        },
+      });
+    });
+
+    it("POST /basics/:tconst/cast (with unprovided characters field) -> 201", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/basics/tt1481346/cast")
+        .send({
+          nconst: "nm2854970",
+          category: "actress",
+        });
+
+      expect(response.status).toBe(201);
+      expect(response.body).toEqual({
+        statusCode: 201,
+        message: "Resource created successfully",
+        timestamp: expect.any(String),
+        data: {
+          _id: expect.any(String),
+          tconst: "tt1481346",
+          ordering: 4,
+          nconst: "nm2854970",
+          category: "actress",
+          job: null,
+          characters: [],
+        },
+      });
+    });
+
+    it("POST /basics/:tconst/cast (with array characters field) -> 201", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/basics/tt1481346/cast")
+        .send({
+          nconst: "nm2756968",
+          category: "actress",
+          job: null,
+          characters: ["teacher", "mistress"],
+        });
+
+      expect(response.status).toBe(201);
+      expect(response.body).toEqual({
+        statusCode: 201,
+        message: "Resource created successfully",
+        timestamp: expect.any(String),
+        data: {
+          _id: expect.any(String),
+          tconst: "tt1481346",
+          ordering: 5,
+          nconst: "nm2756968",
+          category: "actress",
+          job: null,
+          characters: ["teacher", "mistress"],
+        },
+      });
+    });
+
+    it("POST /basics/:tconst/cast (with duplicate cast characters=[]) -> 409", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/basics/tt1481346/cast")
+        .send({
+          ordering: 1,
+          nconst: "nm0030217",
+          category: "actress",
+          job: null,
+          characters: [],
+        });
+
+      expect(response.status).toBe(409);
+      expect(response.body).toEqual({
+        statusCode: 409,
+        message:
+          "Duplicate principal for nconst=nm0030217, tconst=tt1481346 and characters=[]",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "tt1481346",
+          },
+          query: {},
+          method: "POST",
+          url: "/basics/tt1481346/cast",
+        },
+      });
+    });
+
+    it('POST /basics/:tconst/cast (with duplicate cast characters=["self"]) -> 409', async () => {
+      const response = await request(app.getHttpServer())
+        .post("/basics/tt1481346/cast")
+        .send({
+          ordering: 1,
+          nconst: "nm0030217",
+          category: "actress",
+          job: null,
+          characters: ["self"],
+        });
+
+      expect(response.status).toBe(409);
+      expect(response.body).toEqual({
+        statusCode: 409,
+        message:
+          'Duplicate principal for nconst=nm0030217, tconst=tt1481346 and characters=["self"]',
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "tt1481346",
+          },
+          query: {},
+          method: "POST",
+          url: "/basics/tt1481346/cast",
+        },
+      });
+    });
+
+    it("POST /basics/:tconst/cast (with non-existing title) -> 404", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/basics/something/cast")
+        .send({
+          ordering: 1,
+          nconst: "nm0030217",
+          category: "actress",
+          job: null,
+          characters: ["self"],
+        });
+
+      expect(response.status).toBe(404);
+      expect(response.body).toEqual({
+        statusCode: 404,
+        message: "No title found for tconst=something",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "something",
+          },
+          query: {},
+          method: "POST",
+          url: "/basics/something/cast",
+        },
+      });
+    });
+
+    it("POST /basics/:tconst/cast (with non-existing name) -> 404", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/basics/tt1481346/cast")
+        .send({
+          ordering: 1,
+          nconst: "nm9999999",
+          category: "actress",
+          job: null,
+          characters: ["self"],
+        });
+
+      expect(response.status).toBe(404);
+      expect(response.body).toEqual({
+        statusCode: 404,
+        message: "No name found for nconst=nm9999999",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "tt1481346",
+          },
+          query: {},
+          method: "POST",
+          url: "/basics/tt1481346/cast",
+        },
+      });
+    });
+
+    it("POST /basics/:tconst/cast (with missing nconst) -> 400", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/basics/tt1481346/cast")
+        .send({
+          ordering: 1,
+          category: "actress",
+          job: null,
+          characters: ["self"],
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        message: "nconst: must be provided\n",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "tt1481346",
+          },
+          query: {},
+          method: "POST",
+          url: "/basics/tt1481346/cast",
+        },
+      });
+    });
+
+    it("POST /basics/:tconst/cast (with invalid type nconst) -> 400", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/basics/tt1481346/cast")
+        .send({
+          nconst: 12345,
+          ordering: 1,
+          category: "actress",
+          job: null,
+          characters: ["self"],
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        message: "nconst: must be a string\n",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "tt1481346",
+          },
+          query: {},
+          method: "POST",
+          url: "/basics/tt1481346/cast",
+        },
+      });
+    });
+
+    it("POST /basics/:tconst/cast (with blank string nconst) -> 400", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/basics/tt1481346/cast")
+        .send({
+          nconst: "      ",
+          ordering: 1,
+          category: "actress",
+          job: null,
+          characters: ["self"],
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        message: "nconst: must be a non-empty string\n",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "tt1481346",
+          },
+          query: {},
+          method: "POST",
+          url: "/basics/tt1481346/cast",
+        },
+      });
+    });
+
+    it("POST /basics/:tconst/cast (with missing category) -> 400", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/basics/tt1481346/cast")
+        .send({
+          nconst: "nm0030217",
+          ordering: 1,
+          job: null,
+          characters: ["self"],
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        message: "category: must be provided\n",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "tt1481346",
+          },
+          query: {},
+          method: "POST",
+          url: "/basics/tt1481346/cast",
+        },
+      });
+    });
+
+    it("POST /basics/:tconst/cast (with invalid type category) -> 400", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/basics/tt1481346/cast")
+        .send({
+          nconst: "nm0030217",
+          ordering: 1,
+          job: null,
+          category: ["something"],
+          characters: ["self"],
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        message: "category: must be a string\n",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "tt1481346",
+          },
+          query: {},
+          method: "POST",
+          url: "/basics/tt1481346/cast",
+        },
+      });
+    });
+
+    it("POST /basics/:tconst/cast (with blank string category) -> 400", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/basics/tt1481346/cast")
+        .send({
+          nconst: "nm0030217",
+          ordering: 1,
+          job: null,
+          category: "              ",
+          characters: ["self"],
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        message: "category: must be a non-empty string\n",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "tt1481346",
+          },
+          query: {},
+          method: "POST",
+          url: "/basics/tt1481346/cast",
+        },
+      });
+    });
+
+    it("POST /basics/:tconst/cast (with invalid type job) -> 400", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/basics/tt1481346/cast")
+        .send({
+          nconst: "nm0030217",
+          ordering: 1,
+          job: 111,
+          category: "actress",
+          characters: ["self"],
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        message: "job: must be a string\n",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "tt1481346",
+          },
+          query: {},
+          method: "POST",
+          url: "/basics/tt1481346/cast",
+        },
+      });
+    });
+
+    it("POST /basics/:tconst/cast (with blank job) -> 400", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/basics/tt1481346/cast")
+        .send({
+          nconst: "nm0030217",
+          ordering: 1,
+          job: "          ",
+          category: "actress",
+          characters: ["self"],
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        message: "job: must be a non-empty string\n",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "tt1481346",
+          },
+          query: {},
+          method: "POST",
+          url: "/basics/tt1481346/cast",
+        },
+      });
+    });
+
+    it("POST /basics/:tconst/cast (with invalid type characters) -> 400", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/basics/tt1481346/cast")
+        .send({
+          nconst: "nm0030217",
+          job: null,
+          category: "actress",
+          characters: 12345,
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        message: "characters: must be an array of strings\n",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "tt1481346",
+          },
+          query: {},
+          method: "POST",
+          url: "/basics/tt1481346/cast",
+        },
+      });
+    });
+
+    it("POST /basics/:tconst/cast (with invalid character item) -> 400", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/basics/tt1481346/cast")
+        .send({
+          nconst: "nm0030217",
+          job: null,
+          category: "actress",
+          characters: ["mistress", 12345],
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        message: "characters.1: must be a string\n",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "tt1481346",
+          },
+          query: {},
+          method: "POST",
+          url: "/basics/tt1481346/cast",
+        },
+      });
+    });
+
+    it("POST /basics/:tconst/cast (with blank string character item) -> 400", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/basics/tt1481346/cast")
+        .send({
+          nconst: "nm0030217",
+          job: null,
+          category: "actress",
+          characters: ["mistress", "     "],
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        message: "characters.1: must be a non-empty string\n",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "tt1481346",
+          },
+          query: {},
+          method: "POST",
+          url: "/basics/tt1481346/cast",
+        },
+      });
+    });
+
+    it("GET /basics/:tconst/cast/:nconst -> 200", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/basics/tt1349010/cast/nm0030214",
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        statusCode: 200,
+        message: "Request successful",
+        timestamp: expect.any(String),
+        data: {
+          tconst: "tt1349010",
+          ordering: [1],
+          nconst: "nm0030214",
+          category: "actress",
+          characters: [],
+          job: [],
+        },
+      });
+    });
+
+    it("GET /basics/:tconst/cast/:nconst (with multiple character nconst) -> 200", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/basics/tt4154796/cast/nm0000375",
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        statusCode: 200,
+        message: "Request successful",
+        timestamp: expect.any(String),
+        data: {
+          tconst: "tt4154796",
+          ordering: [1, 2],
+          nconst: "nm0000375",
+          category: "actor",
+          job: [],
+          characters: ["Tony Stark", "Iron Man"],
+        },
+      });
+    });
+
+    it("GET /basics/:tconst/cast/:nconst (with non-existing title) -> 404", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/basics/something/cast/nm0030214",
+      );
+
+      expect(response.status).toBe(404);
+      expect(response.body).toEqual({
+        statusCode: 404,
+        message: "No cast found for tconst=something and nconst=nm0030214",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "something",
+            nconst: "nm0030214",
+          },
+          query: {},
+          method: "GET",
+          url: "/basics/something/cast/nm0030214",
+        },
+      });
+    });
+
+    it("GET /basics/:tconst/cast/:nconst (with non-existing name) -> 404", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/basics/tt4154796/cast/something",
+      );
+
+      expect(response.status).toBe(404);
+      expect(response.body).toEqual({
+        statusCode: 404,
+        message: "No cast found for tconst=tt4154796 and nconst=something",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "tt4154796",
+            nconst: "something",
+          },
+          query: {},
+          method: "GET",
+          url: "/basics/tt4154796/cast/something",
+        },
+      });
+    });
+
+    it("GET /basics/:tconst/cast/:nconst?include[name]=1&include[title]=1 -> 200", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/basics/tt4154796/cast/nm0000375?include[name]=1&include[title]=1",
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        statusCode: 200,
+        message: "Request successful",
+        timestamp: expect.any(String),
+        data: {
+          tconst: "tt4154796",
+          ordering: [1, 2],
+          nconst: "nm0000375",
+          category: "actor",
+          job: [],
+          characters: ["Tony Stark", "Iron Man"],
+          nameDetails: {
+            primaryName: "Robert Downey Jr.",
+            birthYear: 1965,
+            deathYear: null,
+            primaryProfession: ["actor", "producer", "writer"],
+            knownForTitles: [
+              "tt0371746",
+              "tt1300854",
+              "tt0988045",
+              "tt4154796",
+            ],
+          },
+          titleDetails: {
+            titleType: "movie",
+            primaryTitle: "Avengers: Endgame",
+            originalTitle: "Avengers: Endgame",
+            isAdult: false,
+            startYear: 2019,
+            endYear: null,
+            runtimeMinutes: 181,
+            genres: ["sci-fi", "adventure", "action"],
+          },
+        },
+      });
+    });
+
+    it("GET /basics/:tconst/cast/:nconst?include[name]=true&include[title]=true -> 200", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/basics/tt4154796/cast/nm0000375?include[name]=true&include[title]=true",
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        statusCode: 200,
+        message: "Request successful",
+        timestamp: expect.any(String),
+        data: {
+          tconst: "tt4154796",
+          ordering: [1, 2],
+          nconst: "nm0000375",
+          category: "actor",
+          job: [],
+          characters: ["Tony Stark", "Iron Man"],
+          nameDetails: {
+            primaryName: "Robert Downey Jr.",
+            birthYear: 1965,
+            deathYear: null,
+            primaryProfession: ["actor", "producer", "writer"],
+            knownForTitles: [
+              "tt0371746",
+              "tt1300854",
+              "tt0988045",
+              "tt4154796",
+            ],
+          },
+          titleDetails: {
+            titleType: "movie",
+            primaryTitle: "Avengers: Endgame",
+            originalTitle: "Avengers: Endgame",
+            isAdult: false,
+            startYear: 2019,
+            endYear: null,
+            runtimeMinutes: 181,
+            genres: ["sci-fi", "adventure", "action"],
+          },
+        },
+      });
+    });
+
+    it("GET /basics/:tconst/cast/:nconst?include[name]=something -> 400", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/basics/tt4154796/cast/nm0000375?include[name]=something",
+      );
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        message:
+          "include.name: Invalid enum value. Expected 'true' | 'false' | '0' | '1', received 'something'\n",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "tt4154796",
+            nconst: "nm0000375",
+          },
+          query: {
+            include: {
+              name: "something",
+            },
+          },
+          method: "GET",
+          url: "/basics/tt4154796/cast/nm0000375?include[name]=something",
+        },
+      });
+    });
+
+    it("GET /basics/:tconst/cast/:nconst?include[title]=something -> 400", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/basics/tt4154796/cast/nm0000375?include[title]=something",
+      );
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        message:
+          "include.title: Invalid enum value. Expected 'true' | 'false' | '0' | '1', received 'something'\n",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "tt4154796",
+            nconst: "nm0000375",
+          },
+          query: {
+            include: {
+              title: "something",
+            },
+          },
+          method: "GET",
+          url: "/basics/tt4154796/cast/nm0000375?include[title]=something",
+        },
+      });
+    });
+
+    it("GET /basics/:tconst/cast/:nconst?include[name]= -> 400", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/basics/tt4154796/cast/nm0000375?include[name]=",
+      );
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        message:
+          "include.name: Invalid enum value. Expected 'true' | 'false' | '0' | '1', received ''\n",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "tt4154796",
+            nconst: "nm0000375",
+          },
+          query: {
+            include: {
+              name: "",
+            },
+          },
+          method: "GET",
+          url: "/basics/tt4154796/cast/nm0000375?include[name]=",
+        },
+      });
+    });
+
+    it("GET /basics/:tconst/cast/:nconst?include[title]= -> 400", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/basics/tt4154796/cast/nm0000375?include[title]=",
+      );
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        message:
+          "include.title: Invalid enum value. Expected 'true' | 'false' | '0' | '1', received ''\n",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "tt4154796",
+            nconst: "nm0000375",
+          },
+          query: {
+            include: {
+              title: "",
+            },
+          },
+          method: "GET",
+          url: "/basics/tt4154796/cast/nm0000375?include[title]=",
+        },
+      });
+    });
+
+    it("PUT /basics/:tconst/cast/:nconst -> 200", async () => {
+      const response = await request(app.getHttpServer())
+        .put("/basics/tt1349010/cast/nm0030217")
+        .send({
+          ordering: 2,
+          category: "actress",
+          job: "lead",
+          characters: ["Dean Lisa"],
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        statusCode: 200,
+        message: "Resource updated successfully",
+        timestamp: expect.any(String),
+        data: {
+          _id: expect.any(String),
+          tconst: "tt1349010",
+          ordering: 2,
+          nconst: "nm0030217",
+          category: "actress",
+          job: "lead",
+          characters: ["Dean Lisa"],
+        },
+      });
+    });
+
+    it("PUT /basics/:tconst/cast/:nconst -> 200", async () => {
+      const response = await request(app.getHttpServer())
+        .put("/basics/tt4154796/cast/nm0000375")
+        .send({
+          ordering: 1,
+          category: "actor",
+          job: "lead",
+          characters: ["Tony Stark"],
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        statusCode: 200,
+        message: "Resource updated successfully",
+        timestamp: expect.any(String),
+        data: {
+          _id: expect.any(String),
+          tconst: "tt4154796",
+          nconst: "nm0000375",
+          ordering: 1,
+          category: "actor",
+          job: "lead",
+          characters: ["Tony Stark"],
+        },
+      });
+    });
+
+    it("PUT /basics/:tconst/cast/:nconst (with non-existing title) -> 404", async () => {
+      const response = await request(app.getHttpServer())
+        .put("/basics/something/cast/nm0000375")
+        .send({
+          ordering: 1,
+          category: "actor",
+          job: "lead",
+          characters: ["Tony Stark"],
+        });
+
+      expect(response.status).toBe(404);
+      expect(response.body).toEqual({
+        statusCode: 404,
+        message:
+          "No cast found for tconst=something, nconst=nm0000375 and ordering=1",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "something",
+            nconst: "nm0000375",
+          },
+          query: {},
+          method: "PUT",
+          url: "/basics/something/cast/nm0000375",
+        },
+      });
+    });
+
+    it("PUT /basics/:tconst/cast/:nconst (with non-existing name) -> 404", async () => {
+      const response = await request(app.getHttpServer())
+        .put("/basics/tt4154796/cast/something")
+        .send({
+          ordering: 1,
+          category: "actor",
+          job: "lead",
+          characters: ["Tony Stark"],
+        });
+
+      expect(response.status).toBe(404);
+      expect(response.body).toEqual({
+        statusCode: 404,
+        message:
+          "No cast found for tconst=tt4154796, nconst=something and ordering=1",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "tt4154796",
+            nconst: "something",
+          },
+          query: {},
+          method: "PUT",
+          url: "/basics/tt4154796/cast/something",
+        },
+      });
+    });
+
+    it("PUT /basics/:tconst/cast/:nconst (with non-existing order) -> 404", async () => {
+      const response = await request(app.getHttpServer())
+        .put("/basics/tt4154796/cast/nm0000375")
+        .send({
+          ordering: 99,
+          category: "actor",
+          job: "lead",
+          characters: ["Tony Stark"],
+        });
+
+      expect(response.status).toBe(404);
+      expect(response.body).toEqual({
+        statusCode: 404,
+        message:
+          "No cast found for tconst=tt4154796, nconst=nm0000375 and ordering=99",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "tt4154796",
+            nconst: "nm0000375",
+          },
+          query: {},
+          method: "PUT",
+          url: "/basics/tt4154796/cast/nm0000375",
+        },
+      });
+    });
+
+    it("DELETE /basics/:tconst/cast/:nconst/:ordering -> 204", async () => {
+      const response = await request(app.getHttpServer()).delete(
+        "/basics/tt1349010/cast/nm2385645/10",
+      );
+
+      expect(response.status).toBe(204);
+      expect(response.body).toEqual({});
+
+      expect(
+        await principalModel.countDocuments({
+          tconst: "tt1349010",
+          category: "actress",
+        }),
+      ).toBe(9);
+    });
+
+    it("DELETE /basics/:tconst/cast/:nconst/:ordering (with non-existing cast) -> 404", async () => {
+      const response = await request(app.getHttpServer()).delete(
+        "/basics/tt1349010/cast/nm2385645/10",
+      );
+
+      expect(response.status).toBe(404);
+      expect(response.body).toEqual({
+        statusCode: 404,
+        message:
+          "No cast found for tconst=tt1349010, nconst=nm2385645 and ordering=10",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "tt1349010",
+            nconst: "nm2385645",
+            ordering: "10",
+          },
+          query: {},
+          method: "DELETE",
+          url: "/basics/tt1349010/cast/nm2385645/10",
+        },
+      });
+
+      expect(
+        await principalModel.countDocuments({
+          tconst: "tt1349010",
+          category: "actress",
+        }),
+      ).toBe(9);
+    });
+
+    it("DELETE /basics/:tconst/cast/:nconst/:ordering (with non-existing title) -> 404", async () => {
+      const response = await request(app.getHttpServer()).delete(
+        "/basics/something/cast/nm2558915/9",
+      );
+
+      expect(response.status).toBe(404);
+      expect(response.body).toEqual({
+        statusCode: 404,
+        message:
+          "No cast found for tconst=something, nconst=nm2558915 and ordering=9",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "something",
+            nconst: "nm2558915",
+            ordering: "9",
+          },
+          query: {},
+          method: "DELETE",
+          url: "/basics/something/cast/nm2558915/9",
+        },
+      });
+    });
+
+    it("DELETE /basics/:tconst/cast/:nconst/:ordering (with non-existing name) -> 404", async () => {
+      const response = await request(app.getHttpServer()).delete(
+        "/basics/tt1349010/cast/something/9",
+      );
+
+      expect(response.status).toBe(404);
+      expect(response.body).toEqual({
+        statusCode: 404,
+        message:
+          "No cast found for tconst=tt1349010, nconst=something and ordering=9",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "tt1349010",
+            nconst: "something",
+            ordering: "9",
+          },
+          query: {},
+          method: "DELETE",
+          url: "/basics/tt1349010/cast/something/9",
+        },
+      });
+    });
+
+    it("DELETE /basics/:tconst/cast/:nconst/:ordering (with non-existing ordering) -> 404", async () => {
+      const response = await request(app.getHttpServer()).delete(
+        "/basics/tt1349010/cast/nm2558915/9999",
+      );
+
+      expect(response.status).toBe(404);
+      expect(response.body).toEqual({
+        statusCode: 404,
+        message:
+          "No cast found for tconst=tt1349010, nconst=nm2558915 and ordering=9999",
+        timestamp: expect.any(String),
+        requestCtx: {
+          params: {
+            tconst: "tt1349010",
+            nconst: "nm2558915",
+            ordering: "9999",
+          },
+          query: {},
+          method: "DELETE",
+          url: "/basics/tt1349010/cast/nm2558915/9999",
+        },
+      });
+    });
+  });
 
   describe("Cast Routes (/basics/:id/casts/*)", () => {});
 });

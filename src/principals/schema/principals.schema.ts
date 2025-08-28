@@ -1,7 +1,10 @@
 /* istanbul ignore file */
 
+import { ConflictException, NotFoundException } from "@nestjs/common";
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import mongoose, { Model } from "mongoose";
+import { BasicsModel } from "src/basics/schema/basics.schema";
+import { NamesModel } from "src/names/schema/names.schema";
 
 @Schema({
   collection: "principals",
@@ -106,8 +109,26 @@ PrincipalsSchema.index(
 
 PrincipalsSchema.pre("save", async function (next) {
   const model = this.model<Model<PrincipalsModel>>(PrincipalsModel.name);
+  const basicModel = this.model<Model<BasicsModel>>(BasicsModel.name);
+  const nameModel = this.model<Model<NamesModel>>(NamesModel.name);
 
   if (this.isNew) {
+    const title = await basicModel.findOne({ tconst: this.tconst });
+
+    if (!title) {
+      return next(
+        new NotFoundException(`No title found for tconst=${this.tconst}`),
+      );
+    }
+
+    const name = await nameModel.findOne({ nconst: this.nconst });
+
+    if (!name) {
+      return next(
+        new NotFoundException(`No name found for nconst=${this.nconst}`),
+      );
+    }
+
     const lastOrdering = await model
       .aggregate<{ ordering: number }>()
       .match({ tconst: this.tconst })
@@ -115,23 +136,24 @@ PrincipalsSchema.pre("save", async function (next) {
       .limit(1)
       .exec();
 
-    const existingCast = await model.findOne({
+    const existingCast = await model.find({
       tconst: this.tconst,
       nconst: this.nconst,
-      characters: { $in: this.characters },
     });
 
-    if (existingCast) {
-      const error = new mongoose.Error.ValidationError();
-      error.addError(
-        "characters",
-        new mongoose.Error.ValidatorError({
-          path: "characters",
-          message: "This character already exists for this title and person.",
-        }),
-      );
+    if (existingCast && existingCast.length > 0) {
+      for (const cast of existingCast) {
+        const sortedCast = cast.characters.sort();
+        const sortedThis = this.characters.sort();
 
-      return next(error);
+        if (JSON.stringify(sortedCast) === JSON.stringify(sortedThis)) {
+          return next(
+            new ConflictException(
+              `Duplicate principal for nconst=${this.nconst}, tconst=${this.tconst} and characters=${JSON.stringify(this.characters)}`,
+            ),
+          );
+        }
+      }
     }
 
     this.ordering = lastOrdering.length > 0 ? lastOrdering[0].ordering + 1 : 1;

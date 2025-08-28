@@ -10,6 +10,7 @@ import {
   Logger,
   NotFoundException,
   Param,
+  ParseIntPipe,
   Post,
   Put,
   Query,
@@ -22,10 +23,13 @@ import { BasicSearchDto, basicSearchSchema } from "./dto/basic-search.dto";
 import { BasicCreateDto, basicCreateSchema } from "./dto/basic-create.dto";
 import { BasicUpdateDto, basicUpdateSchema } from "./dto/basic-update.dto";
 import {
+  BasePrincipalCreateDto,
+  basePrincipalCreateSchema,
   PrincipalCreateDto,
   principalCreateSchema,
 } from "src/principals/dto/principal-create.dto";
 import {
+  basePrincipalUpdateSchema,
   PrincipalUpdateDto,
   principalUpdateSchema,
 } from "src/principals/dto/principal-update.dto";
@@ -162,10 +166,10 @@ export class BasicsController {
   @Post(":tconst/cast")
   @Header("Cache-Control", "no-store")
   @HttpCode(HttpStatus.CREATED)
-  @UsePipes(new ZodValidationPipe(principalCreateSchema))
+  @UsePipes(new ZodValidationPipe(basePrincipalCreateSchema))
   async addCastToTitle(
     @Param("tconst") tconst: string,
-    @Body() body: PrincipalCreateDto,
+    @Body() body: BasePrincipalCreateDto,
   ) {
     return this.basicsService.addCastToTitle(tconst, body);
   }
@@ -221,18 +225,23 @@ export class BasicsController {
     return updatedCast;
   }
 
-  @Delete(":tconst/cast/:nconst")
+  @Delete(":tconst/cast/:nconst/:ordering")
   @Header("Cache-Control", "no-store")
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteCastByTconstAndNconst(
     @Param("tconst") tconst: string,
     @Param("nconst") nconst: string,
+    @Param("ordering", ParseIntPipe) ordering: number,
   ) {
-    const result = await this.basicsService.removeCastFromTitle(tconst, nconst);
+    const result = await this.basicsService.removeCastFromTitle(
+      tconst,
+      nconst,
+      ordering,
+    );
 
     if (!result) {
       throw new NotFoundException(
-        `No cast found for tconst=${tconst} and nconst=${nconst}`,
+        `No cast found for tconst=${tconst}, nconst=${nconst} and ordering=${ordering}`,
       );
     }
 
@@ -360,18 +369,23 @@ export class BasicsController {
     return updateCrew;
   }
 
-  @Delete(":tconst/crews/:nconst")
+  @Delete(":tconst/crews/:nconst/:ordering")
   @Header("Cache-Control", "no-store")
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteCrewByTconstAndNconst(
     @Param("tconst") tconst: string,
     @Param("nconst") nconst: string,
+    @Param("ordering", ParseIntPipe) ordering: number,
   ) {
     this.logger.log(
       `Deleting crew member with nconst=${nconst} for title with tconst=${tconst}`,
     );
 
-    const result = await this.basicsService.removeCrewFromTitle(tconst, nconst);
+    const result = await this.basicsService.removeCrewFromTitle(
+      tconst,
+      nconst,
+      ordering,
+    );
 
     if (!result) {
       throw new NotFoundException(

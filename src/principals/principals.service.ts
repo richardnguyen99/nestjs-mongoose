@@ -205,8 +205,8 @@ export class PrincipalsService {
     return aggregation
       .facet({
         results: [
-          { $skip: skip },
           { $sort: { ordering: 1 } },
+          { $skip: skip },
           { $limit: limit },
         ],
         totalCount: [{ $count: "count" }],
@@ -294,8 +294,22 @@ export class PrincipalsService {
     return this.principalsModel.deleteMany({ nconst }).exec();
   }
 
-  async deleteByTconstAndNconst(tconst: string, nconst: string) {
-    return this.principalsModel.findOneAndDelete({ tconst, nconst }).exec();
+  async deleteManyByTconstAndNconst(tconst: string, nconst: string) {
+    return this.principalsModel.deleteMany({ tconst, nconst }).exec();
+  }
+
+  async deleteByTconstAndNconst(
+    tconst: string,
+    nconst: string,
+    ordering: number,
+  ) {
+    return this.principalsModel
+      .findOneAndDelete({
+        tconst,
+        nconst,
+        ordering,
+      })
+      .exec();
   }
 
   async bulkDelete(records: { tconst: string; nconst: string }[]) {

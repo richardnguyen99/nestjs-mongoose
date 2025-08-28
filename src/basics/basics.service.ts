@@ -386,14 +386,19 @@ export class BasicsService {
     return updatedCrew;
   }
 
-  async removeCastFromTitle(tconst: string, nconst: string) {
-    return this.principalsService.deleteByTconstAndNconst(tconst, nconst);
+  async removeCastFromTitle(tconst: string, nconst: string, ordering: number) {
+    return this.principalsService.deleteByTconstAndNconst(
+      tconst,
+      nconst,
+      ordering,
+    );
   }
 
-  async removeCrewFromTitle(tconst: string, nconst: string) {
+  async removeCrewFromTitle(tconst: string, nconst: string, ordering: number) {
     const deletedCrew = await this.principalsService.deleteByTconstAndNconst(
       tconst,
       nconst,
+      ordering,
     );
 
     if (!deletedCrew) {

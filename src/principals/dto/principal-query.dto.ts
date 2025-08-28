@@ -18,12 +18,7 @@ export const basePrincipalQuerySchema = z.object({
     .optional()
     .default("1")
     .transform(strictIntTransformer)
-    .pipe(
-      z
-        .number()
-        .int("`page` must be an integer")
-        .min(1, "`page` must be at least 1"),
-    ),
+    .pipe(z.number().min(1, "must be at least 1")),
 
   /**
    * Pagination limit, number of records to return per page. Throw an error if:
@@ -38,12 +33,7 @@ export const basePrincipalQuerySchema = z.object({
     .optional()
     .default("10")
     .transform(strictIntTransformer)
-    .pipe(
-      z
-        .number()
-        .int("`limit` must be an integer")
-        .min(1, "`limit` must be at least 1"),
-    ),
+    .pipe(z.number().min(1, "must be at least 1")),
 });
 
 export const principalSingleQuerySchema = z.object({
@@ -76,7 +66,7 @@ export const principalQuerySchema = z.object({
   ...principalSingleQuerySchema.shape,
 });
 
-export type PrincipalQueryDto = z.infer<typeof principalQuerySchema>;
+export type PrincipalQueryDto = z.infer<typeof basePrincipalQuerySchema>;
 export type PrincipalSingleQueryDto = z.infer<
   typeof principalSingleQuerySchema
 >;
