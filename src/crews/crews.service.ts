@@ -8,6 +8,8 @@ import { CrewUpdateDto } from "src/crews/dto/crew-update.dto";
 import { CrewsAggregationInterface } from "src/crews/interfaces/crews-interface.interface";
 import { ConfigService } from "@nestjs/config";
 import { CrewCreateDto } from "./dto/crew-create.dto";
+import { NamesModel } from "src/names/schema/names.schema";
+import { BasicsModel } from "src/basics/schema/basics.schema";
 
 @Injectable()
 export class CrewsService {
@@ -33,42 +35,83 @@ export class CrewsService {
     return this.crewsModel.find().exec();
   }
 
-  async findByTconst(
-    tconst: string,
-    query: CrewQueryDto,
-  ): Promise<CrewsAggregationInterface[]> {
-    let aggregation = this.crewsModel
-      .aggregate<CrewsAggregationInterface>()
-      .match({
-        tconst,
-      });
+  async findByTconst(tconst: string, query: CrewQueryDto) {
+    let aggregation = this.crewsModel.aggregate().match({ tconst });
 
-    aggregation = this._prepareCrewAggregation(aggregation, query);
-
-    aggregation = aggregation
-      .facet({
-        totalCount: [{ $count: "count" }],
-        results: [{ $sort: { ordering: 1 } }, { $skip: 0 }, { $limit: 10 }],
-      })
-      .addFields({
-        totalCount: { $arrayElemAt: ["$totalCount.count", 0] },
-        currentPage: query.page,
-        perPage: query.limit,
-        totalPages: {
-          $cond: {
-            if: { $gt: [{ $size: "$totalCount" }, 0] },
-            then: {
-              $ceil: {
-                $divide: [
-                  { $arrayElemAt: ["$totalCount.count", 0] },
-                  query.limit,
+    if (query && query.include) {
+      if (query.include.directors) {
+        aggregation = aggregation.lookup({
+          from: "names",
+          localField: "directors",
+          foreignField: "nconst",
+          as: "directorDetails",
+          let: { directors: "$directors" },
+          pipeline: [
+            { $match: { $expr: { $in: ["$nconst", "$$directors"] } } },
+            {
+              $lookup: {
+                from: "principals",
+                localField: "nconst",
+                foreignField: "nconst",
+                as: "roleDetails",
+                let: { nconst: "$nconst", tconst: "$tconst" },
+                pipeline: [
+                  {
+                    $match: {
+                      $and: [
+                        { $expr: { $eq: ["$nconst", "$$nconst"] } },
+                        { $expr: { $eq: ["$tconst", tconst] } },
+                      ],
+                    },
+                  },
                 ],
               },
             },
-            else: 0,
-          },
-        },
-      });
+          ],
+        });
+      }
+
+      if (query.include.writers) {
+        aggregation = aggregation.lookup({
+          from: "names",
+          localField: "writers",
+          foreignField: "nconst",
+          as: "writerDetails",
+          let: { writers: "$writers" },
+          pipeline: [
+            { $match: { $expr: { $in: ["$nconst", "$$writers"] } } },
+            {
+              $lookup: {
+                from: "principals",
+                localField: "nconst",
+                foreignField: "nconst",
+                as: "roleDetails",
+                let: { nconst: "$nconst", tconst: "$tconst" },
+                pipeline: [
+                  {
+                    $match: {
+                      $and: [
+                        { $expr: { $eq: ["$nconst", "$$nconst"] } },
+                        { $expr: { $eq: ["$tconst", tconst] } },
+                      ],
+                    },
+                  },
+                ],
+              },
+            },
+          ],
+        });
+      }
+
+      if (query.include.title) {
+        aggregation = aggregation.lookup({
+          from: "basics",
+          localField: "tconst",
+          foreignField: "tconst",
+          as: "titleInfo",
+        });
+      }
+    }
 
     return aggregation.exec();
   }
@@ -180,104 +223,5 @@ export class CrewsService {
         },
       )
       .exec();
-  }
-
-  private _prepareCrewAggregation<T>(
-    aggregation: Aggregate<T[]>,
-    query: CrewQueryDto,
-  ): Aggregate<T[]> {
-    let _aggregation = aggregation;
-
-    if (!query.lean) {
-      _aggregation = aggregation
-        .lookup({
-          from: "names",
-          localField: "directors",
-          foreignField: "nconst",
-          as: "directorsInfo",
-          let: { tConst: "$tconst" },
-          pipeline: [
-            {
-              $lookup: {
-                from: "principals",
-                localField: "nconst",
-                foreignField: "nconst",
-                as: "roleDetails",
-                pipeline: [
-                  {
-                    $match: {
-                      $expr: {
-                        $eq: ["$tconst", "$$tConst"],
-                      },
-                    },
-                  },
-                  {
-                    $project: {
-                      _id: 0,
-                      tconst: 0,
-                      nconst: 0,
-                    },
-                  },
-                ],
-              },
-            },
-            {
-              $unwind: "$roleDetails",
-            },
-            {
-              $project: {
-                _id: 0,
-                primaryProfession: 0,
-                knownForTitles: 0,
-              },
-            },
-          ],
-        })
-        .lookup({
-          from: "names",
-          localField: "writers",
-          foreignField: "nconst",
-          as: "writersInfo",
-          let: { tConst: "$tconst" },
-          pipeline: [
-            {
-              $lookup: {
-                from: "principals",
-                localField: "nconst",
-                foreignField: "nconst",
-                as: "roleDetails",
-                pipeline: [
-                  {
-                    $match: {
-                      $expr: {
-                        $eq: ["$tconst", "$$tConst"],
-                      },
-                    },
-                  },
-                  {
-                    $project: {
-                      _id: 0,
-                      tconst: 0,
-                      nconst: 0,
-                    },
-                  },
-                ],
-              },
-            },
-            {
-              $unwind: "$roleDetails",
-            },
-            {
-              $project: {
-                _id: 0,
-                primaryProfession: 0,
-                knownForTitles: 0,
-              },
-            },
-          ],
-        });
-    }
-
-    return _aggregation;
   }
 }

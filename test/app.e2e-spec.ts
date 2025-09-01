@@ -28,7 +28,7 @@ import { akaStub } from "./stubs/aka";
 import { AkaCreateDto } from "src/akas/dto/aka-create.dto";
 import { episodeStub } from "./stubs/episode";
 import { principalStub } from "./stubs/principals";
-import { APP_GUARD } from "@nestjs/core";
+import { crewStub } from "./stubs/crew";
 
 describe("AppController (e2e)", () => {
   let app: INestApplication;
@@ -96,6 +96,7 @@ describe("AppController (e2e)", () => {
     akaModel.deleteMany({});
     episodeModel.deleteMany({});
     principalModel.deleteMany({});
+    crewModel.deleteMany({});
 
     await app.close();
   });
@@ -214,7 +215,7 @@ describe("AppController (e2e)", () => {
         timestamp: expect.any(String),
       });
 
-      expect(await basicModel.find().lean()).toHaveLength(22);
+      expect(await basicModel.find().lean()).toHaveLength(24);
     });
 
     it("POST /basics/ -> 400", async () => {
@@ -974,7 +975,7 @@ describe("AppController (e2e)", () => {
       expect(response.status).toBe(204);
       expect(response.body).toEqual({});
 
-      expect(await basicModel.find().lean()).toHaveLength(21);
+      expect(await basicModel.find().lean()).toHaveLength(23);
     });
 
     it("DELETE /basics/:id -> 404", async () => {
@@ -997,7 +998,7 @@ describe("AppController (e2e)", () => {
         },
       });
 
-      expect(await basicModel.find().lean()).toHaveLength(21);
+      expect(await basicModel.find().lean()).toHaveLength(23);
     });
   });
 
@@ -1518,7 +1519,7 @@ describe("AppController (e2e)", () => {
       expect(response.status).toBe(204);
       expect(response.body).toEqual({});
 
-      expect(await nameModel.find().lean()).toHaveLength(27);
+      expect(await nameModel.find().lean()).toHaveLength(34);
     });
 
     it("DELETE /names/:nconst -> 404", async () => {
@@ -4912,7 +4913,7 @@ sort.birthYear: Invalid enum value. Expected 'asc' | 'desc', received 'something
     });
   });
 
-  describe("Crew Routes (/basics/:id/crew/*)", () => {
+  describe("Cast Routes (/basics/:id/crew/*)", () => {
     beforeAll(async () => {
       await principalModel.insertMany(principalStub());
     });
@@ -6478,5 +6479,1565 @@ sort.birthYear: Invalid enum value. Expected 'asc' | 'desc', received 'something
     });
   });
 
-  describe("Cast Routes (/basics/:id/casts/*)", () => {});
+  describe("Crews Routes (/basics/:id/casts/*)", () => {
+    beforeAll(async () => {
+      await crewModel.insertMany(crewStub());
+    });
+
+    it("GET /basics/:tconst/crews -> 200", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/basics/tt4154756/crews",
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        statusCode: 200,
+        message: "Request successful",
+        timestamp: expect.any(String),
+        data: {
+          _id: expect.any(String),
+          directors: ["nm0751577", "nm0751648"],
+          tconst: "tt4154756",
+          writers: ["nm1321655", "nm0498278", "nm0456158"],
+        },
+      });
+    });
+
+    it("GET /basics/:tconst/crews?include[directors]=1 -> 200", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/basics/tt4154756/crews?include[directors]=1",
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        statusCode: 200,
+        message: "Request successful",
+        timestamp: expect.any(String),
+        data: {
+          _id: expect.any(String),
+          directorDetails: [
+            {
+              _id: expect.any(String),
+              birthYear: 1970,
+              deathYear: null,
+              roleDetails: [
+                {
+                  _id: expect.any(String),
+                  category: "director",
+                  characters: [],
+                  job: null,
+                  nconst: "nm0751577",
+                  ordering: 1,
+                  tconst: "tt4154756",
+                },
+              ],
+              knownForTitles: [
+                "tt6710474",
+                "tt1843866",
+                "tt4154756",
+                "tt4154796",
+              ],
+              nconst: "nm0751577",
+              primaryName: "Anthony Russo",
+              primaryProfession: ["producer", "director", "writer"],
+            },
+            {
+              _id: expect.any(String),
+              birthYear: 1971,
+              deathYear: null,
+              roleDetails: [
+                {
+                  _id: expect.any(String),
+                  category: "director",
+                  characters: [],
+                  job: null,
+                  nconst: "nm0751648",
+                  ordering: 2,
+                  tconst: "tt4154756",
+                },
+              ],
+              knownForTitles: [
+                "tt4154796",
+                "tt6710474",
+                "tt4154756",
+                "tt1843866",
+              ],
+              nconst: "nm0751648",
+              primaryName: "Joe Russo",
+              primaryProfession: ["producer", "director", "actor"],
+            },
+          ],
+          directors: ["nm0751577", "nm0751648"],
+          tconst: "tt4154756",
+          writers: ["nm1321655", "nm0498278", "nm0456158"],
+        },
+      });
+    });
+
+    it("GET /basics/:tconst/crews?include[directors]=true -> 200", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/basics/tt4154756/crews?include[directors]=true",
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        statusCode: 200,
+        message: "Request successful",
+        timestamp: expect.any(String),
+        data: {
+          _id: expect.any(String),
+          directorDetails: [
+            {
+              _id: expect.any(String),
+              birthYear: 1970,
+              deathYear: null,
+              roleDetails: [
+                {
+                  _id: expect.any(String),
+                  category: "director",
+                  characters: [],
+                  job: null,
+                  nconst: "nm0751577",
+                  ordering: 1,
+                  tconst: "tt4154756",
+                },
+              ],
+              knownForTitles: [
+                "tt6710474",
+                "tt1843866",
+                "tt4154756",
+                "tt4154796",
+              ],
+              nconst: "nm0751577",
+              primaryName: "Anthony Russo",
+              primaryProfession: ["producer", "director", "writer"],
+            },
+            {
+              _id: expect.any(String),
+              birthYear: 1971,
+              deathYear: null,
+              roleDetails: [
+                {
+                  _id: expect.any(String),
+                  category: "director",
+                  characters: [],
+                  job: null,
+                  nconst: "nm0751648",
+                  ordering: 2,
+                  tconst: "tt4154756",
+                },
+              ],
+              knownForTitles: [
+                "tt4154796",
+                "tt6710474",
+                "tt4154756",
+                "tt1843866",
+              ],
+              nconst: "nm0751648",
+              primaryName: "Joe Russo",
+              primaryProfession: ["producer", "director", "actor"],
+            },
+          ],
+          directors: ["nm0751577", "nm0751648"],
+          tconst: "tt4154756",
+          writers: ["nm1321655", "nm0498278", "nm0456158"],
+        },
+      });
+    });
+
+    it("GET /basics/:tconst/crews?include[writers]=1 -> 200", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/basics/tt4154756/crews?include[writers]=1",
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        statusCode: 200,
+        message: "Request successful",
+        timestamp: expect.any(String),
+        data: {
+          _id: expect.any(String),
+          directors: ["nm0751577", "nm0751648"],
+          tconst: "tt4154756",
+          writers: ["nm1321655", "nm0498278", "nm0456158"],
+          writerDetails: [
+            {
+              _id: expect.any(String),
+              birthYear: 1917,
+              deathYear: 1994,
+              knownForTitles: [
+                "tt1825683",
+                "tt0371746",
+                "tt1641384",
+                "tt4154796",
+              ],
+              nconst: "nm0456158",
+              primaryName: "Jack Kirby",
+              primaryProfession: [
+                "writer",
+                "miscellaneous",
+                "animation_department",
+              ],
+              roleDetails: [
+                {
+                  _id: expect.any(String),
+                  category: "writer",
+                  characters: [],
+                  job: "based on the Marvel comics by",
+                  nconst: "nm0456158",
+                  ordering: 3,
+                  tconst: "tt4154756",
+                },
+              ],
+            },
+            {
+              _id: expect.any(String),
+              birthYear: 1922,
+              deathYear: 2018,
+              knownForTitles: [
+                "tt1211837",
+                "tt1825683",
+                "tt2250912",
+                "tt3896198",
+              ],
+              nconst: "nm0498278",
+              primaryName: "Stan Lee",
+              primaryProfession: ["producer", "writer", "actor"],
+              roleDetails: [
+                {
+                  _id: expect.any(String),
+                  category: "writer",
+                  characters: [],
+                  job: "based on the Marvel comics by",
+                  nconst: "nm0498278",
+                  ordering: 4,
+                  tconst: "tt4154756",
+                },
+              ],
+            },
+            {
+              _id: expect.any(String),
+              birthYear: 1969,
+              deathYear: null,
+              knownForTitles: [
+                "tt4154796",
+                "tt4154756",
+                "tt0458339",
+                "tt0363771",
+              ],
+              nconst: "nm1321655",
+              primaryName: "Christopher Markus",
+              primaryProfession: ["writer", "producer", "script_department"],
+              roleDetails: [
+                {
+                  _id: expect.any(String),
+                  category: "writer",
+                  characters: [],
+                  job: "screenplay by",
+                  nconst: "nm1321655",
+                  ordering: 5,
+                  tconst: "tt4154756",
+                },
+              ],
+            },
+          ],
+        },
+      });
+    });
+
+    it("GET /basics/:tconst/crews?include[writers]=true -> 200", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/basics/tt4154756/crews?include[writers]=true",
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        statusCode: 200,
+        message: "Request successful",
+        timestamp: expect.any(String),
+        data: {
+          _id: expect.any(String),
+          directors: ["nm0751577", "nm0751648"],
+          tconst: "tt4154756",
+          writers: ["nm1321655", "nm0498278", "nm0456158"],
+          writerDetails: [
+            {
+              _id: expect.any(String),
+              birthYear: 1917,
+              deathYear: 1994,
+              knownForTitles: [
+                "tt1825683",
+                "tt0371746",
+                "tt1641384",
+                "tt4154796",
+              ],
+              nconst: "nm0456158",
+              primaryName: "Jack Kirby",
+              primaryProfession: [
+                "writer",
+                "miscellaneous",
+                "animation_department",
+              ],
+              roleDetails: [
+                {
+                  _id: expect.any(String),
+                  category: "writer",
+                  characters: [],
+                  job: "based on the Marvel comics by",
+                  nconst: "nm0456158",
+                  ordering: 3,
+                  tconst: "tt4154756",
+                },
+              ],
+            },
+            {
+              _id: expect.any(String),
+              birthYear: 1922,
+              deathYear: 2018,
+              knownForTitles: [
+                "tt1211837",
+                "tt1825683",
+                "tt2250912",
+                "tt3896198",
+              ],
+              nconst: "nm0498278",
+              primaryName: "Stan Lee",
+              primaryProfession: ["producer", "writer", "actor"],
+              roleDetails: [
+                {
+                  _id: expect.any(String),
+                  category: "writer",
+                  characters: [],
+                  job: "based on the Marvel comics by",
+                  nconst: "nm0498278",
+                  ordering: 4,
+                  tconst: "tt4154756",
+                },
+              ],
+            },
+            {
+              _id: expect.any(String),
+              birthYear: 1969,
+              deathYear: null,
+              knownForTitles: [
+                "tt4154796",
+                "tt4154756",
+                "tt0458339",
+                "tt0363771",
+              ],
+              nconst: "nm1321655",
+              primaryName: "Christopher Markus",
+              primaryProfession: ["writer", "producer", "script_department"],
+              roleDetails: [
+                {
+                  _id: expect.any(String),
+                  category: "writer",
+                  characters: [],
+                  job: "screenplay by",
+                  nconst: "nm1321655",
+                  ordering: 5,
+                  tconst: "tt4154756",
+                },
+              ],
+            },
+          ],
+        },
+      });
+    });
+
+    it("GET /basics/:tconst/crews?include[title]=1 -> 200", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/basics/tt4154756/crews?include[title]=1",
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        statusCode: 200,
+        message: "Request successful",
+        timestamp: expect.any(String),
+        data: {
+          _id: expect.any(String),
+          directors: ["nm0751577", "nm0751648"],
+          tconst: "tt4154756",
+          writers: ["nm1321655", "nm0498278", "nm0456158"],
+          titleInfo: [
+            {
+              _id: expect.any(String),
+              endYear: null,
+              genres: ["sci-fi", "adventure", "action"],
+              isAdult: false,
+              originalTitle: "Avengers: Infinity War",
+              primaryTitle: "Avengers: Infinity War",
+              runtimeMinutes: 149,
+              startYear: 2018,
+              tconst: "tt4154756",
+              titleType: "movie",
+            },
+          ],
+        },
+      });
+    });
+
+    it("GET /basics/:tconst/crews?include[title]=true -> 200", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/basics/tt4154756/crews?include[title]=true",
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        statusCode: 200,
+        message: "Request successful",
+        timestamp: expect.any(String),
+        data: {
+          _id: expect.any(String),
+          directors: ["nm0751577", "nm0751648"],
+          tconst: "tt4154756",
+          writers: ["nm1321655", "nm0498278", "nm0456158"],
+          titleInfo: [
+            {
+              _id: expect.any(String),
+              endYear: null,
+              genres: ["sci-fi", "adventure", "action"],
+              isAdult: false,
+              originalTitle: "Avengers: Infinity War",
+              primaryTitle: "Avengers: Infinity War",
+              runtimeMinutes: 149,
+              startYear: 2018,
+              tconst: "tt4154756",
+              titleType: "movie",
+            },
+          ],
+        },
+      });
+    });
+
+    it("GET /basics/:tconst/crews?include[title]=true&include[directors]=true&include[writers]=true -> 200", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/basics/tt4154756/crews?include[title]=true&include[directors]=true&include[writers]=true",
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        statusCode: 200,
+        message: "Request successful",
+        timestamp: expect.any(String),
+        data: {
+          _id: expect.any(String),
+          directors: ["nm0751577", "nm0751648"],
+          tconst: "tt4154756",
+          writers: ["nm1321655", "nm0498278", "nm0456158"],
+          titleInfo: [
+            {
+              _id: expect.any(String),
+              endYear: null,
+              genres: ["sci-fi", "adventure", "action"],
+              isAdult: false,
+              originalTitle: "Avengers: Infinity War",
+              primaryTitle: "Avengers: Infinity War",
+              runtimeMinutes: 149,
+              startYear: 2018,
+              tconst: "tt4154756",
+              titleType: "movie",
+            },
+          ],
+          writerDetails: [
+            {
+              _id: expect.any(String),
+              birthYear: 1917,
+              deathYear: 1994,
+              knownForTitles: [
+                "tt1825683",
+                "tt0371746",
+                "tt1641384",
+                "tt4154796",
+              ],
+              nconst: "nm0456158",
+              primaryName: "Jack Kirby",
+              primaryProfession: [
+                "writer",
+                "miscellaneous",
+                "animation_department",
+              ],
+              roleDetails: [
+                {
+                  _id: expect.any(String),
+                  category: "writer",
+                  characters: [],
+                  job: "based on the Marvel comics by",
+                  nconst: "nm0456158",
+                  ordering: 3,
+                  tconst: "tt4154756",
+                },
+              ],
+            },
+            {
+              _id: expect.any(String),
+              birthYear: 1922,
+              deathYear: 2018,
+              knownForTitles: [
+                "tt1211837",
+                "tt1825683",
+                "tt2250912",
+                "tt3896198",
+              ],
+              nconst: "nm0498278",
+              primaryName: "Stan Lee",
+              primaryProfession: ["producer", "writer", "actor"],
+              roleDetails: [
+                {
+                  _id: expect.any(String),
+                  category: "writer",
+                  characters: [],
+                  job: "based on the Marvel comics by",
+                  nconst: "nm0498278",
+                  ordering: 4,
+                  tconst: "tt4154756",
+                },
+              ],
+            },
+            {
+              _id: expect.any(String),
+              birthYear: 1969,
+              deathYear: null,
+              knownForTitles: [
+                "tt4154796",
+                "tt4154756",
+                "tt0458339",
+                "tt0363771",
+              ],
+              nconst: "nm1321655",
+              primaryName: "Christopher Markus",
+              primaryProfession: ["writer", "producer", "script_department"],
+              roleDetails: [
+                {
+                  _id: expect.any(String),
+                  category: "writer",
+                  characters: [],
+                  job: "screenplay by",
+                  nconst: "nm1321655",
+                  ordering: 5,
+                  tconst: "tt4154756",
+                },
+              ],
+            },
+          ],
+          directorDetails: [
+            {
+              _id: expect.any(String),
+              birthYear: 1970,
+              deathYear: null,
+              roleDetails: [
+                {
+                  _id: expect.any(String),
+                  category: "director",
+                  characters: [],
+                  job: null,
+                  nconst: "nm0751577",
+                  ordering: 1,
+                  tconst: "tt4154756",
+                },
+              ],
+              knownForTitles: [
+                "tt6710474",
+                "tt1843866",
+                "tt4154756",
+                "tt4154796",
+              ],
+              nconst: "nm0751577",
+              primaryName: "Anthony Russo",
+              primaryProfession: ["producer", "director", "writer"],
+            },
+            {
+              _id: expect.any(String),
+              birthYear: 1971,
+              deathYear: null,
+              roleDetails: [
+                {
+                  _id: expect.any(String),
+                  category: "director",
+                  characters: [],
+                  job: null,
+                  nconst: "nm0751648",
+                  ordering: 2,
+                  tconst: "tt4154756",
+                },
+              ],
+              knownForTitles: [
+                "tt4154796",
+                "tt6710474",
+                "tt4154756",
+                "tt1843866",
+              ],
+              nconst: "nm0751648",
+              primaryName: "Joe Russo",
+              primaryProfession: ["producer", "director", "actor"],
+            },
+          ],
+        },
+      });
+    });
+
+    it("POST /basics/:tconst/crews -> 201", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/basics/tt4154796/crews")
+        .send({
+          directors: [],
+          writers: [],
+        });
+
+      expect(response.status).toBe(201);
+      expect(response.body).toEqual({
+        statusCode: 201,
+        message: "Resource created successfully",
+        timestamp: expect.any(String),
+        data: {
+          _id: expect.any(String),
+          tconst: "tt4154796",
+          directors: [],
+          writers: [],
+        },
+      });
+    });
+
+    it("POST /basics/:tconst/crews (with empty writers field) -> 201", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/basics/tt7570712/crews")
+        .send({
+          directors: ["nm3513211"],
+          writers: [],
+        });
+
+      expect(response.status).toBe(201);
+      expect(response.body).toEqual({
+        statusCode: 201,
+        message: "Resource created successfully",
+        timestamp: expect.any(String),
+        data: {
+          _id: expect.any(String),
+          tconst: "tt7570712",
+          directors: ["nm3513211"],
+          writers: [],
+        },
+      });
+    });
+
+    it("POST /basics/:tconst/crews (with empty directors field) -> 201", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/basics/tt3006032/crews")
+        .send({
+          directors: [],
+          writers: ["nm1818407"],
+        });
+
+      expect(response.status).toBe(201);
+      expect(response.body).toEqual({
+        statusCode: 201,
+        message: "Resource created successfully",
+        timestamp: expect.any(String),
+        data: {
+          _id: expect.any(String),
+          tconst: "tt3006032",
+          directors: [],
+          writers: ["nm1818407"],
+        },
+      });
+    });
+
+    it("POST /basics/:tconst/crews (with non-existing title) -> 404", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/basics/something/crews")
+        .send({
+          directors: [],
+          writers: [],
+        });
+
+      expect(response.status).toBe(404);
+      expect(response.body).toEqual({
+        statusCode: 404,
+        message: "No title found for tconst=something",
+        timestamp: expect.any(String),
+        requestCtx: {
+          method: "POST",
+          url: "/basics/something/crews",
+          params: {
+            tconst: "something",
+          },
+          query: {},
+        },
+      });
+    });
+
+    it("POST /basics/:tconst/crews (with non-existing title) -> 404", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/basics/something/crews")
+        .send({
+          directors: [],
+          writers: [],
+        });
+
+      expect(response.status).toBe(404);
+      expect(response.body).toEqual({
+        statusCode: 404,
+        message: "No title found for tconst=something",
+        timestamp: expect.any(String),
+        requestCtx: {
+          method: "POST",
+          url: "/basics/something/crews",
+          params: {
+            tconst: "something",
+          },
+          query: {},
+        },
+      });
+    });
+
+    it("POST /basics/:tconst/crews (with duplicate crew) -> 409", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/basics/tt4154796/crews")
+        .send({
+          writers: [],
+          directors: [],
+        });
+
+      expect(response.status).toBe(409);
+      expect(response.body).toEqual({
+        statusCode: 409,
+        message: "Duplicate key error: tconst=tt4154796",
+        timestamp: expect.any(String),
+        requestCtx: {
+          method: "POST",
+          url: "/basics/tt4154796/crews",
+          params: {
+            tconst: "tt4154796",
+          },
+          query: {},
+        },
+      });
+    });
+
+    it("POST /basics/:tconst/crews (with missing directors field) -> 400", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/basics/tt7468086/crews")
+        .send({
+          writers: ["nm1321655", "nm0498278", "nm0456158"],
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        message: "directors: must be provided\n",
+        timestamp: expect.any(String),
+        requestCtx: {
+          method: "POST",
+          url: "/basics/tt7468086/crews",
+          params: {
+            tconst: "tt7468086",
+          },
+          query: {},
+        },
+      });
+    });
+
+    it("POST /basics/:tconst/crews (with missing writers field) -> 400", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/basics/tt7468086/crews")
+        .send({
+          directors: ["nm1321655", "nm0498278", "nm0456158"],
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        message: "writers: must be provided\n",
+        timestamp: expect.any(String),
+        requestCtx: {
+          method: "POST",
+          url: "/basics/tt7468086/crews",
+          params: {
+            tconst: "tt7468086",
+          },
+          query: {},
+        },
+      });
+    });
+
+    it("PUT /basics/:tconst/crews (add new directors) -> 200", async () => {
+      const response = await request(app.getHttpServer())
+        .put("/basics/tt4154796/crews")
+        .send({
+          directors: {
+            add: ["nm0751577", "nm0751648"],
+          },
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        statusCode: 200,
+        message: "Resource updated successfully",
+        timestamp: expect.any(String),
+        data: {
+          _id: expect.any(String),
+          directors: ["nm0751577", "nm0751648"],
+          tconst: "tt4154796",
+          writers: [],
+        },
+      });
+    });
+
+    it("PUT /basics/:tconst/crews (add new writers) -> 200", async () => {
+      const response = await request(app.getHttpServer())
+        .put("/basics/tt4154796/crews")
+        .send({
+          writers: {
+            add: ["nm1321655", "nm0498278", "nm0456158"],
+          },
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        statusCode: 200,
+        message: "Resource updated successfully",
+        timestamp: expect.any(String),
+        data: {
+          _id: expect.any(String),
+          directors: ["nm0751577", "nm0751648"],
+          tconst: "tt4154796",
+          writers: ["nm1321655", "nm0498278", "nm0456158"],
+        },
+      });
+    });
+
+    it("PUT /basics/:tconst/crews (remove directors) -> 200", async () => {
+      const response = await request(app.getHttpServer())
+        .put("/basics/tt4154796/crews")
+        .send({
+          directors: {
+            remove: ["nm0751648"],
+          },
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        statusCode: 200,
+        message: "Resource updated successfully",
+        timestamp: expect.any(String),
+        data: {
+          _id: expect.any(String),
+          tconst: "tt4154796",
+          directors: ["nm0751577"],
+          writers: ["nm1321655", "nm0498278", "nm0456158"],
+        },
+      });
+    });
+
+    it("PUT /basics/:tconst/crews (remove writers) -> 200", async () => {
+      const response = await request(app.getHttpServer())
+        .put("/basics/tt4154796/crews")
+        .send({
+          writers: {
+            remove: ["nm1321655"],
+          },
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        statusCode: 200,
+        message: "Resource updated successfully",
+        timestamp: expect.any(String),
+        data: {
+          _id: expect.any(String),
+          tconst: "tt4154796",
+          directors: ["nm0751577"],
+          writers: ["nm0498278", "nm0456158"],
+        },
+      });
+    });
+
+    it("PUT /basics/:tconst/crews (with non-existing title) -> 404", async () => {
+      const response = await request(app.getHttpServer())
+        .put("/basics/something/crews")
+        .send({
+          directors: {
+            add: ["nm0751577"],
+          },
+          writers: {
+            remove: ["nm0456158"],
+          },
+        });
+
+      expect(response.status).toBe(404);
+      expect(response.body).toEqual({
+        statusCode: 404,
+        message: "No crew found for tconst=something",
+        timestamp: expect.any(String),
+        requestCtx: {
+          method: "PUT",
+          url: "/basics/something/crews",
+          params: {
+            tconst: "something",
+          },
+          query: {},
+        },
+      });
+    });
+
+    it("PUT /basics/:tconst/crews (add directors with non-existing name) -> 404", async () => {
+      const response = await request(app.getHttpServer())
+        .put("/basics/tt4154796/crews")
+        .send({
+          directors: {
+            add: ["something", "nm0751577"],
+          },
+        });
+
+      expect(response.status).toBe(404);
+      expect(response.body).toEqual({
+        statusCode: 404,
+        message: "Some of the names are not found. (directors=something)",
+        timestamp: expect.any(String),
+        requestCtx: {
+          method: "PUT",
+          url: "/basics/tt4154796/crews",
+          params: {
+            tconst: "tt4154796",
+          },
+          query: {},
+        },
+      });
+    });
+
+    it("PUT /basics/:tconst/crews (add writers with non-existing name) -> 404", async () => {
+      const response = await request(app.getHttpServer())
+        .put("/basics/tt4154796/crews")
+        .send({
+          writers: {
+            add: ["something", "nm1321655"],
+          },
+        });
+
+      expect(response.status).toBe(404);
+      expect(response.body).toEqual({
+        statusCode: 404,
+        message: "Some of the names are not found. (writers=something)",
+        timestamp: expect.any(String),
+        requestCtx: {
+          method: "PUT",
+          url: "/basics/tt4154796/crews",
+          params: {
+            tconst: "tt4154796",
+          },
+          query: {},
+        },
+      });
+    });
+
+    it("PUT /basics/:tconst/crews (add directors & writers with non-existing name) -> 404", async () => {
+      const response = await request(app.getHttpServer())
+        .put("/basics/tt4154796/crews")
+        .send({
+          directors: {
+            add: ["directors1", "directors2", "nm0751577"],
+          },
+          writers: {
+            add: ["writers", "nm1321655"],
+          },
+        });
+
+      expect(response.status).toBe(404);
+      expect(response.body).toEqual({
+        statusCode: 404,
+        message:
+          "Some of the names are not found. (directors=directors1,directors2; writers=writers)",
+        timestamp: expect.any(String),
+        requestCtx: {
+          method: "PUT",
+          url: "/basics/tt4154796/crews",
+          params: {
+            tconst: "tt4154796",
+          },
+          query: {},
+        },
+      });
+    });
+
+    it("PUT /basics/:tconst/crews (with invalid directors field) -> 400", async () => {
+      const response = await request(app.getHttpServer())
+        .put("/basics/tt4154796/crews")
+        .send({
+          directors: "something",
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        message:
+          "directors: must be an object with optional 'add' and 'remove' arrays\n",
+        timestamp: expect.any(String),
+        requestCtx: {
+          method: "PUT",
+          url: "/basics/tt4154796/crews",
+          params: {
+            tconst: "tt4154796",
+          },
+          query: {},
+        },
+      });
+    });
+
+    it("PUT /basics/:tconst/crews (with invalid writers field) -> 400", async () => {
+      const response = await request(app.getHttpServer())
+        .put("/basics/tt4154796/crews")
+        .send({
+          writers: "something",
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        message:
+          "writers: must be an object with optional 'add' and 'remove' arrays\n",
+        timestamp: expect.any(String),
+        requestCtx: {
+          method: "PUT",
+          url: "/basics/tt4154796/crews",
+          params: {
+            tconst: "tt4154796",
+          },
+          query: {},
+        },
+      });
+    });
+
+    it("PUT /basics/:tconst/crews (with non-string directors field) -> 400", async () => {
+      const response = await request(app.getHttpServer())
+        .put("/basics/tt4154796/crews")
+        .send({
+          directors: {
+            add: ["nm1321655", 123],
+            remove: [456],
+          },
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        message:
+          "directors.remove.0: must be a string\ndirectors.add.1: must be a string\n",
+        timestamp: expect.any(String),
+        requestCtx: {
+          method: "PUT",
+          url: "/basics/tt4154796/crews",
+          params: {
+            tconst: "tt4154796",
+          },
+          query: {},
+        },
+      });
+    });
+
+    it("PUT /basics/:tconst/crews (with non-string writers field) -> 400", async () => {
+      const response = await request(app.getHttpServer())
+        .put("/basics/tt4154796/crews")
+        .send({
+          writers: {
+            add: ["nm1321655", 123],
+            remove: [456],
+          },
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        message:
+          "writers.remove.0: must be a string\nwriters.add.1: must be a string\n",
+        timestamp: expect.any(String),
+        requestCtx: {
+          method: "PUT",
+          url: "/basics/tt4154796/crews",
+          params: {
+            tconst: "tt4154796",
+          },
+          query: {},
+        },
+      });
+    });
+
+    it("PUT /basics/:tconst/crews (with non-blank directors field) -> 400", async () => {
+      const response = await request(app.getHttpServer())
+        .put("/basics/tt4154796/crews")
+        .send({
+          directors: {
+            add: ["nm1321655", "          "],
+            remove: [""],
+          },
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        message:
+          "directors.remove.0: must be a non-empty string\ndirectors.add.1: must be a non-empty string\n",
+        timestamp: expect.any(String),
+        requestCtx: {
+          method: "PUT",
+          url: "/basics/tt4154796/crews",
+          params: {
+            tconst: "tt4154796",
+          },
+          query: {},
+        },
+      });
+    });
+
+    it("PUT /basics/:tconst/crews (with non-blank writers field) -> 400", async () => {
+      const response = await request(app.getHttpServer())
+        .put("/basics/tt4154796/crews")
+        .send({
+          writers: {
+            add: ["nm1321655", "          "],
+            remove: [""],
+          },
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        message:
+          "writers.remove.0: must be a non-empty string\nwriters.add.1: must be a non-empty string\n",
+        timestamp: expect.any(String),
+        requestCtx: {
+          method: "PUT",
+          url: "/basics/tt4154796/crews",
+          params: {
+            tconst: "tt4154796",
+          },
+          query: {},
+        },
+      });
+    });
+
+    it("GET /basics/:tconst/crews/:nconst (directors) -> 200", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/basics/tt4154796/crews/nm0751577",
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        statusCode: 200,
+        message: "Request successful",
+        timestamp: expect.any(String),
+        data: {
+          category: "director",
+          characters: [],
+          job: [],
+          nconst: "nm0751577",
+          ordering: [10],
+          tconst: "tt4154796",
+        },
+      });
+    });
+
+    it("GET /basics/:tconst/crews/:nconst (writers) -> 200", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/basics/tt4154796/crews/nm0498278",
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        statusCode: 200,
+        message: "Request successful",
+        timestamp: expect.any(String),
+        data: {
+          category: "writer",
+          characters: [],
+          job: ["based on the Marvel comics by", "written stories"],
+          nconst: "nm0498278",
+          ordering: [7, 11],
+          tconst: "tt4154796",
+        },
+      });
+    });
+
+    it("GET /basics/:tconst/crews/:nconst?include[name]=1 -> 200", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/basics/tt4154796/crews/nm0498278?include[name]=1",
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        statusCode: 200,
+        message: "Request successful",
+        timestamp: expect.any(String),
+        data: {
+          category: "writer",
+          characters: [],
+          job: ["based on the Marvel comics by", "written stories"],
+          nconst: "nm0498278",
+          ordering: [7, 11],
+          tconst: "tt4154796",
+          nameDetails: {
+            birthYear: 1922,
+            deathYear: 2018,
+            knownForTitles: [
+              "tt1211837",
+              "tt1825683",
+              "tt2250912",
+              "tt3896198",
+            ],
+            primaryName: "Stan Lee",
+            primaryProfession: ["producer", "writer", "actor"],
+          },
+        },
+      });
+    });
+
+    it("GET /basics/:tconst/crews/:nconst?include[title]=1 -> 200", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/basics/tt4154796/crews/nm0498278?include[title]=1",
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        statusCode: 200,
+        message: "Request successful",
+        timestamp: expect.any(String),
+        data: {
+          category: "writer",
+          characters: [],
+          job: ["based on the Marvel comics by", "written stories"],
+          nconst: "nm0498278",
+          ordering: [7, 11],
+          tconst: "tt4154796",
+          titleDetails: {
+            endYear: null,
+            genres: ["sci-fi", "adventure", "action"],
+            isAdult: false,
+            originalTitle: "Avengers: Endgame",
+            primaryTitle: "Avengers: Endgame",
+            runtimeMinutes: 181,
+            startYear: 2019,
+            titleType: "movie",
+          },
+        },
+      });
+    });
+
+    it("GET /basics/:tconst/crews/:nconst?include[name]=true -> 200", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/basics/tt4154796/crews/nm0498278?include[name]=true",
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        statusCode: 200,
+        message: "Request successful",
+        timestamp: expect.any(String),
+        data: {
+          category: "writer",
+          characters: [],
+          job: ["based on the Marvel comics by", "written stories"],
+          nconst: "nm0498278",
+          ordering: [7, 11],
+          tconst: "tt4154796",
+          nameDetails: {
+            birthYear: 1922,
+            deathYear: 2018,
+            knownForTitles: [
+              "tt1211837",
+              "tt1825683",
+              "tt2250912",
+              "tt3896198",
+            ],
+            primaryName: "Stan Lee",
+            primaryProfession: ["producer", "writer", "actor"],
+          },
+        },
+      });
+    });
+
+    it("GET /basics/:tconst/crews/:nconst?include[title]=true -> 200", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/basics/tt4154796/crews/nm0498278?include[title]=true",
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        statusCode: 200,
+        message: "Request successful",
+        timestamp: expect.any(String),
+        data: {
+          category: "writer",
+          characters: [],
+          job: ["based on the Marvel comics by", "written stories"],
+          nconst: "nm0498278",
+          ordering: [7, 11],
+          tconst: "tt4154796",
+          titleDetails: {
+            endYear: null,
+            genres: ["sci-fi", "adventure", "action"],
+            isAdult: false,
+            originalTitle: "Avengers: Endgame",
+            primaryTitle: "Avengers: Endgame",
+            runtimeMinutes: 181,
+            startYear: 2019,
+            titleType: "movie",
+          },
+        },
+      });
+    });
+
+    it("GET /basics/:tconst/crews/:nconst?include[title]=1&include[name]=1 -> 200", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/basics/tt4154796/crews/nm0498278?include[title]=1&include[name]=1",
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        statusCode: 200,
+        message: "Request successful",
+        timestamp: expect.any(String),
+        data: {
+          category: "writer",
+          characters: [],
+          job: ["based on the Marvel comics by", "written stories"],
+          nconst: "nm0498278",
+          ordering: [7, 11],
+          tconst: "tt4154796",
+          nameDetails: {
+            birthYear: 1922,
+            deathYear: 2018,
+            knownForTitles: [
+              "tt1211837",
+              "tt1825683",
+              "tt2250912",
+              "tt3896198",
+            ],
+            primaryName: "Stan Lee",
+            primaryProfession: ["producer", "writer", "actor"],
+          },
+          titleDetails: {
+            endYear: null,
+            genres: ["sci-fi", "adventure", "action"],
+            isAdult: false,
+            originalTitle: "Avengers: Endgame",
+            primaryTitle: "Avengers: Endgame",
+            runtimeMinutes: 181,
+            startYear: 2019,
+            titleType: "movie",
+          },
+        },
+      });
+    });
+
+    it("GET /basics/:tconst/crews/:nconst (with non-existing title) -> 404", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/basics/something/crews/nm0498278",
+      );
+
+      expect(response.status).toBe(404);
+      expect(response.body).toEqual({
+        statusCode: 404,
+        message:
+          "No crew member found for tconst=something and nconst=nm0498278",
+        timestamp: expect.any(String),
+        requestCtx: {
+          method: "GET",
+          url: "/basics/something/crews/nm0498278",
+          query: {},
+          params: {
+            tconst: "something",
+            nconst: "nm0498278",
+          },
+        },
+      });
+    });
+
+    it("GET /basics/:tconst/crews/:nconst (with non-existing name) -> 404", async () => {
+      const response = await request(app.getHttpServer()).get(
+        "/basics/tt4154796/crews/nm0000000",
+      );
+
+      expect(response.status).toBe(404);
+      expect(response.body).toEqual({
+        statusCode: 404,
+        message:
+          "No crew member found for tconst=tt4154796 and nconst=nm0000000",
+        timestamp: expect.any(String),
+        requestCtx: {
+          method: "GET",
+          url: "/basics/tt4154796/crews/nm0000000",
+          query: {},
+          params: {
+            tconst: "tt4154796",
+            nconst: "nm0000000",
+          },
+        },
+      });
+    });
+
+    it("PUT /basics/:tconst/crews/:nconst -> 200", async () => {
+      const response = await request(app.getHttpServer())
+        .put("/basics/tt4154796/crews/nm0751577/10")
+        .send({
+          category: "writer",
+          job: "screenplay by",
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        statusCode: 200,
+        message: "Resource updated successfully",
+        timestamp: expect.any(String),
+        data: {
+          _id: expect.any(String),
+          category: "writer",
+          characters: [],
+          job: "screenplay by",
+          nconst: "nm0751577",
+          ordering: 10,
+          tconst: "tt4154796",
+        },
+      });
+    });
+
+    it("PUT /basics/:tconst/crews/:nconst (with wrong ordering) -> 404", async () => {
+      const response = await request(app.getHttpServer())
+        .put("/basics/tt4154796/crews/nm0751577/2")
+        .send({
+          category: "writer",
+          job: "screenplay by",
+        });
+
+      expect(response.status).toBe(404);
+      expect(response.body).toEqual({
+        statusCode: 404,
+        message:
+          "No crew member found for tconst=tt4154796, nconst=nm0751577 and ordering=2",
+        timestamp: expect.any(String),
+        requestCtx: {
+          method: "PUT",
+          url: "/basics/tt4154796/crews/nm0751577/2",
+          query: {},
+          params: {
+            tconst: "tt4154796",
+            nconst: "nm0751577",
+            ordering: "2",
+          },
+        },
+      });
+    });
+
+    it("PUT /basics/:tconst/crews/:nconst (with invalid ordering) -> 400", async () => {
+      const response = await request(app.getHttpServer())
+        .put("/basics/tt4154796/crews/nm0751577/something")
+        .send({
+          category: "writer",
+          job: "screenplay by",
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        statusCode: 400,
+        message: "Validation failed (numeric string is expected)",
+        timestamp: expect.any(String),
+        requestCtx: {
+          method: "PUT",
+          url: "/basics/tt4154796/crews/nm0751577/something",
+          query: {},
+          params: {
+            tconst: "tt4154796",
+            nconst: "nm0751577",
+            ordering: "something",
+          },
+        },
+      });
+    });
+
+    it("PUT /basics/:tconst/crews/:nconst (with non-existing name) -> 404", async () => {
+      const response = await request(app.getHttpServer())
+        .put("/basics/tt4154796/crews/something/10")
+        .send({
+          category: "writer",
+          job: "screenplay by",
+        });
+
+      expect(response.status).toBe(404);
+      expect(response.body).toEqual({
+        statusCode: 404,
+        message:
+          "No crew member found for tconst=tt4154796, nconst=something and ordering=10",
+        timestamp: expect.any(String),
+        requestCtx: {
+          method: "PUT",
+          url: "/basics/tt4154796/crews/something/10",
+          query: {},
+          params: {
+            tconst: "tt4154796",
+            nconst: "something",
+            ordering: "10",
+          },
+        },
+      });
+    });
+
+    it("PUT /basics/:tconst/crews/:nconst (with non-existing title) -> 404", async () => {
+      const response = await request(app.getHttpServer())
+        .put("/basics/something/crews/nm0751577/10")
+        .send({
+          category: "writer",
+          job: "screenplay by",
+        });
+
+      expect(response.status).toBe(404);
+      expect(response.body).toEqual({
+        statusCode: 404,
+        message:
+          "No crew member found for tconst=something, nconst=nm0751577 and ordering=10",
+        timestamp: expect.any(String),
+        requestCtx: {
+          method: "PUT",
+          url: "/basics/something/crews/nm0751577/10",
+          query: {},
+          params: {
+            tconst: "something",
+            nconst: "nm0751577",
+            ordering: "10",
+          },
+        },
+      });
+    });
+
+    it("DELETE /basics/:tconst/crews/:nconst (with existing crew member) -> 204", async () => {
+      const response = await request(app.getHttpServer()).delete(
+        "/basics/tt4154796/crews/nm0751577/10",
+      );
+
+      expect(response.status).toBe(204);
+      expect(response.body).toEqual({});
+    });
+
+    it("DELETE /basics/:tconst/crews/:nconst (with non-existing crew member) -> 404", async () => {
+      const response = await request(app.getHttpServer()).delete(
+        "/basics/tt4154796/crews/nm0751577/10",
+      );
+
+      expect(response.status).toBe(404);
+      expect(response.body).toEqual({
+        statusCode: 404,
+        message:
+          "No crew member found for tconst=tt4154796, nconst=nm0751577 and ordering=10",
+        timestamp: expect.any(String),
+        requestCtx: {
+          method: "DELETE",
+          url: "/basics/tt4154796/crews/nm0751577/10",
+          query: {},
+          params: {
+            tconst: "tt4154796",
+            nconst: "nm0751577",
+            ordering: "10",
+          },
+        },
+      });
+    });
+  });
 });

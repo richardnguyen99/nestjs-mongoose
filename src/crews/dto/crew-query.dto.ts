@@ -1,49 +1,35 @@
-import { strictIntTransformer } from "src/libs/zod/transformers";
 import * as z from "zod";
 
+import { booleanishTypeTransformer } from "src/libs/zod/transformers";
+
 export const baseCrewQuerySchema = z.object({
-  /**
-   * Indicates whether the query should return a lean and short result.
-   *
-   * @example "lean=true" == { lean: true }
-   * @example "lean=false" == { lean: false }
-   * @example "lean=1" == { lean: true }
-   * @example "lean=0" == { lean: false }
-   * @example "lean" == { lean: true }
-   * @default false
-   */
-  lean: z
-    .enum(["true", "false", "0", "1", ""])
-    .optional()
-    .transform((val) => {
-      if (val === "true" || val === "1" || val === "") return true;
+  include: z
+    .object({
+      /**
+       * Option to include the directors field of a crew document based on directors
+       */
+      directors: z
+        .enum(["true", "false", "0", "1"])
+        .optional()
+        .transform(booleanishTypeTransformer),
 
-      return false;
-    }),
+      /**
+       * Option to include the writers field of a crew document based on writers
+       */
+      writers: z
+        .enum(["true", "false", "0", "1"])
+        .optional()
+        .transform(booleanishTypeTransformer),
 
-  /**
-   * the maximum number of results to return
-   *
-   * @example {"limit": "10"} -> 10
-   */
-  limit: z
-    .string()
-    .optional()
-    .default("10")
-    .transform(strictIntTransformer)
-    .pipe(z.number().min(10).default(10)),
-
-  /**
-   * the page number to return
-   *
-   * @example {"page": "1"} -> 1
-   */
-  page: z
-    .string()
-    .optional()
-    .default("1")
-    .transform(strictIntTransformer)
-    .pipe(z.number().min(1).default(1)),
+      /**
+       * Option to include the title field of a crew document based on tconst
+       */
+      title: z
+        .enum(["true", "false", "0", "1"])
+        .optional()
+        .transform(booleanishTypeTransformer),
+    })
+    .optional(),
 });
 
 export const crewQuerySchema = baseCrewQuerySchema.optional().default({});

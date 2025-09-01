@@ -30,7 +30,10 @@ export class ZodExceptionFilter implements ExceptionFilter {
     const status = HttpStatus.BAD_REQUEST;
 
     const exceptionMessage = exception.issues.reduce((acc, issue) => {
-      return `${issue.path.join(".")}: ${issue.message}\n${acc}`;
+      const issuePath =
+        issue.path.length > 0 ? issue.path.join(".") + ": " : "";
+
+      return `${issuePath}${issue.message}\n${acc}`;
     }, "");
 
     const requestId = request.headers["X-Request-Id"] ?? "unknown-request-id";

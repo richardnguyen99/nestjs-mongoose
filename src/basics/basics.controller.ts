@@ -58,7 +58,10 @@ import {
   BaseEpisodeUpdateDto,
   baseEpisodeUpdateSchema,
 } from "src/episodes/dto/episode-update.dto";
-import { BaseCrewCreateDto } from "src/crews/dto/crew-create.dto";
+import {
+  BaseCrewCreateDto,
+  baseCrewCreateSchema,
+} from "src/crews/dto/crew-create.dto";
 
 @Controller({
   version: "1",
@@ -277,7 +280,7 @@ export class BasicsController {
   @Post(":tconst/crews")
   @Header("Cache-Control", "no-store")
   @HttpCode(HttpStatus.CREATED)
-  @UsePipes(new ZodValidationPipe(principalCreateSchema))
+  @UsePipes(new ZodValidationPipe(baseCrewCreateSchema))
   async createCrew(
     @Param("tconst") tconst: string,
     @Body() body: BaseCrewCreateDto,
@@ -338,20 +341,21 @@ export class BasicsController {
     return crew;
   }
 
-  @Put(":tconst/crews/:nconst")
+  @Put(":tconst/crews/:nconst/:ordering")
   @Header("Cache-Control", "no-store")
   @HttpCode(HttpStatus.OK)
-  @UsePipes(new ZodValidationPipe(principalUpdateSchema))
+  @UsePipes(
+    new ZodValidationPipe(principalUpdateSchema.omit({ ordering: true })),
+  )
   async updateCrewByTconstAndNconst(
     @Param("tconst") tconst: string,
     @Param("nconst") nconst: string,
+    @Param("ordering", ParseIntPipe) ordering: number,
     @Body() body: PrincipalUpdateDto,
   ) {
     this.logger.log(
       `Updating crew member with nconst=${nconst} for title with tconst=${tconst}`,
     );
-
-    const ordering = body.ordering;
 
     const updateCrew = await this.basicsService.updateCrewInTitle(
       tconst,
@@ -362,7 +366,7 @@ export class BasicsController {
 
     if (!updateCrew) {
       throw new NotFoundException(
-        `No crew member found for tconst=${tconst} and nconst=${nconst}`,
+        `No crew member found for tconst=${tconst}, nconst=${nconst} and ordering=${ordering}`,
       );
     }
 
@@ -389,7 +393,7 @@ export class BasicsController {
 
     if (!result) {
       throw new NotFoundException(
-        `No crew member found for tconst=${tconst} and nconst=${nconst}`,
+        `No crew member found for tconst=${tconst}, nconst=${nconst} and ordering=${ordering}`,
       );
     }
 

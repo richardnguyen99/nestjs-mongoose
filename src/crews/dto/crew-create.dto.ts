@@ -8,14 +8,38 @@ export const baseCrewCreateSchema = z.object({
    *
    * @example { directors: ['nm0751577', 'nm0751648'] }
    */
-  directors: z.array(z.string().refine(nonEmptyStringRefiner)),
+  directors: z.array(
+    z
+      .string({
+        invalid_type_error: "must be a string",
+      })
+      .refine(nonEmptyStringRefiner, {
+        message: "must be a non-empty string",
+      }),
+    {
+      invalid_type_error: "must be an array of strings",
+      required_error: "must be provided",
+    },
+  ),
 
   /**
    * The unique identifier for the title.
    *
    * @example { writers: ['nm0751577', 'nm0751648'] }
    */
-  writers: z.array(z.string().refine(nonEmptyStringRefiner)),
+  writers: z.array(
+    z
+      .string({
+        invalid_type_error: "must be a string",
+      })
+      .refine(nonEmptyStringRefiner, {
+        message: "must be a non-empty string",
+      }),
+    {
+      invalid_type_error: "must be an array of strings",
+      required_error: "must be provided",
+    },
+  ),
 });
 
 export const crewCreateSchema = baseCrewCreateSchema
